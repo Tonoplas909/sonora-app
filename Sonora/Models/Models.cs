@@ -178,6 +178,8 @@ public sealed class AppState
 
     public string ThemeId { get; set; } = "liquide";
     /// <summary>Verre liquide only: the blurred cover of the current track as the window's background.</summary>
+    /// <summary>The window icon takes the colour and shape of the theme (on by default).</summary>
+    public bool ThemedIcon { get; set; } = true;
     public bool CoverBackground { get; set; }
     public double CoverBackgroundStrength { get; set; } = 0.55;
     /// <summary>Blur radius of that cover, 0 (sharp) to 120.</summary>

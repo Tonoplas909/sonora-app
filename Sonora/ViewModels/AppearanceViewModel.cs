@@ -292,6 +292,20 @@ public sealed class AppearanceViewModel : ObservableObject
 
     public bool CoverBackgroundAvailable => Current.Style == "liquid";
 
+    /// <summary>The icon of the window follows the theme (colour of the accent, shape of the style).</summary>
+    public bool ThemedIcon
+    {
+        get => _main.State.ThemedIcon;
+        set
+        {
+            if (_main.State.ThemedIcon == value) return;
+            _main.State.ThemedIcon = value;
+            App.Themes.ThemedIcon = value;
+            _main.ScheduleSave();
+            OnPropertyChanged();
+        }
+    }
+
     public bool CoverBackground
     {
         get => _main.State.CoverBackground;

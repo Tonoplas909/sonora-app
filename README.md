@@ -36,6 +36,7 @@ It is a native [WPF](https://learn.microsoft.com/dotnet/desktop/wpf/) applicatio
 **Make it yours**
 - **Seven themes**, each with colour variants: *Verre liquide*, *Studio* (terminal), *Affiche* (concert poster), *Soul* (70s record sleeve), *Fonction* (spec sheet), *Encre* and *Standard* (with light, OLED, paper, Synthwave and GTA 6 palettes). A theme changes shapes, fonts and titles, not just colours.
 - **A theme editor:** duplicate any theme and change its colours, fonts, corner radius, density, background (solid, gradient, the current cover, or your own picture), then import or export it as a small JSON file.
+- **An icon that follows the theme:** the window, taskbar button and title bar take the theme's accent colour and its corner shape (square for Affiche, leaf-shaped for Soul…). It can be turned off in *Appearance*. The icon of the installed program and the Start menu stays as it is.
 - **Dockable panels:** navigation, library, queue, lyrics and player. Drag a panel's header to dock it to any side, resize with splitters, show or hide from the *Show panels* menu, reset in one click.
 - Reorder or hide the home shelves, resize the cards, switch the library to covers only, pin your favourites, rebind every keyboard shortcut.
 

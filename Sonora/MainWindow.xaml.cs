@@ -25,6 +25,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        App.Themes.ApplyIconTo(this); // the icon follows the theme: set here, not in the XAML
         var args = Environment.GetCommandLineArgs();
         bool snapshot = args.Contains("--snapshot");
 
@@ -185,10 +186,22 @@ public partial class MainWindow : Window
                 FirstScrollViewer(PageHost)?.ScrollToEnd();
                 await Task.Delay(400);
                 break;
+            case "appearance-icon": // the app icon section, a little above the layout one
+                _vm.OpenAppearanceCommand.Execute(null);
+                await Task.Delay(800);
+                if (FirstScrollViewer(PageHost) is { } sv) sv.ScrollToVerticalOffset(sv.ScrollableHeight * 0.76);
+                await Task.Delay(400);
+                break;
             case "discover": _vm.OpenDiscoverCommand.Execute(null); break;
             case "tops": _vm.OpenTops(); break;
             case "stats": _vm.OpenStats(); break;
             case "appearance": _vm.OpenAppearanceCommand.Execute(null); break;
+            case "appearance-bottom": // the end of the Appearance page, where the sections that do not fit the first screen are
+                _vm.OpenAppearanceCommand.Execute(null);
+                await Task.Delay(800);
+                FirstScrollViewer(PageHost)?.ScrollToEnd();
+                await Task.Delay(400);
+                break;
             case "liked": _vm.OpenLiked(); break;
             case "all": _vm.OpenAllTracks(); _vm.Layout.Show(PanelIds.Queue); break;
             case "album" when _vm.Library.Albums.Count > 0: _vm.OpenAlbum(_vm.Library.Albums[0]); break;

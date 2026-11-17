@@ -4,7 +4,7 @@
         xmlns:d="clr-namespace:Sonora.Docking"
         xmlns:v="clr-namespace:Sonora.Views"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
-        Title="Sonora" Icon="/Assets/Sonora.ico" Width="1320" Height="840" MinWidth="980" MinHeight="620"
+        Title="Sonora" Width="1320" Height="840" MinWidth="980" MinHeight="620"
         WindowStartupLocation="CenterScreen" UseLayoutRounding="True" WindowStyle="None"
         Background="{DynamicResource Brush.Background}" Foreground="{DynamicResource Brush.TextPrimary}"
         FontFamily="{DynamicResource Font.UI}" FontSize="{DynamicResource Size.Text.Body}"
@@ -132,7 +132,7 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <StackPanel Orientation="Horizontal" Margin="12,0,0,0" VerticalAlignment="Center">
-                <Image Source="/Assets/Sonora.ico" Width="16" Height="16" />
+                <Image Source="{DynamicResource Image.AppIcon}" Width="16" Height="16" RenderOptions.BitmapScalingMode="HighQuality" />
                 <TextBlock Text="Sonora" Margin="8,0,0,0" FontSize="12" VerticalAlignment="Center"
                            Foreground="{DynamicResource Brush.TextSecondary}" />
             </StackPanel>

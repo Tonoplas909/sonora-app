@@ -53,6 +53,9 @@ public static class ThemeKeys
     public const string RowCover = "Size.RowCover";
     public const string Card = "Size.Card";
     public const string ArtworkImage = "Image.Artwork";
+
+    /// <summary>The app icon as a picture (title bar, login page): it follows the theme unless the user turned that off.</summary>
+    public const string AppIcon = "Image.AppIcon";
     public const string ArtworkOpacity = "Value.ArtworkOpacity";
     public const string HaloOpacity = "Value.HaloOpacity";
     public const string ArtworkBlur = "Value.ArtworkBlur";

@@ -36,6 +36,7 @@ C'est une application [WPF](https://learn.microsoft.com/dotnet/desktop/wpf/) nat
 **À votre image**
 - **Sept thèmes**, chacun avec ses variantes de couleur : *Verre liquide*, *Studio* (terminal), *Affiche* (affiche de concert), *Soul* (pochette des années 70), *Fonction* (fiche technique), *Encre* et *Standard* (avec les palettes clair, OLED, papier, Synthwave et GTA 6). Un thème change les formes, les polices et les titres, pas seulement les couleurs.
 - **Un éditeur de thèmes :** dupliquez un thème et changez ses couleurs, polices, arrondis, densité, fond (uni, dégradé, pochette en cours, ou votre image), puis importez ou exportez-le en petit fichier JSON.
+- **Une icône qui suit le thème :** la fenêtre, le bouton de la barre des tâches et la barre de titre prennent la couleur d'accent du thème et la forme de ses coins (carrée pour Affiche, en feuille pour Soul…). Désactivable dans *Apparence*. L'icône du programme installé et du menu Démarrer ne change pas.
 - **Panneaux ancrables :** navigation, bibliothèque, file d'attente, paroles et lecteur. Faites glisser l'en-tête d'un panneau pour l'ancrer de n'importe quel côté, redimensionnez avec les séparateurs, affichez ou masquez depuis le menu *Afficher*, réinitialisez en un clic.
 - Réordonnez ou masquez les étagères de l'accueil, changez la taille des cartes, passez la bibliothèque en pochettes seules, épinglez vos favoris, réassignez chaque raccourci clavier.
 

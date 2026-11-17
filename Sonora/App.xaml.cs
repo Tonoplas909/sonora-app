@@ -36,6 +36,7 @@ public partial class App : Application
         Themes.SetCoverBackground(state.CoverBackground || ThemeCatalog.WasImmersive(state.ThemeId), state.CoverBackgroundStrength, state.CoverBackgroundBlur);
         if (!string.IsNullOrEmpty(state.BackgroundImage) && File.Exists(state.BackgroundImage))
             Themes.SetCustomBackground(state.BackgroundImage, state.BackgroundImageStrength);
+        Themes.ThemedIcon = state.ThemedIcon;
         Themes.Apply(Catalog.Get(state.ThemeId));
 
         base.OnStartup(e);

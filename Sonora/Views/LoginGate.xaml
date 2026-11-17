@@ -7,7 +7,7 @@
                 Background="{DynamicResource Brush.Surface}" CornerRadius="{DynamicResource Radius.Panel}" Padding="40,36"
                 TextElement.Foreground="{DynamicResource Brush.TextPrimary}">
             <StackPanel>
-                <Image Source="/Assets/Sonora.png" Width="72" Height="72" HorizontalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality" />
+                <Image Source="{DynamicResource Image.AppIcon}" Width="72" Height="72" HorizontalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality" />
                 <TextBlock Text="{loc:T login.welcome_to_sonora}" FontSize="{DynamicResource Size.Text.Title}" FontFamily="{DynamicResource Font.Display}" FontWeight="Bold"
                            HorizontalAlignment="Center" Margin="0,18,0,6" />
                 <TextBlock Text="{loc:T login.connect_your_spotify_premium_account}" Foreground="{DynamicResource Brush.TextSecondary}"

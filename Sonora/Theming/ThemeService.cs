@@ -99,6 +99,7 @@ public sealed class ThemeService(ResourceDictionary resources, Dispatcher ui)
         UpdateFrame(theme);
         bool styleChanged = ApplyStyle(theme.Style);
         ApplyTitleBar();
+        UpdateIcon(theme);
         Applied?.Invoke(warnings);
         if (styleChanged) StyleChanged?.Invoke();
         else if (spacing) SpacingChanged?.Invoke();
@@ -171,6 +172,68 @@ public sealed class ThemeService(ResourceDictionary resources, Dispatcher ui)
     {
         _cardPixels = px;
         Set(ThemeKeys.Card, px);
+    }
+
+    // ---- the app icon: the logo in the theme's accent, on a tile shaped like the theme's style ----
+
+    bool _themedIcon = true;
+    string? _iconSignature;
+    ImageSource? _windowIcon;
+
+    /// <summary>
+    /// Whether the icon of the window, the title bar and the login page follows the theme (true) or stays the
+    /// original purple (false). The icon of the .exe, the Start menu and the pinned taskbar button is a file Windows
+    /// reads once: it never follows.
+    /// </summary>
+    public bool ThemedIcon
+    {
+        get => _themedIcon;
+        set
+        {
+            if (_themedIcon == value) return;
+            _themedIcon = value;
+            UpdateIcon(Current);
+        }
+    }
+
+    /// <summary>Gives a window the current icon (a window opened after the last theme change would otherwise have the old one).</summary>
+    public void ApplyIconTo(Window window)
+    {
+        if (_windowIcon != null) window.Icon = _windowIcon;
+    }
+
+    void UpdateIcon(ThemeDefinition theme)
+    {
+        try
+        {
+            string signature;
+            ImageSource title, window;
+            if (_themedIcon && Argb.TryParse(theme.Colors.Accent, out var accent))
+            {
+                // The accent of the theme itself, not the one taken from the current cover: the icon must not change every track.
+                var spec = AppIconSpec.For(theme.Style, accent);
+                signature = spec.Signature;
+                if (signature == _iconSignature) return;
+                title = AppIconRenderer.Render(spec, 64);
+                window = AppIconRenderer.WindowIcon(spec);
+            }
+            else
+            {
+                signature = "original";
+                if (signature == _iconSignature) return;
+                title = new System.Windows.Media.Imaging.BitmapImage(new Uri("pack://application:,,,/Assets/Sonora.png"));
+                window = System.Windows.Media.Imaging.BitmapFrame.Create(new Uri("pack://application:,,,/Assets/Sonora.ico"));
+            }
+            _iconSignature = signature;
+            _windowIcon = window;
+            resources[ThemeKeys.AppIcon] = title;
+            if (Application.Current is { } app)
+                foreach (Window w in app.Windows) w.Icon = window;
+        }
+        catch
+        {
+            // An icon is not worth a crash: the window keeps the one it had.
+        }
     }
 
     /// <summary>Window whose title bar follows the theme colours.</summary>

@@ -348,6 +348,21 @@
                 </Border>
 
                 <!-- ===== Layout ===== -->
+                <!-- The icon of the window follows the theme. The icon of the .exe and of the Start menu is a file Windows
+                     reads once, so it stays as it is: the help text says so. -->
+                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T appearance.app_icon}" />
+                <Border Style="{StaticResource SettingCard}">
+                    <StackPanel>
+                        <DockPanel>
+                            <Image Source="{DynamicResource Image.AppIcon}" Width="40" Height="40" DockPanel.Dock="Left" Margin="0,0,16,0"
+                                   RenderOptions.BitmapScalingMode="HighQuality" />
+                            <CheckBox Style="{StaticResource Toggle}" VerticalAlignment="Center" IsChecked="{Binding Settings.ThemedIcon}" Content="{loc:T appearance.icon_follows_theme}" />
+                        </DockPanel>
+                        <TextBlock Foreground="{DynamicResource Brush.TextMuted}" TextWrapping="Wrap" Margin="0,10,0,0"
+                                   FontSize="{DynamicResource Size.Text.Small}" Text="{loc:T appearance.icon_follows_theme_help}" />
+                    </StackPanel>
+                </Border>
+
                 <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T appearance.layout}" />
                 <Border Style="{StaticResource SettingCard}">
                     <StackPanel>
