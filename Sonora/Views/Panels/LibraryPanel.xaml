@@ -1,0 +1,48 @@
+<p:PanelView x:Class="Sonora.Views.Panels.LibraryPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:p="clr-namespace:Sonora.Views.Panels"
+             xmlns:v="clr-namespace:Sonora.Views">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <!-- The frame header already shows the "Bibliothèque" title: only the actions here. -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,4,0">
+            <Button Style="{DynamicResource IconButton}" Content="&#xE8CB;" Click="Sort_Click" ToolTip="Ordre de la bibliothèque" />
+            <Button Style="{DynamicResource IconButton}" Content="&#xE8B7;" Command="{Binding AddFolderCommand}" ToolTip="Ajouter un dossier de musique" />
+            <Button Style="{DynamicResource IconButton}" Content="&#xE710;" Command="{Binding NewPlaylistCommand}" ToolTip="Créer une playlist" />
+            <Button Style="{DynamicResource IconButton}" Content="&#xE8E5;" Command="{Binding ImportPlaylistCommand}" ToolTip="Importer une playlist M3U" />
+        </StackPanel>
+        <!-- Search and order. Both run on the entries already built, so neither costs a request. -->
+        <StackPanel Grid.Row="1" Margin="12,0,12,8">
+            <Grid Margin="0,0,0,8">
+                <TextBox Style="{DynamicResource SearchBox}" Height="32" FontSize="{DynamicResource Size.Text.Small}"
+                         Tag="Rechercher dans la bibliothèque"
+                         Text="{Binding LibrarySearch, UpdateSourceTrigger=PropertyChanged, Delay=150}" />
+            </Grid>
+            <WrapPanel>
+                <RadioButton Style="{DynamicResource Chip}" GroupName="LibFilter" Content="Playlists" Margin="0,0,8,4"
+                             IsChecked="{Binding LibraryFilter, Converter={StaticResource Eq}, ConverterParameter=Playlists}" />
+                <RadioButton Style="{DynamicResource Chip}" GroupName="LibFilter" Content="Albums" Margin="0,0,8,4"
+                             IsChecked="{Binding LibraryFilter, Converter={StaticResource Eq}, ConverterParameter=Albums}" />
+                <RadioButton Style="{DynamicResource Chip}" GroupName="LibFilter" Content="Artistes" Margin="0,0,8,4"
+                             IsChecked="{Binding LibraryFilter, Converter={StaticResource Eq}, ConverterParameter=Artists}" />
+            </WrapPanel>
+        </StackPanel>
+        <v:LibraryList Grid.Row="2" ItemsSource="{Binding LibraryEntries}" ForceCompact="{Binding Content.LibraryCompact}" ItemContainerStyle="{DynamicResource LibraryItem}"
+                       ItemTemplate="{DynamicResource LibraryEntryTemplate}" Background="Transparent" BorderThickness="0" Margin="0,0,0,4"
+                       VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" VirtualizingPanel.ScrollUnit="Pixel"
+                       ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <v:LibraryList.Template>
+                <ControlTemplate TargetType="ListBox">
+                    <ScrollViewer Focusable="False" CanContentScroll="True" HorizontalScrollBarVisibility="Disabled">
+                        <ItemsPresenter />
+                    </ScrollViewer>
+                </ControlTemplate>
+            </v:LibraryList.Template>
+        </v:LibraryList>
+    </Grid>
+</p:PanelView>

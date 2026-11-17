@@ -1,0 +1,39 @@
+{
+  "id": "liquide-clair",
+  "name": "Lumière",
+  "builtIn": true,
+  "style": "liquid",
+  "colors": {
+    "window": "#EEF2F8",
+    "surface": "#FFFFFF",
+    "surfaceAlt": "#F5F7FB",
+    "hover": "#14000000",
+    "selected": "#24000000",
+    "border": "#1F000000",
+    "textPrimary": "#10131C",
+    "textSecondary": "#444C60",
+    "textMuted": "#7A8396",
+    "accent": "#0A84FF",
+    "onAccent": "#FFFFFF",
+    "rail": "#33000000"
+  },
+  "fonts": {
+    "ui": "Segoe UI Variable Text",
+    "display": "Segoe UI Variable Display",
+    "numbers": "Segoe UI Variable Text"
+  },
+  "fontScale": 1.0,
+  "cornerRadius": 24,
+  "density": "normal",
+  "panelGap": 12,
+  "background": {
+    "mode": "gradient",
+    "colors": [
+      "#CFE3FF",
+      "#F6D9EC"
+    ],
+    "artworkStrength": 0.0
+  },
+  "accentFromArtwork": false,
+  "animations": true
+}

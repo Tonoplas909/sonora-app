@@ -1,0 +1,62 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>Sonora</AssemblyName>
+    <RootNamespace>Sonora</RootNamespace>
+    <ApplicationIcon>Assets\Sonora.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Product>Sonora</Product>
+    <AssemblyTitle>Sonora</AssemblyTitle>
+    <Version>1.0.0</Version>
+    <Description>A customizable music player for Windows: local files and Spotify, themes and dockable panels.</Description>
+    <Authors>Sonora contributors</Authors>
+    <Copyright>Copyright (c) 2026 Sonora contributors</Copyright>
+    <RepositoryUrl>https://github.com/Tonoplas909/sonora-app</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+
+    <!-- Performance -->
+    <TieredPGO>true</TieredPGO>
+    <TieredCompilation>true</TieredCompilation>
+    <!-- The managed heap is about 11 MB: a blocking collection costs well under a millisecond, and the background
+         collector's own thread and buffers are not worth keeping. -->
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <PublishReadyToRun>true</PublishReadyToRun>
+
+    <!-- WPF Fluent theme (ThemeMode) is flagged experimental -->
+    <NoWarn>$(NoWarn);WPF0001</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\Sonora.ico" />
+    <Resource Include="Assets\Sonora.png" />
+    <Resource Include="Fonts\*.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Velopack must run before anything else (see Program.cs), so the entry point is ours, not the one WPF
+         generates from App.xaml: App.xaml is compiled as a plain page instead of the application definition. -->
+    <ApplicationDefinition Remove="App.xaml" />
+    <Page Include="App.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Hosts Spotify's official Web Playback SDK (Spotify Connect device) -->
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
+    <!-- Installer, uninstaller and in-app updates (GitHub releases) -->
+    <PackageReference Include="Velopack" Version="1.2.161" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sonora.Appearance\Sonora.Appearance.csproj" />
+  </ItemGroup>
+
+</Project>

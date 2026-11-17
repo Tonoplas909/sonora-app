@@ -1,0 +1,100 @@
+name: Release
+
+# Push a tag such as v1.0.0 to build Sonora and publish a GitHub release with:
+#   SonoraApp-win-Setup.exe     the installer (also installs .NET 10 and WebView2 when missing)
+#   SonoraApp-win-Portable.zip  no installation: unzip and run
+#   *.nupkg, releases.win.json  what the in-app updater reads (do not remove them)
+# See docs/RELEASING.md.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+env:
+  # Keep in step with the Velopack package version in Sonora/Sonora.csproj.
+  VPK_VERSION: 1.2.161
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # the release notes list the commits since the previous tag
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Version from the tag
+        shell: pwsh
+        run: |
+          $version = '${{ github.ref_name }}'.TrimStart('v')
+          if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$') { throw "Tag '${{ github.ref_name }}' is not a version like v1.2.3" }
+          "VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Test
+        run: dotnet test Sonora.Tests -c Release --nologo
+
+      # Framework-dependent: the installer brings the .NET 10 Desktop Runtime, which keeps downloads and updates small.
+      - name: Publish
+        run: >
+          dotnet publish Sonora/Sonora.csproj -c Release -r win-x64 --self-contained false
+          -p:PublishReadyToRun=true -p:Version=$env:VERSION -o publish --nologo
+
+      - name: Install the Velopack tool
+        run: dotnet tool install -g vpk --version $env:VPK_VERSION
+
+      # Fetches the previous release so Velopack can build small delta updates. The first release has none.
+      - name: Download the previous release
+        continue-on-error: true
+        run: vpk download github --repoUrl https://github.com/${{ github.repository }} --token ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release notes
+        shell: pwsh
+        run: |
+          $previous = git describe --tags --abbrev=0 "${{ github.ref_name }}^" 2>$null
+          $range = if ($previous) { "$previous..${{ github.ref_name }}" } else { '${{ github.ref_name }}' }
+          $lines = git log $range --no-merges --pretty='- %s'
+          "## Changes`n`n" + ($lines -join "`n") | Set-Content notes.md -Encoding utf8
+
+      # Signing is optional and driven by repository secrets (see docs/RELEASING.md). Without any, the build is unsigned.
+      - name: Signing options
+        id: signing
+        shell: pwsh
+        env:
+          AZURE_SIGNING_METADATA: ${{ secrets.AZURE_SIGNING_METADATA }}
+          VPK_SIGN_PARAMS: ${{ secrets.VPK_SIGN_PARAMS }}
+        run: |
+          if ($env:AZURE_SIGNING_METADATA) {
+            New-Item -ItemType Directory -Force signing | Out-Null
+            Set-Content signing/metadata.json $env:AZURE_SIGNING_METADATA -Encoding utf8
+            "args=--azureTrustedSignFile signing/metadata.json" >> $env:GITHUB_OUTPUT
+            Write-Host 'Signing with Azure Trusted Signing.'
+          } elseif ($env:VPK_SIGN_PARAMS) {
+            "args=--signParams `"$env:VPK_SIGN_PARAMS`"" >> $env:GITHUB_OUTPUT
+            Write-Host 'Signing with the parameters given in VPK_SIGN_PARAMS.'
+          } else {
+            "args=" >> $env:GITHUB_OUTPUT
+            Write-Host 'No signing secrets: the build will be unsigned.'
+          }
+
+      # The id must differ from the data folder (%LOCALAPPDATA%\Sonora): Velopack owns its install folder, and
+      # uninstalling would otherwise take the user's settings and library cache with it.
+      - name: Pack
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        run: >
+          vpk pack --packId SonoraApp --packTitle Sonora --packAuthors "Sonora contributors"
+          --packVersion $env:VERSION --packDir publish --mainExe Sonora.exe --icon Sonora/Assets/Sonora.ico
+          --framework net10.0-x64-desktop,webview2 --runtime win-x64 --shortcuts StartMenuRoot
+          --releaseNotes notes.md ${{ steps.signing.outputs.args }}
+
+      - name: Upload to GitHub
+        run: >
+          vpk upload github --repoUrl https://github.com/${{ github.repository }} --publish
+          --releaseName "Sonora v$env:VERSION" --tag ${{ github.ref_name }} --token ${{ secrets.GITHUB_TOKEN }}

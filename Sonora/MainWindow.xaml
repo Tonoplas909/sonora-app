@@ -1,0 +1,146 @@
+<Window x:Class="Sonora.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="clr-namespace:Sonora.Docking"
+        xmlns:v="clr-namespace:Sonora.Views"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        Title="Sonora" Icon="/Assets/Sonora.ico" Width="1320" Height="840" MinWidth="980" MinHeight="620"
+        WindowStartupLocation="CenterScreen" UseLayoutRounding="True" WindowStyle="None"
+        Background="{DynamicResource Brush.Background}" Foreground="{DynamicResource Brush.TextPrimary}"
+        FontFamily="{DynamicResource Font.UI}" FontSize="{DynamicResource Size.Text.Body}"
+        PreviewKeyDown="Window_PreviewKeyDown" PreviewMouseDown="Window_PreviewMouseDown" Closing="Window_Closing">
+    <!-- Playback progress on the taskbar thumbnail, so the track's position reads without raising the window. -->
+    <Window.TaskbarItemInfo>
+        <shell:TaskbarItemInfo ProgressValue="{Binding Player.Progress, Mode=OneWay}"
+                               ProgressState="{Binding Player.IsPlaying, Converter={StaticResource TaskbarState}, Mode=OneWay}" />
+    </Window.TaskbarItemInfo>
+
+    <shell:WindowChrome.WindowChrome>
+        <!-- CaptionHeight marks the top strip as draggable/double-click-to-maximize, like a native title bar;
+             GlassFrameThickness keeps the drop shadow and Windows 11's automatic rounded corners. -->
+        <shell:WindowChrome CaptionHeight="36" ResizeBorderThickness="6" GlassFrameThickness="0,0,0,1" UseAeroCaptionButtons="False" />
+    </shell:WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <!-- Window control buttons (minimize/maximize/close), drawn by Sonora since WindowStyle="None" removes the native ones. -->
+        <Style x:Key="CaptionButton" TargetType="Button">
+            <Setter Property="Width" Value="46" />
+            <Setter Property="Height" Value="36" />
+            <Setter Property="FontFamily" Value="{StaticResource Icons}" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="Transparent">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush.Hover}" />
+                                <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.7" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CaptionCloseButton" TargetType="Button" BasedOn="{StaticResource CaptionButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="Transparent">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#E81123" />
+                                <Setter Property="Foreground" Value="White" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.8" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <!-- The user's own picture, for themes with a plain one-colour background -->
+        <Image Source="{DynamicResource Image.CustomBackground}" Opacity="{DynamicResource Value.CustomBackgroundOpacity}" Stretch="UniformToFill"
+               IsHitTestVisible="False" />
+
+        <!-- Artwork background (themes with background mode "artwork") -->
+        <Image Source="{DynamicResource Image.Artwork}" Opacity="{DynamicResource Value.ArtworkOpacity}" Stretch="UniformToFill"
+               IsHitTestVisible="False" Margin="-150">
+            <Image.Effect>
+                <BlurEffect Radius="{DynamicResource Value.ArtworkBlur}" KernelType="Gaussian" RenderingBias="Performance" />
+            </Image.Effect>
+        </Image>
+
+        <!-- Style backdrop (e.g. coloured halos behind the glass panels of the "Verre liquide" style) -->
+        <ContentControl ContentTemplate="{DynamicResource BackdropTemplate}" IsHitTestVisible="False" Focusable="False" />
+
+        <d:DockHost x:Name="Host" Model="{Binding Layout}" Margin="8,44,8,8">
+            <d:DockHost.Center>
+                <Border Style="{DynamicResource CenterSurfaceStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="64" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid Margin="16,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Style="{DynamicResource RoundNav}" Content="&#xE72B;" Command="{Binding GoBackCommand}" ToolTip="Retour (Alt+←)" />
+                                <Button Style="{DynamicResource RoundNav}" Content="&#xE72A;" Command="{Binding GoForwardCommand}" ToolTip="Suivant (Alt+→)" Margin="8,0,16,0" />
+                                <TextBox x:Name="SearchBox" Style="{DynamicResource SearchBox}" Width="360" Tag="Que souhaitez-vous écouter ?"
+                                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Status}" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="{DynamicResource Size.Text.Small}"
+                                           VerticalAlignment="Center" Margin="0,0,12,0" MaxWidth="360" TextTrimming="CharacterEllipsis" />
+                                <Button Style="{DynamicResource RoundNav}" Content="&#xE8A9;" Click="Display_Click" ToolTip="Afficher les panneaux" Margin="0,0,8,0" />
+                                <Button Style="{DynamicResource RoundNav}" Content="&#xE713;" Command="{Binding OpenSettingsCommand}" ToolTip="Paramètres" />
+                            </StackPanel>
+                        </Grid>
+                        <ContentControl x:Name="PageHost" Grid.Row="1" Content="{Binding CurrentPage}" Focusable="False" />
+                    </Grid>
+                </Border>
+            </d:DockHost.Center>
+        </d:DockHost>
+
+        <v:LoginGate Panel.ZIndex="100" Visibility="{Binding ShowLoginGate, Converter={StaticResource BoolToVis}}" />
+
+        <!-- Custom title bar: replaces the native one so it can follow the theme. Stays above the login gate
+             so the window can still be moved, minimized or closed while signing in. -->
+        <Grid Height="36" VerticalAlignment="Top" Background="Transparent" Panel.ZIndex="200">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" Margin="12,0,0,0" VerticalAlignment="Center">
+                <Image Source="/Assets/Sonora.ico" Width="16" Height="16" />
+                <TextBlock Text="Sonora" Margin="8,0,0,0" FontSize="12" VerticalAlignment="Center"
+                           Foreground="{DynamicResource Brush.TextSecondary}" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                <Button x:Name="MinButton" Style="{StaticResource CaptionButton}" Content="&#xE921;" ToolTip="Réduire" Click="Minimize_Click" />
+                <Button x:Name="MaxButton" Style="{StaticResource CaptionButton}" Content="&#xE922;" ToolTip="Agrandir" Click="MaximizeRestore_Click" />
+                <Button x:Name="CloseButton" Style="{StaticResource CaptionCloseButton}" Content="&#xE8BB;" ToolTip="Fermer" Click="Close_Click" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

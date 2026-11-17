@@ -1,0 +1,38 @@
+{
+  "id": "studio-cyan",
+  "name": "Cyan",
+  "builtIn": true,
+  "style": "terminal",
+  "colors": {
+    "window": "#050B0D",
+    "surface": "#081114",
+    "surfaceAlt": "#0C181C",
+    "hover": "#112228",
+    "selected": "#172C33",
+    "border": "#1E3A42",
+    "textPrimary": "#D8F6FF",
+    "textSecondary": "#7FB8C6",
+    "textMuted": "#4F7C87",
+    "accent": "#00E5FF",
+    "onAccent": "#001A1F",
+    "rail": "#24454E"
+  },
+  "fonts": {
+    "ui": "Cascadia Mono",
+    "display": "Cascadia Mono",
+    "numbers": "Cascadia Mono"
+  },
+  "fontScale": 0.95,
+  "cornerRadius": 2,
+  "density": "compact",
+  "panelGap": 1,
+  "background": {
+    "mode": "solid",
+    "colors": [
+      "#050B0D"
+    ],
+    "artworkStrength": 0.0
+  },
+  "accentFromArtwork": false,
+  "animations": true
+}

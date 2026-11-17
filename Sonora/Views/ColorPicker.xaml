@@ -1,0 +1,38 @@
+<UserControl x:Class="Sonora.Views.ColorPicker"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Sonora"
+             x:Name="Root">
+    <UserControl.Resources>
+        <local:HexBrushConverter x:Key="HexBrush" />
+    </UserControl.Resources>
+    <StackPanel Orientation="Horizontal">
+        <ToggleButton x:Name="Swatch" Width="34" Height="34" Cursor="Hand" Focusable="False" ToolTip="Choisir la couleur"
+                      IsEnabled="{Binding IsEnabled, ElementName=Root}">
+            <ToggleButton.Template>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="{DynamicResource Radius.Control}"
+                            Background="{Binding Hex, ElementName=Root, Converter={StaticResource HexBrush}}" />
+                </ControlTemplate>
+            </ToggleButton.Template>
+        </ToggleButton>
+        <TextBox x:Name="HexBox" Width="104" Margin="8,0,0,0" FontFamily="{DynamicResource Font.Numbers}"
+                 Text="{Binding Hex, ElementName=Root, UpdateSourceTrigger=LostFocus}" KeyDown="HexBox_KeyDown" />
+        <Popup IsOpen="{Binding IsChecked, ElementName=Swatch}" PlacementTarget="{Binding ElementName=Swatch}" Placement="Bottom"
+               StaysOpen="False" AllowsTransparency="True" Closed="Popup_Closed">
+            <Border Background="{DynamicResource Brush.SurfaceAlt}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                    CornerRadius="{DynamicResource Radius.Panel}" Padding="16" Width="260" TextElement.Foreground="{DynamicResource Brush.TextPrimary}">
+                <StackPanel>
+                    <Border Height="40" CornerRadius="{DynamicResource Radius.Control}" Margin="0,0,0,12"
+                            Background="{Binding Hex, ElementName=Root, Converter={StaticResource HexBrush}}" />
+                    <TextBlock Text="Teinte" FontSize="{DynamicResource Size.Text.Small}" />
+                    <Slider x:Name="Hue" Style="{DynamicResource ThinSlider}" Minimum="0" Maximum="359" ValueChanged="Hsl_Changed" />
+                    <TextBlock Text="Saturation" FontSize="{DynamicResource Size.Text.Small}" Margin="0,8,0,0" />
+                    <Slider x:Name="Sat" Style="{DynamicResource ThinSlider}" Minimum="0" Maximum="1" ValueChanged="Hsl_Changed" />
+                    <TextBlock Text="Luminosité" FontSize="{DynamicResource Size.Text.Small}" Margin="0,8,0,0" />
+                    <Slider x:Name="Lum" Style="{DynamicResource ThinSlider}" Minimum="0" Maximum="1" ValueChanged="Hsl_Changed" />
+                </StackPanel>
+            </Border>
+        </Popup>
+    </StackPanel>
+</UserControl>

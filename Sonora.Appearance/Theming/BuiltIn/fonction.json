@@ -1,0 +1,38 @@
+{
+  "id": "fonction",
+  "name": "Gris",
+  "builtIn": true,
+  "style": "fonction",
+  "colors": {
+    "window": "#262624",
+    "surface": "#E7E6E1",
+    "surfaceAlt": "#DAD9D3",
+    "hover": "#DEDDD7",
+    "selected": "#D1D0C9",
+    "border": "#33000000",
+    "textPrimary": "#1A1A18",
+    "textSecondary": "#55554F",
+    "textMuted": "#6F6F68",
+    "accent": "#CC4306",
+    "onAccent": "#FFFFFF",
+    "rail": "#BDBCB5"
+  },
+  "fonts": {
+    "ui": "Bahnschrift",
+    "display": "Bahnschrift",
+    "numbers": "Bahnschrift"
+  },
+  "fontScale": 0.95,
+  "cornerRadius": 4,
+  "density": "compact",
+  "panelGap": 2,
+  "background": {
+    "mode": "solid",
+    "colors": [
+      "#262624"
+    ],
+    "artworkStrength": 0.0
+  },
+  "accentFromArtwork": false,
+  "animations": false
+}

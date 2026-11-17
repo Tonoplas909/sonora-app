@@ -1,0 +1,38 @@
+{
+  "id": "papier",
+  "name": "Papier",
+  "builtIn": true,
+  "colors": {
+    "window": "#EFE6D8",
+    "surface": "#F8F1E5",
+    "surfaceAlt": "#F2E9DA",
+    "hover": "#E8DCC8",
+    "selected": "#DFD0B7",
+    "border": "#DCCDB4",
+    "textPrimary": "#2B2118",
+    "textSecondary": "#6B5A48",
+    "textMuted": "#9A8873",
+    "accent": "#B5562B",
+    "onAccent": "#FFF8F0",
+    "rail": "#CDBA9C"
+  },
+  "fonts": {
+    "ui": "Segoe UI Variable Text",
+    "display": "Georgia",
+    "numbers": "Segoe UI Variable Text"
+  },
+  "fontScale": 1.0,
+  "cornerRadius": 8,
+  "density": "confort",
+  "panelGap": 10,
+  "background": {
+    "mode": "solid",
+    "colors": [
+      "#EFE6D8"
+    ],
+    "artworkStrength": 0.0
+  },
+  "accentFromArtwork": false,
+  "animations": true,
+  "style": "standard"
+}

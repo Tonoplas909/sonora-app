@@ -1,0 +1,435 @@
+<ResourceDictionary x:Class="Sonora.Views.AppearancePageView"
+                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:vm="clr-namespace:Sonora.ViewModels"
+                    xmlns:v="clr-namespace:Sonora.Views"
+                    xmlns:local="clr-namespace:Sonora">
+
+    <local:HexBrushConverter x:Key="HexBrush" />
+    <local:OptionLabelConverter x:Key="OptionLabel" />
+
+    <Style x:Key="SettingCard" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource Brush.SurfaceAlt}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource Radius.Panel}" />
+        <Setter Property="Padding" Value="20" />
+    </Style>
+
+    <Style x:Key="SettingLabel" TargetType="TextBlock">
+        <Setter Property="Width" Value="190" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}" />
+    </Style>
+
+    <Style x:Key="Toggle" TargetType="CheckBox">
+        <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}" />
+        <Setter Property="Margin" Value="0,4" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <DockPanel Background="Transparent">
+                        <Border x:Name="Track" DockPanel.Dock="Left" Width="40" Height="22" CornerRadius="11" Background="{DynamicResource Brush.Rail}" Margin="0,0,12,0">
+                            <Ellipse x:Name="Knob" Width="16" Height="16" Fill="{DynamicResource Brush.TextPrimary}" HorizontalAlignment="Left" Margin="3,0">
+                                <Ellipse.RenderTransform>
+                                    <TranslateTransform x:Name="KnobShift" X="0" />
+                                </Ellipse.RenderTransform>
+                            </Ellipse>
+                        </Border>
+                        <ContentPresenter VerticalAlignment="Center" />
+                    </DockPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Track" Property="Background" Value="{DynamicResource Brush.Accent}" />
+                            <Setter TargetName="Knob" Property="Fill" Value="{DynamicResource Brush.OnAccent}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="KnobShift" Storyboard.TargetProperty="X" To="18" Duration="0:0:0.14">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="KnobShift" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.14">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Choice" TargetType="ComboBox">
+        <Setter Property="MinWidth" Value="220" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}" />
+    </Style>
+
+    <DataTemplate x:Key="OptionItem">
+        <TextBlock Text="{Binding Converter={StaticResource OptionLabel}}" />
+    </DataTemplate>
+
+    <local:RadiusPreviewConverter x:Key="RadiusPreview" />
+
+    <!-- Style cards have a description of varying length: stretch every card in a row to the tallest one,
+         instead of a plain WrapPanel (ragged bottoms) or one fixed height for every card regardless of row. -->
+    <ItemsPanelTemplate x:Key="EqualRowWrapPanelTemplate">
+        <v:RowStretchWrapPanel />
+    </ItemsPanelTemplate>
+
+    <!-- Theme card: a mini window drawn with the theme's first sub-theme, its shapes and a description -->
+    <DataTemplate x:Key="StyleTileTemplate" DataType="{x:Type vm:StyleTile}">
+        <Button Cursor="Hand" Focusable="False" Margin="0,0,14,14"
+                Command="{Binding DataContext.Settings.SelectStyleCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Frame" Width="214" CornerRadius="12" BorderThickness="2" BorderBrush="{DynamicResource Brush.Border}"
+                            Background="{DynamicResource Brush.SurfaceAlt}" Padding="10" ClipToBounds="True">
+                        <StackPanel>
+                            <Border Height="96" CornerRadius="{Binding Preview.CornerRadius, Converter={StaticResource RadiusPreview}}"
+                                    Background="{Binding Preview.Colors.Window, Converter={StaticResource HexBrush}}" ClipToBounds="True">
+                                <Grid Margin="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="48" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border CornerRadius="{Binding Preview.CornerRadius, Converter={StaticResource RadiusPreview}}" Margin="0,0,6,0"
+                                            Background="{Binding Preview.Colors.Surface, Converter={StaticResource HexBrush}}"
+                                            BorderBrush="{Binding Preview.Colors.Border, Converter={StaticResource HexBrush}}" BorderThickness="1" />
+                                    <Border Grid.Column="1" CornerRadius="{Binding Preview.CornerRadius, Converter={StaticResource RadiusPreview}}"
+                                            Background="{Binding Preview.Colors.Surface, Converter={StaticResource HexBrush}}"
+                                            BorderBrush="{Binding Preview.Colors.Border, Converter={StaticResource HexBrush}}" BorderThickness="1">
+                                        <StackPanel Margin="8">
+                                            <TextBlock Text="Aa" FontFamily="{Binding Preview.Fonts.Display}" FontWeight="Bold" FontSize="18"
+                                                       Foreground="{Binding Preview.Colors.TextPrimary, Converter={StaticResource HexBrush}}" />
+                                            <Border Height="5" Width="56" CornerRadius="3" HorizontalAlignment="Left" Margin="0,6,0,0"
+                                                    Background="{Binding Preview.Colors.TextSecondary, Converter={StaticResource HexBrush}}" />
+                                            <Border Height="12" Width="30" HorizontalAlignment="Left" Margin="0,8,0,0"
+                                                    CornerRadius="{Binding Preview.CornerRadius, Converter={StaticResource RadiusPreview}}"
+                                                    Background="{Binding Preview.Colors.Accent, Converter={StaticResource HexBrush}}" />
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                            <TextBlock Text="{Binding Info.Name}" Margin="2,10,0,2" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
+                            <TextBlock Text="{Binding Info.Description}" Margin="2,0,0,0" TextWrapping="Wrap" Foreground="{DynamicResource Brush.TextSecondary}"
+                                       FontSize="{DynamicResource Size.Text.Small}" />
+                        </StackPanel>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding IsActive}" Value="True">
+                            <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
+                        </DataTrigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Frame" Property="Background" Value="{DynamicResource Brush.Hover}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
+    </DataTemplate>
+
+    <!-- Theme thumbnail drawn with the theme's own colours -->
+    <DataTemplate x:Key="ThemeTileTemplate" DataType="{x:Type vm:ThemeTile}">
+        <Button Cursor="Hand" Focusable="False" Margin="0,0,14,14"
+                Command="{Binding DataContext.Settings.ApplyThemeCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <StackPanel>
+                        <Border x:Name="Frame" Width="156" Height="100" CornerRadius="10" BorderThickness="2" BorderBrush="Transparent" Padding="2">
+                            <Border CornerRadius="8" Background="{Binding Theme.Colors.Window, Converter={StaticResource HexBrush}}" ClipToBounds="True">
+                                <Grid Margin="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="40" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border CornerRadius="4" Background="{Binding Theme.Colors.Surface, Converter={StaticResource HexBrush}}" Margin="0,0,6,0" />
+                                    <Border Grid.Column="1" CornerRadius="4" Background="{Binding Theme.Colors.Surface, Converter={StaticResource HexBrush}}">
+                                        <StackPanel Margin="8">
+                                            <Border Height="6" Width="58" CornerRadius="3" HorizontalAlignment="Left" Background="{Binding Theme.Colors.TextPrimary, Converter={StaticResource HexBrush}}" />
+                                            <Border Height="5" Width="40" CornerRadius="3" HorizontalAlignment="Left" Margin="0,6,0,0" Background="{Binding Theme.Colors.TextSecondary, Converter={StaticResource HexBrush}}" />
+                                            <Ellipse Width="18" Height="18" HorizontalAlignment="Left" Margin="0,12,0,0" Fill="{Binding Theme.Colors.Accent, Converter={StaticResource HexBrush}}" />
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </Border>
+                        <TextBlock Text="{Binding Theme.Name}" Margin="4,6,0,0" Foreground="{DynamicResource Brush.TextPrimary}" FontWeight="SemiBold" />
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding IsActive}" Value="True">
+                            <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
+                        </DataTrigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Frame" Property="Opacity" Value="0.85" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type vm:AppearancePage}">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="32,8,32,40" MaxWidth="900" HorizontalAlignment="Left" DataContext="{Binding}"
+                        TextElement.Foreground="{DynamicResource Brush.TextPrimary}">
+                <ContentControl Content="Apparence" Style="{DynamicResource PageTitleBox}" />
+
+                <!-- ===== Themes ===== -->
+                <!-- Level 1: the theme (complete style: shapes, effects, fonts) -->
+                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Thème" Margin="0,0,0,10" />
+                <ItemsControl ItemsSource="{Binding Settings.StyleTiles}" ItemTemplate="{StaticResource StyleTileTemplate}" ItemsPanel="{StaticResource EqualRowWrapPanelTemplate}" />
+
+                <!-- Level 2: its colour variants -->
+                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{Binding Settings.PaletteSectionTitle}" />
+                <ItemsControl ItemsSource="{Binding Settings.Themes}" ItemTemplate="{StaticResource ThemeTileTemplate}" ItemsPanel="{StaticResource WrapPanelTemplate}" />
+                <WrapPanel Margin="0,4,0,0">
+                    <Button Style="{DynamicResource AccentPill}" Content="Dupliquer" Command="{Binding Settings.DuplicateCommand}" Margin="0,0,10,8" />
+                    <Button Style="{DynamicResource PillOutline}" Content="Renommer" Command="{Binding Settings.RenameCommand}" Margin="0,0,10,8" />
+                    <Button Style="{DynamicResource PillOutline}" Content="Supprimer" Command="{Binding Settings.DeleteCommand}" Margin="0,0,10,8" />
+                    <Button Style="{DynamicResource PillOutline}" Content="Exporter" Command="{Binding Settings.ExportCommand}" Margin="0,0,10,8" />
+                    <Button Style="{DynamicResource PillOutline}" Content="Importer" Command="{Binding Settings.ImportCommand}" Margin="0,0,10,8" />
+                    <Button Style="{DynamicResource PillOutline}" Content="Réinitialiser" Command="{Binding Settings.ResetThemeCommand}" Margin="0,0,10,8" />
+                </WrapPanel>
+                <Border Style="{StaticResource SettingCard}" Margin="0,8,0,0" Padding="14,10"
+                        Visibility="{Binding Settings.IsLocked, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Foreground="{DynamicResource Brush.TextSecondary}" TextWrapping="Wrap">
+                        <Run Text="&#xE72E;" FontFamily="{StaticResource Icons}" /><Run Text="  Dupliquez ce thème pour le modifier." />
+                    </TextBlock>
+                </Border>
+
+                <!-- ===== Colours ===== -->
+                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Couleurs" />
+                <Border Style="{StaticResource SettingCard}" IsEnabled="{Binding Settings.IsEditable}">
+                    <ItemsControl ItemsSource="{Binding Settings.Colors}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="2" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:ColorSlot}">
+                                <DockPanel Margin="0,4,16,4">
+                                    <TextBlock Text="{Binding Label}" Style="{StaticResource SettingLabel}" Width="170" />
+                                    <v:ColorPicker Hex="{Binding Hex, Mode=TwoWay}" />
+                                </DockPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+                <CheckBox Style="{StaticResource Toggle}" Margin="0,12,0,0" IsEnabled="{Binding Settings.IsEditable}"
+                          IsChecked="{Binding Settings.AccentFromArtwork}" Content="Accent automatique d'après la pochette en cours" />
+
+                <!-- ===== Type and shapes ===== -->
+                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Typo et formes" />
+                <Border Style="{StaticResource SettingCard}" IsEnabled="{Binding Settings.IsEditable}">
+                    <StackPanel>
+                        <DockPanel Margin="0,4">
+                            <TextBlock Text="Police de l'interface" Style="{StaticResource SettingLabel}" />
+                            <ComboBox Style="{StaticResource Choice}" ItemsSource="{Binding Settings.FontNames}" SelectedItem="{Binding Settings.FontUi}" HorizontalAlignment="Left" />
+                        </DockPanel>
+                        <DockPanel Margin="0,4">
+                            <TextBlock Text="Police des titres" Style="{StaticResource SettingLabel}" />
+                            <ComboBox Style="{StaticResource Choice}" ItemsSource="{Binding Settings.FontNames}" SelectedItem="{Binding Settings.FontDisplay}" HorizontalAlignment="Left" />
+                        </DockPanel>
+                        <DockPanel Margin="0,4">
+                            <TextBlock Text="Police des chiffres" Style="{StaticResource SettingLabel}" />
+                            <ComboBox Style="{StaticResource Choice}" ItemsSource="{Binding Settings.FontNames}" SelectedItem="{Binding Settings.FontNumbers}" HorizontalAlignment="Left" />
+                        </DockPanel>
+                        <DockPanel Margin="0,8,0,4">
+                            <TextBlock Text="Taille du texte" Style="{StaticResource SettingLabel}" />
+                            <TextBlock DockPanel.Dock="Right" Width="48" TextAlignment="Right" VerticalAlignment="Center"
+                                       Text="{Binding Settings.FontScale, StringFormat={}{0:P0}}" />
+                            <Slider Style="{DynamicResource ThinSlider}" Minimum="0.85" Maximum="1.3" SmallChange="0.05" LargeChange="0.05"
+                                    IsSnapToTickEnabled="True" TickFrequency="0.05" Value="{Binding Settings.FontScale}" VerticalAlignment="Center" />
+                        </DockPanel>
+                        <DockPanel Margin="0,4">
+                            <TextBlock Text="Arrondi des coins" Style="{StaticResource SettingLabel}" />
+                            <TextBlock DockPanel.Dock="Right" Width="48" TextAlignment="Right" VerticalAlignment="Center" Text="{Binding Settings.CornerRadius}" />
+                            <Slider Style="{DynamicResource ThinSlider}" Minimum="0" Maximum="24" IsSnapToTickEnabled="True" TickFrequency="1"
+                                    Value="{Binding Settings.CornerRadius}" VerticalAlignment="Center" />
+                        </DockPanel>
+                        <DockPanel Margin="0,4">
+                            <TextBlock Text="Espace entre panneaux" Style="{StaticResource SettingLabel}" />
+                            <TextBlock DockPanel.Dock="Right" Width="48" TextAlignment="Right" VerticalAlignment="Center" Text="{Binding Settings.PanelGap}" />
+                            <Slider Style="{DynamicResource ThinSlider}" Minimum="0" Maximum="24" IsSnapToTickEnabled="True" TickFrequency="1"
+                                    Value="{Binding Settings.PanelGap}" VerticalAlignment="Center" />
+                        </DockPanel>
+                        <DockPanel Margin="0,4">
+                            <TextBlock Text="Densité" Style="{StaticResource SettingLabel}" />
+                            <ComboBox Style="{StaticResource Choice}" ItemsSource="{Binding Settings.Densities}" ItemTemplate="{StaticResource OptionItem}"
+                                      SelectedItem="{Binding Settings.Density}" HorizontalAlignment="Left" />
+                        </DockPanel>
+                        <CheckBox Style="{StaticResource Toggle}" IsChecked="{Binding Settings.Animations}" Content="Animations" Margin="0,8,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <!-- ===== Background ===== -->
+                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Fond" />
+                <Border Style="{StaticResource SettingCard}" IsEnabled="{Binding Settings.IsEditable}">
+                    <StackPanel>
+                        <DockPanel Margin="0,4">
+                            <TextBlock Text="Type de fond" Style="{StaticResource SettingLabel}" />
+                            <ComboBox Style="{StaticResource Choice}" ItemsSource="{Binding Settings.BackgroundModes}" ItemTemplate="{StaticResource OptionItem}"
+                                      SelectedItem="{Binding Settings.BackgroundMode}" HorizontalAlignment="Left" />
+                        </DockPanel>
+                        <DockPanel Margin="0,4">
+                            <TextBlock Text="Couleur du haut" Style="{StaticResource SettingLabel}" />
+                            <v:ColorPicker Hex="{Binding Settings.Background1, Mode=TwoWay}" HorizontalAlignment="Left" />
+                        </DockPanel>
+                        <DockPanel Margin="0,4">
+                            <TextBlock Text="Couleur du bas" Style="{StaticResource SettingLabel}" />
+                            <v:ColorPicker Hex="{Binding Settings.Background2, Mode=TwoWay}" HorizontalAlignment="Left" />
+                        </DockPanel>
+                        <DockPanel Margin="0,8,0,4">
+                            <TextBlock Text="Intensité de la pochette" Style="{StaticResource SettingLabel}" />
+                            <TextBlock DockPanel.Dock="Right" Width="48" TextAlignment="Right" VerticalAlignment="Center"
+                                       Text="{Binding Settings.ArtworkStrength, StringFormat={}{0:P0}}" />
+                            <Slider Style="{DynamicResource ThinSlider}" Minimum="0" Maximum="1" IsSnapToTickEnabled="True" TickFrequency="0.05"
+                                    Value="{Binding Settings.ArtworkStrength}" VerticalAlignment="Center" />
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Verre liquide can show the cover of the track playing behind its glass. A preference of the user's, so it is
+                     offered on the built-in palettes too. -->
+                <Border Style="{StaticResource SettingCard}" IsEnabled="{Binding Settings.CoverBackgroundAvailable}">
+                    <StackPanel>
+                        <CheckBox Style="{StaticResource Toggle}" IsChecked="{Binding Settings.CoverBackground}" Content="Pochette en fond" />
+                        <DockPanel Margin="0,10,0,4">
+                            <TextBlock Text="Intensité de la pochette" Style="{StaticResource SettingLabel}" />
+                            <TextBlock DockPanel.Dock="Right" Width="48" TextAlignment="Right" VerticalAlignment="Center"
+                                       Text="{Binding Settings.CoverBackgroundStrength, StringFormat={}{0:P0}}" />
+                            <Slider Style="{DynamicResource ThinSlider}" Minimum="0" Maximum="1" IsSnapToTickEnabled="True" TickFrequency="0.05"
+                                    Value="{Binding Settings.CoverBackgroundStrength}" VerticalAlignment="Center" />
+                        </DockPanel>
+                        <DockPanel Margin="0,8,0,4">
+                            <TextBlock Text="Flou de la pochette" Style="{StaticResource SettingLabel}" />
+                            <TextBlock DockPanel.Dock="Right" Width="48" TextAlignment="Right" VerticalAlignment="Center"
+                                       Text="{Binding Settings.CoverBackgroundBlur, StringFormat={}{0:0}}" />
+                            <Slider Style="{DynamicResource ThinSlider}" Minimum="0" Maximum="120" IsSnapToTickEnabled="True" TickFrequency="5"
+                                    Value="{Binding Settings.CoverBackgroundBlur}" VerticalAlignment="Center" />
+                        </DockPanel>
+                        <TextBlock Foreground="{DynamicResource Brush.TextMuted}" TextWrapping="Wrap" Margin="0,4,0,0"
+                                   Text="Disponible avec le thème Verre liquide : la pochette du titre en cours, floutée, remplace les halos colorés." />
+                    </StackPanel>
+                </Border>
+
+                <!-- A picture can stand in for a plain one-colour background. It is the user's own choice, so it is
+                     offered on built-in themes too. -->
+                <Border Style="{StaticResource SettingCard}" IsEnabled="{Binding Settings.CustomBackgroundAvailable}">
+                    <StackPanel>
+                        <DockPanel Margin="0,4">
+                            <TextBlock Text="Image de fond" Style="{StaticResource SettingLabel}" />
+                            <Button Style="{StaticResource PillOutline}" Content="Choisir une image…" Command="{Binding Settings.ChooseBackgroundImageCommand}" HorizontalAlignment="Left" />
+                            <Button Style="{StaticResource PillOutline}" Content="Retirer" Command="{Binding Settings.ClearBackgroundImageCommand}" HorizontalAlignment="Left" Margin="8,0,0,0" />
+                            <TextBlock Text="{Binding Settings.BackgroundImageName}" Margin="12,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource Brush.TextSecondary}" />
+                        </DockPanel>
+                        <DockPanel Margin="0,8,0,4">
+                            <TextBlock Text="Visibilité de l'image" Style="{StaticResource SettingLabel}" />
+                            <TextBlock DockPanel.Dock="Right" Width="48" TextAlignment="Right" VerticalAlignment="Center"
+                                       Text="{Binding Settings.BackgroundImageStrength, StringFormat={}{0:P0}}" />
+                            <Slider Style="{DynamicResource ThinSlider}" Minimum="0" Maximum="1" IsSnapToTickEnabled="True" TickFrequency="0.05"
+                                    Value="{Binding Settings.BackgroundImageStrength}" VerticalAlignment="Center" />
+                        </DockPanel>
+                        <TextBlock Foreground="{DynamicResource Brush.TextMuted}" TextWrapping="Wrap" Margin="0,4,0,0"
+                                   Text="Disponible pour les thèmes dont le fond est d'une seule couleur (type de fond « Uni »)." />
+                    </StackPanel>
+                </Border>
+
+                <!-- ===== Layout ===== -->
+                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Disposition" />
+                <Border Style="{StaticResource SettingCard}">
+                    <StackPanel>
+                        <TextBlock Foreground="{DynamicResource Brush.TextSecondary}" TextWrapping="Wrap" Margin="0,0,0,10"
+                                   Text="Faites glisser l'en-tête d'un panneau vers un bord de la fenêtre ou sur un autre panneau pour le déplacer. Double-cliquez sur l'espace entre deux zones pour la replier." />
+                        <ItemsControl ItemsSource="{Binding Settings.Panels}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="3" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:PanelItem}">
+                                    <CheckBox Style="{StaticResource Toggle}" IsChecked="{Binding IsShown}" Content="{Binding Title}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Button Style="{DynamicResource PillOutline}" Content="Réinitialiser la disposition" Margin="0,12,0,0" Command="{Binding Settings.ResetLayoutCommand}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- ===== Content ===== -->
+                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Contenu affiché" />
+                <Border Style="{StaticResource SettingCard}">
+                    <StackPanel>
+                        <TextBlock Text="Sections de l'accueil" FontWeight="SemiBold" Margin="0,0,0,4" />
+                        <TextBlock Text="Cochez pour afficher, glissez ou utilisez les flèches pour réordonner." Foreground="{DynamicResource Brush.TextSecondary}"
+                                   FontSize="{DynamicResource Size.Text.Small}" Margin="0,0,0,8" />
+                        <ListBox x:Name="SectionList" ItemsSource="{Binding Settings.HomeSections}" Background="Transparent" BorderThickness="0"
+                                 AllowDrop="True" PreviewMouseLeftButtonDown="Sections_MouseDown" PreviewMouseMove="Sections_MouseMove" Drop="Sections_Drop">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListBoxItem">
+                                                <Border x:Name="Bd" Background="Transparent" CornerRadius="{DynamicResource Radius.Control}" Padding="8,2">
+                                                    <ContentPresenter />
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush.Hover}" />
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:HomeSectionItem}">
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE70D;" ToolTip="Descendre"
+                                                Command="{Binding DataContext.Settings.MoveDownCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}" />
+                                        <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE70E;" ToolTip="Monter"
+                                                Command="{Binding DataContext.Settings.MoveUpCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}" />
+                                        <TextBlock DockPanel.Dock="Left" Text="&#xE76F;" FontFamily="{StaticResource Icons}" Foreground="{DynamicResource Brush.TextMuted}"
+                                                   VerticalAlignment="Center" Margin="0,0,10,0" Cursor="SizeAll" />
+                                        <CheckBox Style="{StaticResource Toggle}" IsChecked="{Binding Visible}" Content="{Binding Title}" />
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <TextBlock Text="Colonnes des listes de titres" FontWeight="SemiBold" Margin="0,16,0,6" />
+                        <WrapPanel>
+                            <CheckBox Style="{StaticResource Toggle}" IsChecked="{Binding Settings.ShowNumber}" Content="Numéro" Margin="0,4,24,4" />
+                            <CheckBox Style="{StaticResource Toggle}" IsChecked="{Binding Settings.ShowArt}" Content="Pochette" Margin="0,4,24,4" />
+                            <CheckBox Style="{StaticResource Toggle}" IsChecked="{Binding Settings.ShowAlbum}" Content="Album" Margin="0,4,24,4" />
+                            <CheckBox Style="{StaticResource Toggle}" IsChecked="{Binding Settings.ShowLike}" Content="J'aime" Margin="0,4,24,4" />
+                            <CheckBox Style="{StaticResource Toggle}" IsChecked="{Binding Settings.ShowDuration}" Content="Durée" Margin="0,4,24,4" />
+                        </WrapPanel>
+
+                        <DockPanel Margin="0,12,0,0">
+                            <TextBlock Text="Taille des pochettes" Style="{StaticResource SettingLabel}" />
+                            <ComboBox Style="{StaticResource Choice}" ItemsSource="{Binding Settings.CardSizes}" ItemTemplate="{StaticResource OptionItem}"
+                                      SelectedItem="{Binding Settings.CardSize}" HorizontalAlignment="Left" />
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </DataTemplate>
+
+</ResourceDictionary>

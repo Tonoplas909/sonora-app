@@ -1,0 +1,38 @@
+{
+  "id": "soul",
+  "name": "Tournesol",
+  "builtIn": true,
+  "style": "soul",
+  "colors": {
+    "window": "#1E100B",
+    "surface": "#3A1E13",
+    "surfaceAlt": "#4A2818",
+    "hover": "#54301C",
+    "selected": "#623A22",
+    "border": "#33F3DEB8",
+    "textPrimary": "#F7E8CC",
+    "textSecondary": "#D5BC98",
+    "textMuted": "#A28A6B",
+    "accent": "#F2A81D",
+    "onAccent": "#2A1209",
+    "rail": "#5A3A28"
+  },
+  "fonts": {
+    "ui": "Figtree",
+    "display": "Fraunces",
+    "numbers": "Figtree"
+  },
+  "fontScale": 1.0,
+  "cornerRadius": 28,
+  "density": "confort",
+  "panelGap": 10,
+  "background": {
+    "mode": "solid",
+    "colors": [
+      "#1E100B"
+    ],
+    "artworkStrength": 0.0
+  },
+  "accentFromArtwork": false,
+  "animations": true
+}

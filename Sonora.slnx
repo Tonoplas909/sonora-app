@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Sonora.Appearance/Sonora.Appearance.csproj" />
+  <Project Path="Sonora.Tests/Sonora.Tests.csproj" />
+  <Project Path="Sonora/Sonora.csproj" />
+</Solution>

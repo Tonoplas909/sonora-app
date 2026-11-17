@@ -1,0 +1,320 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:m="clr-namespace:Sonora.Models">
+
+    <!-- "Studio": terminal look. Square frames, monospaced text, dense rows, prompts in the accent colour. -->
+
+    <Style x:Key="PanelFrameStyle" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource Brush.Surface}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="Padding" Value="{DynamicResource Thickness.Panel}" />
+    </Style>
+
+    <Style x:Key="CenterSurfaceStyle" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource Brush.Surface}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="ClipToBounds" Value="True" />
+    </Style>
+
+    <Style x:Key="SectionTitleBox" TargetType="ContentControl">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Margin" Value="0,20,0,8" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContentControl">
+                    <TextBlock FontFamily="{DynamicResource Font.Numbers}" FontSize="{DynamicResource Size.Text.Large}" FontWeight="SemiBold"
+                               Foreground="{DynamicResource Brush.TextPrimary}" TextTrimming="CharacterEllipsis">
+                        <Run Text="// " Foreground="{DynamicResource Brush.Accent}" /><Run Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}, Mode=OneWay}" />
+                    </TextBlock>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="PageTitleBox" TargetType="ContentControl">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Margin" Value="0,8,0,12" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContentControl">
+                    <TextBlock FontFamily="{DynamicResource Font.Numbers}" FontSize="{DynamicResource Size.Text.Section}" FontWeight="Bold"
+                               Foreground="{DynamicResource Brush.TextPrimary}" TextTrimming="CharacterEllipsis">
+                        <Run Text="&gt; " Foreground="{DynamicResource Brush.Accent}" /><Run Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}, Mode=OneWay}" /><Run Text="_" Foreground="{DynamicResource Brush.Accent}" />
+                    </TextBlock>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== Square buttons ===== -->
+
+    <Style x:Key="BigPlay" TargetType="Button">
+        <Setter Property="Width" Value="48" />
+        <Setter Property="Height" Value="48" />
+        <Setter Property="FontFamily" Value="{StaticResource Icons}" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="Content" Value="&#xE768;" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.OnAccent}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd" Background="{DynamicResource Brush.Accent}" BorderBrush="{DynamicResource Brush.Accent}" BorderThickness="1">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="Transparent" />
+                            <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="PlayBubble" TargetType="Button">
+        <Setter Property="Visibility" Value="Collapsed" />
+    </Style>
+
+    <Style x:Key="PillButton" TargetType="Button">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.TextPrimary}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Numbers}" />
+        <Setter Property="Padding" Value="14,7" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"
+                            Padding="{TemplateBinding Padding}">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <TextBlock Text="[ " Foreground="{DynamicResource Brush.TextMuted}" />
+                            <ContentPresenter VerticalAlignment="Center" />
+                            <TextBlock Text=" ]" Foreground="{DynamicResource Brush.TextMuted}" />
+                        </StackPanel>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush.Hover}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="AccentPill" TargetType="Button" BasedOn="{StaticResource PillButton}">
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
+    </Style>
+
+    <Style x:Key="PillOutline" TargetType="Button" BasedOn="{StaticResource PillButton}">
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}" />
+    </Style>
+
+    <Style x:Key="Chip" TargetType="RadioButton">
+        <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}" />
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Numbers}" />
+        <Setter Property="FontSize" Value="{DynamicResource Size.Text.Small}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Border x:Name="Bd" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" Padding="10,4" Background="Transparent">
+                        <ContentPresenter />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush.Hover}" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
+                            <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="SearchBox" TargetType="TextBox">
+        <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}" />
+        <Setter Property="CaretBrush" Value="{DynamicResource Brush.Accent}" />
+        <Setter Property="FontFamily" Value="{DynamicResource Font.Numbers}" />
+        <Setter Property="FontSize" Value="{DynamicResource Size.Text.Body}" />
+        <Setter Property="Height" Value="36" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="Bd" Background="{DynamicResource Brush.Window}" BorderThickness="1" BorderBrush="{DynamicResource Brush.Border}">
+                        <Grid Margin="10,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="$ find" Foreground="{DynamicResource Brush.Accent}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                            <TextBlock x:Name="Placeholder" Grid.Column="1" Text="{TemplateBinding Tag}" Foreground="{DynamicResource Brush.TextMuted}"
+                                       VerticalAlignment="Center" Visibility="Collapsed" IsHitTestVisible="False" Margin="2,0,0,0" />
+                            <ScrollViewer x:Name="PART_ContentHost" Grid.Column="1" VerticalAlignment="Center" Focusable="False"
+                                          HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Text" Value="">
+                            <Setter TargetName="Placeholder" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== Albums, artists and playlists as compact rows ===== -->
+
+    <Style x:Key="TerminalRow" TargetType="Button">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}" />
+        <Setter Property="Margin" Value="0,0,8,4" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd" Width="300" Padding="6" Background="Transparent" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1">
+                        <ContentPresenter />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush.Hover}" />
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <DataTemplate x:Key="AlbumCard" DataType="{x:Type m:Album}">
+        <Button Style="{StaticResource TerminalRow}"
+                Command="{Binding DataContext.OpenAlbumCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}">
+            <Button.Tag>
+                <MultiBinding Converter="{StaticResource PlayingContext}">
+                    <Binding />
+                    <Binding Path="DataContext.Player.ContextUri" RelativeSource="{RelativeSource AncestorType=Window}" />
+                    <Binding Path="DataContext.Player.ContextName" RelativeSource="{RelativeSource AncestorType=Window}" />
+                    <Binding Path="DataContext.Player.IsPlaying" RelativeSource="{RelativeSource AncestorType=Window}" />
+                    <Binding Path="DataContext.Player.HasTrack" RelativeSource="{RelativeSource AncestorType=Window}" />
+                    <Binding Path="DataContext.Player.Current" RelativeSource="{RelativeSource AncestorType=Window}" />
+                </MultiBinding>
+            </Button.Tag>
+            <DockPanel>
+                <Border DockPanel.Dock="Left" Width="40" Height="40" Background="{DynamicResource Brush.Hover}" Margin="0,0,10,0">
+                    <Border.Child>
+                        <Grid>
+                        <ContentControl ContentTemplate="{DynamicResource PlayingBadge}" Content="{Binding}" Tag="Small" Panel.ZIndex="1" />
+                        <Border>
+                            <Border.Background>
+                                <ImageBrush ImageSource="{Binding ArtPath, Converter={StaticResource Art}, ConverterParameter=80}" Stretch="UniformToFill" />
+                            </Border.Background>
+                        </Border>
+                        </Grid>
+                    </Border.Child>
+                </Border>
+                <StackPanel VerticalAlignment="Center" TextElement.FontFamily="{DynamicResource Font.Numbers}">
+                    <TextBlock Text="{Binding Title}" Style="{DynamicResource PlayingText}" FontSize="{DynamicResource Size.Text.Body}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding Subtitle}" FontSize="{DynamicResource Size.Text.Small}" Foreground="{DynamicResource Brush.TextSecondary}" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+            </DockPanel>
+        </Button>
+    </DataTemplate>
+
+    <DataTemplate x:Key="ArtistCard" DataType="{x:Type m:Artist}">
+        <Button Style="{StaticResource TerminalRow}"
+                Command="{Binding DataContext.OpenArtistCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}">
+            <Button.Tag>
+                <MultiBinding Converter="{StaticResource PlayingContext}">
+                    <Binding />
+                    <Binding Path="DataContext.Player.ContextUri" RelativeSource="{RelativeSource AncestorType=Window}" />
+                    <Binding Path="DataContext.Player.ContextName" RelativeSource="{RelativeSource AncestorType=Window}" />
+                    <Binding Path="DataContext.Player.IsPlaying" RelativeSource="{RelativeSource AncestorType=Window}" />
+                    <Binding Path="DataContext.Player.HasTrack" RelativeSource="{RelativeSource AncestorType=Window}" />
+                    <Binding Path="DataContext.Player.Current" RelativeSource="{RelativeSource AncestorType=Window}" />
+                </MultiBinding>
+            </Button.Tag>
+            <DockPanel>
+                <Border DockPanel.Dock="Left" Width="40" Height="40" Background="{DynamicResource Brush.Hover}" Margin="0,0,10,0">
+                    <Border.Child>
+                        <Grid>
+                        <ContentControl ContentTemplate="{DynamicResource PlayingBadge}" Content="{Binding}" Tag="Small" Panel.ZIndex="1" />
+                        <Border>
+                            <Border.Background>
+                                <ImageBrush ImageSource="{Binding ArtPath, Converter={StaticResource Art}, ConverterParameter=80}" Stretch="UniformToFill" />
+                            </Border.Background>
+                        </Border>
+                        </Grid>
+                    </Border.Child>
+                </Border>
+                <StackPanel VerticalAlignment="Center" TextElement.FontFamily="{DynamicResource Font.Numbers}">
+                    <TextBlock Text="{Binding Name}" Style="{DynamicResource PlayingText}" FontSize="{DynamicResource Size.Text.Body}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="artiste" FontSize="{DynamicResource Size.Text.Small}" Foreground="{DynamicResource Brush.TextSecondary}" />
+                </StackPanel>
+            </DockPanel>
+        </Button>
+    </DataTemplate>
+
+    <DataTemplate x:Key="PlaylistCard" DataType="{x:Type m:SpotifyPlaylist}">
+        <Button Style="{StaticResource TerminalRow}"
+                Command="{Binding DataContext.OpenSpotifyPlaylistCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}">
+            <Button.Tag>
+                <MultiBinding Converter="{StaticResource PlayingContext}">
+                    <Binding />
+                    <Binding Path="DataContext.Player.ContextUri" RelativeSource="{RelativeSource AncestorType=Window}" />
+                    <Binding Path="DataContext.Player.ContextName" RelativeSource="{RelativeSource AncestorType=Window}" />
+                    <Binding Path="DataContext.Player.IsPlaying" RelativeSource="{RelativeSource AncestorType=Window}" />
+                    <Binding Path="DataContext.Player.HasTrack" RelativeSource="{RelativeSource AncestorType=Window}" />
+                    <Binding Path="DataContext.Player.Current" RelativeSource="{RelativeSource AncestorType=Window}" />
+                </MultiBinding>
+            </Button.Tag>
+            <DockPanel>
+                <Border DockPanel.Dock="Left" Width="40" Height="40" Background="{DynamicResource Brush.Hover}" Margin="0,0,10,0">
+                    <Border.Child>
+                        <Grid>
+                        <ContentControl ContentTemplate="{DynamicResource PlayingBadge}" Content="{Binding}" Tag="Small" Panel.ZIndex="1" />
+                        <Border>
+                            <Border.Background>
+                                <ImageBrush ImageSource="{Binding ArtPath, Converter={StaticResource Art}, ConverterParameter=80}" Stretch="UniformToFill" />
+                            </Border.Background>
+                        </Border>
+                        </Grid>
+                    </Border.Child>
+                </Border>
+                <StackPanel VerticalAlignment="Center" TextElement.FontFamily="{DynamicResource Font.Numbers}">
+                    <TextBlock Text="{Binding Name}" Style="{DynamicResource PlayingText}" FontSize="{DynamicResource Size.Text.Body}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding Subtitle}" FontSize="{DynamicResource Size.Text.Small}" Foreground="{DynamicResource Brush.TextSecondary}" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+            </DockPanel>
+        </Button>
+    </DataTemplate>
+
+    <!-- Shelves become wrapped columns of rows instead of a single row of cards -->
+    <ItemsPanelTemplate x:Key="ShelfPanelTemplate">
+        <WrapPanel MaxHeight="220" Orientation="Vertical" />
+    </ItemsPanelTemplate>
+
+</ResourceDictionary>

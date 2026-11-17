@@ -1,0 +1,39 @@
+{
+  "id": "clair",
+  "name": "Clair",
+  "builtIn": true,
+  "colors": {
+    "window": "#F3F4F7",
+    "surface": "#FFFFFF",
+    "surfaceAlt": "#F7F7FA",
+    "hover": "#ECEDF2",
+    "selected": "#E1E3EB",
+    "border": "#E3E5EC",
+    "textPrimary": "#15171C",
+    "textSecondary": "#555B69",
+    "textMuted": "#8A90A0",
+    "accent": "#6B4EFF",
+    "onAccent": "#FFFFFF",
+    "rail": "#D3D6DF"
+  },
+  "fonts": {
+    "ui": "Segoe UI Variable Text",
+    "display": "Segoe UI Variable Display",
+    "numbers": "Segoe UI Variable Text"
+  },
+  "fontScale": 1.0,
+  "cornerRadius": 10,
+  "density": "normal",
+  "panelGap": 8,
+  "background": {
+    "mode": "gradient",
+    "colors": [
+      "#F6F7FA",
+      "#ECEEF3"
+    ],
+    "artworkStrength": 0.0
+  },
+  "accentFromArtwork": false,
+  "animations": true,
+  "style": "standard"
+}

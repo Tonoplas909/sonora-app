@@ -1,0 +1,39 @@
+{
+  "id": "gta6",
+  "name": "GTA 6",
+  "builtIn": true,
+  "colors": {
+    "window": "#14051A",
+    "surface": "#220C28",
+    "surfaceAlt": "#2D1133",
+    "hover": "#3D1844",
+    "selected": "#4E1F52",
+    "border": "#5E2A5E",
+    "textPrimary": "#FFF4EC",
+    "textSecondary": "#FFA45C",
+    "textMuted": "#B98AA6",
+    "accent": "#FF4F9A",
+    "onAccent": "#24000F",
+    "rail": "#7A3470"
+  },
+  "fonts": {
+    "ui": "Segoe UI Variable Text",
+    "display": "Segoe UI Variable Display",
+    "numbers": "Segoe UI Variable Text"
+  },
+  "fontScale": 1.0,
+  "cornerRadius": 14,
+  "density": "normal",
+  "panelGap": 8,
+  "background": {
+    "mode": "gradient",
+    "colors": [
+      "#8A2468",
+      "#14051A"
+    ],
+    "artworkStrength": 0.0
+  },
+  "accentFromArtwork": false,
+  "animations": true,
+  "style": "standard"
+}

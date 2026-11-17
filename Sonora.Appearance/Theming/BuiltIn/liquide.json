@@ -1,0 +1,39 @@
+{
+  "id": "liquide",
+  "name": "Océan",
+  "builtIn": true,
+  "style": "liquid",
+  "colors": {
+    "window": "#070A12",
+    "surface": "#1C2233",
+    "surfaceAlt": "#262D42",
+    "hover": "#26FFFFFF",
+    "selected": "#40FFFFFF",
+    "border": "#33FFFFFF",
+    "textPrimary": "#FFFFFF",
+    "textSecondary": "#D6DCEB",
+    "textMuted": "#9AA3B8",
+    "accent": "#7FD4FF",
+    "onAccent": "#06131C",
+    "rail": "#4DFFFFFF"
+  },
+  "fonts": {
+    "ui": "Segoe UI Variable Text",
+    "display": "Segoe UI Variable Display",
+    "numbers": "Segoe UI Variable Text"
+  },
+  "fontScale": 1.0,
+  "cornerRadius": 24,
+  "density": "normal",
+  "panelGap": 12,
+  "background": {
+    "mode": "gradient",
+    "colors": [
+      "#1B1440",
+      "#0A1A2F"
+    ],
+    "artworkStrength": 0.0
+  },
+  "accentFromArtwork": true,
+  "animations": true
+}
