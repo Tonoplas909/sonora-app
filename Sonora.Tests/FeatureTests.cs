@@ -197,10 +197,10 @@ public class FeatureTests
         var s = new SleepTimer();
         Assert.Equal("", s.Describe(t0));
         s.StartMinutes(15, t0);
-        Assert.Equal("Arrêt dans 15 min", s.Describe(t0));
-        Assert.Equal("Arrêt dans 1 min", s.Describe(t0.AddMinutes(14).AddSeconds(30)));
+        Assert.Equal("Stops in 15 min", s.Describe(t0));
+        Assert.Equal("Stops in 1 min", s.Describe(t0.AddMinutes(14).AddSeconds(30)));
         s.StartAtTrackEnd();
-        Assert.Equal("Arrêt à la fin du titre", s.Describe(t0));
+        Assert.Equal("Stops at the end of the track", s.Describe(t0));
         s.Cancel();
         Assert.False(s.IsActive);
     }

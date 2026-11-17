@@ -18,7 +18,7 @@ Your local files and your Spotify account in one place, with themes, dockable pa
 
 </div>
 
-> **Heads-up:** the interface is currently in **French** only. Translations are very welcome, see [Contributing](CONTRIBUTING.md).
+> **Languages:** English, French, Spanish, German, Italian, Portuguese, Dutch, Swedish, Danish, Norwegian, Finnish and Icelandic. Only French has been reviewed by a native speaker so far; the others carry a *not reviewed* badge in Settings › Language. Corrections are very welcome: [docs/TRANSLATING.md](docs/TRANSLATING.md).
 
 ## Why Sonora
 
@@ -36,7 +36,7 @@ It is a native [WPF](https://learn.microsoft.com/dotnet/desktop/wpf/) applicatio
 **Make it yours**
 - **Seven themes**, each with colour variants: *Verre liquide*, *Studio* (terminal), *Affiche* (concert poster), *Soul* (70s record sleeve), *Fonction* (spec sheet), *Encre* and *Standard* (with light, OLED, paper, Synthwave and GTA 6 palettes). A theme changes shapes, fonts and titles, not just colours.
 - **A theme editor:** duplicate any theme and change its colours, fonts, corner radius, density, background (solid, gradient, the current cover, or your own picture), then import or export it as a small JSON file.
-- **Dockable panels:** navigation, library, queue, lyrics and player. Drag a panel's header to dock it to any side, resize with splitters, show or hide from the *Afficher* menu, reset in one click.
+- **Dockable panels:** navigation, library, queue, lyrics and player. Drag a panel's header to dock it to any side, resize with splitters, show or hide from the *Show panels* menu, reset in one click.
 - Reorder or hide the home shelves, resize the cards, switch the library to covers only, pin your favourites, rebind every keyboard shortcut.
 
 **Listening**
@@ -95,7 +95,7 @@ Windows may show a SmartScreen warning for a new, unsigned publisher: choose *Mo
 
 ### Updates
 
-Sonora looks for a new version when it opens (at most once an hour) and tells you when there is one. Installing is always your click, in *Paramètres › Mises à jour*, where you also find a **Rechercher des mises à jour** button and the switch to turn the automatic check off. The check only contacts GitHub. A copy built from source does not update itself: its settings page points to the releases instead.
+Sonora looks for a new version when it opens (at most once an hour) and tells you when there is one. Installing is always your click, in *Settings › Updates*, where you also find a **Check for updates** button and the switch to turn the automatic check off. The check only contacts GitHub. A copy built from source does not update itself: its settings page points to the releases instead.
 
 ### Build from source
 
@@ -130,7 +130,7 @@ Good to know:
 
 ## Keyboard shortcuts
 
-All of these can be rebound in *Paramètres › Raccourcis clavier*.
+All of these can be rebound in *Settings › Keyboard shortcuts*.
 
 | Action | Default | Action | Default |
 |---|---|---|---|
@@ -155,7 +155,7 @@ Everything Sonora keeps is in `%LOCALAPPDATA%\Sonora`:
 | `layout.json`, `window.json` | Panel layout and window position |
 | `spotify.bin` | The Spotify refresh token, encrypted for your Windows account |
 | `spotify-cache.json` | A copy of your Spotify library so the app opens instantly |
-| `listening.jsonl` | Your own play history (off in *Fonctionnalités*) |
+| `listening.jsonl` | Your own play history (off in *Features*) |
 
 Sonora talks only to the services listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md), each only for the feature that needs it. That includes GitHub, to look for updates when it opens (you can switch that off). **There is no telemetry and no account of ours.** Set the `SONORA_DATA_DIR` environment variable to use another folder, for example to try the app on a clean profile.
 

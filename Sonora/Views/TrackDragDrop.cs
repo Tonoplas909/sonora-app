@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Sonora.Models;
 using Sonora.ViewModels;
+using Sonora.Appearance.Localization;
 
 namespace Sonora.Views;
 
@@ -115,7 +116,7 @@ public static class TrackDragDrop
         {
             case Playlist local:
                 Vm.AddToPlaylist(local, tracks);
-                Vm.ReportError($"Ajouté à « {local.Name} ».");
+                Vm.ReportError(Loc.T("playlist.added_to", local.Name));
                 break;
             case SpotifyPlaylist remote:
                 _ = Vm.AddToSpotifyPlaylistAsync(remote, tracks);

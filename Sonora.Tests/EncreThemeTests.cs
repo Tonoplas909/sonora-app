@@ -56,7 +56,7 @@ public class EncreThemeTests
     {
         var t = TestThemes.Verre();
         t.Frame = new FrameColors { Background = "encre", Text = "#FFFFFF", TextSecondary = "#B3C1CE", Accent = "#3BB5CB", OnAccent = "#0E1A2B" };
-        Assert.Contains(t.Validate(), m => m.Contains("cadre", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(t.Validate(), m => m.Contains("frame", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]

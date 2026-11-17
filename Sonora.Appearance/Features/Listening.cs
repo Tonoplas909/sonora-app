@@ -1,3 +1,4 @@
+using Sonora.Appearance.Localization;
 namespace Sonora.Appearance.Features;
 
 /// <summary>One finished listen, as stored in the local listening log (one JSON object per line).</summary>
@@ -85,10 +86,10 @@ public static class Listening
     /// <summary>A human label for a period, used by the statistics page's chips.</summary>
     public static string PeriodLabel(int days) => days switch
     {
-        7 => "7 jours",
-        30 => "30 jours",
-        365 => "12 mois",
-        _ => "Depuis toujours",
+        7 => Loc.T("pages.7_days"),
+        30 => Loc.T("pages.30_days"),
+        365 => Loc.T("pages.12_months"),
+        _ => Loc.T("pages.all_time"),
     };
 
     /// <summary>
@@ -98,9 +99,9 @@ public static class Listening
     public static string Duration(double seconds)
     {
         if (seconds < 0) seconds = 0;
-        if (seconds < 60) return $"{(int)seconds} s";
+        if (seconds < 60) return Loc.T("duration.seconds", (int)seconds);
         var minutes = (int)(seconds / 60);
-        if (minutes < 60) return $"{minutes} min";
-        return $"{minutes / 60} h {minutes % 60:00} min";
+        if (minutes < 60) return Loc.T("duration.minutes", minutes);
+        return Loc.T("duration.hours_minutes_padded", minutes / 60, minutes % 60);
     }
 }

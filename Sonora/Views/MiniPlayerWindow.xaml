@@ -1,5 +1,5 @@
 <Window x:Class="Sonora.Views.MiniPlayerWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:loc="clr-namespace:Sonora.Localization"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Sonora" WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ShowInTaskbar="True" ResizeMode="NoResize" SizeToContent="Height" Width="340"
@@ -49,7 +49,7 @@
                                TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Brush.TextSecondary}" />
                 </StackPanel>
                 <Button Grid.Column="2" Style="{DynamicResource IconButton}" Content="&#xE740;" FontSize="12" Width="26" Height="26"
-                        VerticalAlignment="Top" Click="Restore_Click" ToolTip="Revenir à la fenêtre principale (Échap)" />
+                        VerticalAlignment="Top" Click="Restore_Click" ToolTip="{loc:T mini.back_to_the_main_window_esc}" />
             </Grid>
 
             <Slider Style="{DynamicResource ThinSlider}" Minimum="0" Maximum="{Binding Player.SliderMax}" Margin="0,8,0,0"
@@ -58,14 +58,14 @@
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,4,0,0">
                 <Button Style="{DynamicResource IconButton}" Content="&#xE8B1;" FontSize="14" Width="30" Height="30"
-                        Command="{Binding ToggleShuffleCommand}" ToolTip="Lecture aléatoire" />
+                        Command="{Binding ToggleShuffleCommand}" ToolTip="{loc:T common.shuffle}" />
                 <Button Style="{DynamicResource IconButton}" Content="&#xE892;" FontSize="16" Width="30" Height="30"
-                        Command="{Binding PreviousCommand}" ToolTip="Précédent" />
+                        Command="{Binding PreviousCommand}" ToolTip="{loc:T common.previous}" />
                 <Button Style="{StaticResource MiniPlayPause}" FontSize="18" Width="34" Height="34" Margin="4,0" />
                 <Button Style="{DynamicResource IconButton}" Content="&#xE893;" FontSize="16" Width="30" Height="30"
-                        Command="{Binding NextCommand}" ToolTip="Suivant" />
+                        Command="{Binding NextCommand}" ToolTip="{loc:T common.next}" />
                 <Button Style="{DynamicResource IconButton}" Content="{Binding Player.RepeatGlyph}" FontSize="14" Width="30" Height="30"
-                        Command="{Binding CycleRepeatCommand}" ToolTip="Répéter" />
+                        Command="{Binding CycleRepeatCommand}" ToolTip="{loc:T common.repeat}" />
             </StackPanel>
         </StackPanel>
     </Border>

@@ -5,6 +5,7 @@ using Microsoft.Web.WebView2.Core;
 using Sonora.Models;
 using Sonora.Services;
 using static Sonora.Spotify.SpotifyCatalog;
+using Sonora.Appearance.Localization;
 
 namespace Sonora.Spotify;
 
@@ -95,8 +96,7 @@ public sealed class SpotifyEngine(SpotifyApi api, SpotifyAuth auth, SpotifyCatal
                 DrmSupported = m.GetProperty("ok").GetBoolean();
                 DrmError = Str(m, "message");
                 if (DrmSupported == false)
-                    Error?.Invoke("Le moteur WebView2 ne fournit pas la protection Widevine nécessaire à la lecture Spotify dans Sonora. " +
-                                  "Vous pouvez quand même piloter l'app Spotify ou un autre appareil via le menu Appareils.");
+                    Error?.Invoke(Loc.T("spotify.engine_no_widevine"));
                 break;
             case "sdk":
                 SdkLoaded = true;
@@ -129,10 +129,10 @@ public sealed class SpotifyEngine(SpotifyApi api, SpotifyAuth auth, SpotifyCatal
 
     static string Translate(string? kind, string? message) => kind switch
     {
-        "account_error" => "La lecture dans Sonora nécessite un compte Spotify Premium.",
-        "authentication_error" => "Authentification Spotify refusée : reconnectez-vous dans les paramètres.",
-        "initialization_error" => "Le lecteur Spotify n'a pas pu démarrer : " + message,
-        _ => "Lecture Spotify : " + message,
+        "account_error" => Loc.T("spotify.engine_account_error"),
+        "authentication_error" => Loc.T("spotify.engine_auth_error"),
+        "initialization_error" => Loc.T("spotify.engine_init_error", message),
+        _ => Loc.T("spotify.engine_playback_error", message),
     };
 
     void OnSdkState(JsonElement st)
@@ -170,7 +170,7 @@ public sealed class SpotifyEngine(SpotifyApi api, SpotifyAuth auth, SpotifyCatal
             var id = Str(device, "id");
             if (id != null && id == DeviceId) return; // the SDK reports this one itself
             TargetDeviceId = id;
-            TargetDeviceName = Str(device, "name") ?? "Autre appareil";
+            TargetDeviceName = Str(device, "name") ?? Loc.T("spotify.other_device");
             var track = st.TryGetProperty("item", out var item) ? catalog.MapTrack(item) : null;
             var repeat = Str(st, "repeat_state") switch { "context" => RepeatMode.All, "track" => RepeatMode.One, _ => RepeatMode.Off };
             StateChanged?.Invoke(new SpotifyState(

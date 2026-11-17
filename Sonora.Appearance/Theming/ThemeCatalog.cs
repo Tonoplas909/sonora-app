@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Sonora.Appearance.Localization;
 
 namespace Sonora.Appearance.Theming;
 
@@ -72,8 +73,8 @@ public sealed class ThemeCatalog(string userDirectory)
                 if (raw.Count > 0) { _errors.Add($"{name} : {raw[0]}"); continue; }
                 var t = ThemeDefinition.Parse(json, baseTheme);
                 t.Id = Slug(HasId(json) ? t.Id : Path.GetFileNameWithoutExtension(file));
-                if (BuiltInIds.Contains(t.Id)) { _errors.Add($"{name} : l'identifiant « {t.Id} » est réservé à un thème fourni."); continue; }
-                if (_user.Any(u => u.Id == t.Id)) { _errors.Add($"{name} : identifiant « {t.Id} » en double."); continue; }
+                if (BuiltInIds.Contains(t.Id)) { _errors.Add(Loc.T("theme.error_reserved_id", name, t.Id)); continue; }
+                if (_user.Any(u => u.Id == t.Id)) { _errors.Add(Loc.T("theme.error_duplicate_id", name, t.Id)); continue; }
                 t.BuiltIn = false;
                 _user.Add(t);
             }
@@ -94,8 +95,8 @@ public sealed class ThemeCatalog(string userDirectory)
     {
         var source = Get(id);
         var copy = source.Clone();
-        copy.Id = UniqueId(source.Id + "-copie");
-        copy.Name = source.Name + " (copie)";
+        copy.Id = UniqueId(source.Id + "-copy");
+        copy.Name = source.DisplayName + Loc.T("theme.copy_suffix");
         copy.BuiltIn = false;
         copy.BasedOn = source.BasedOn ?? source.Id;
         _user.Add(copy);
@@ -191,7 +192,7 @@ public sealed class ThemeCatalog(string userDirectory)
 
     void EnsureEditable(string id)
     {
-        if (BuiltInIds.Contains(id)) throw new InvalidOperationException("Les thèmes fournis ne peuvent pas être modifiés.");
+        if (BuiltInIds.Contains(id)) throw new InvalidOperationException(Loc.T("theme.error_builtin_readonly"));
     }
 
     /// <summary>File of a theme, guaranteed to stay inside the themes folder whatever the id contains.</summary>
@@ -200,7 +201,7 @@ public sealed class ThemeCatalog(string userDirectory)
         var dir = Path.GetFullPath(userDirectory);
         var path = Path.GetFullPath(Path.Combine(dir, Slug(id) + ".json"));
         if (!path.StartsWith(dir.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException("Identifiant de thème invalide.");
+            throw new InvalidOperationException(Loc.T("theme.error_invalid_id"));
         return path;
     }
 
@@ -228,15 +229,15 @@ public sealed class ThemeCatalog(string userDirectory)
         {
             using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
-            if (root.ValueKind != JsonValueKind.Object) { errors.Add("le fichier n'est pas un thème."); return errors; }
+            if (root.ValueKind != JsonValueKind.Object) { errors.Add(Loc.T("theme.error_not_a_theme")); return errors; }
             if (root.TryGetProperty("colors", out var colors) && colors.ValueKind == JsonValueKind.Object)
                 foreach (var p in colors.EnumerateObject())
                     if (p.Value.ValueKind != JsonValueKind.String || !Argb.TryParse(p.Value.GetString(), out _))
-                        errors.Add($"Couleur « {p.Name} » invalide : « {p.Value} » (format attendu #RRGGBB ou #AARRGGBB).");
+                        errors.Add(Loc.T("theme.error_bad_color", p.Name, p.Value));
         }
         catch (JsonException ex)
         {
-            errors.Add("JSON invalide (" + ex.Message + ").");
+            errors.Add(Loc.T("theme.error_invalid_json", ex.Message));
         }
         return errors;
     }
@@ -245,7 +246,7 @@ public sealed class ThemeCatalog(string userDirectory)
     {
         var asm = typeof(ThemeCatalog).Assembly;
         using var s = asm.GetManifestResourceStream($"Sonora.Appearance.Theming.BuiltIn.{id}.json")
-                      ?? throw new InvalidOperationException($"Thème fourni introuvable : {id}");
+                      ?? throw new InvalidOperationException(Loc.T("theme.error_builtin_missing", id));
         using var reader = new StreamReader(s);
         return ThemeDefinition.Parse(reader.ReadToEnd(), fallback ?? new ThemeDefinition());
     }

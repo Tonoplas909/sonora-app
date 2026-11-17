@@ -18,7 +18,7 @@ Vos fichiers locaux et votre compte Spotify au même endroit, avec des thèmes, 
 
 </div>
 
-> L'interface est en **français**. Les traductions sont les bienvenues, voir [CONTRIBUTING.md](CONTRIBUTING.md).
+> **Langues :** anglais, français, espagnol, allemand, italien, portugais, néerlandais, suédois, danois, norvégien, finnois et islandais. Seul le français a été relu par un locuteur natif ; les autres portent un badge *non relue* dans Réglages › Langue. Les corrections sont les bienvenues : [docs/TRANSLATING.md](docs/TRANSLATING.md).
 
 ## Pourquoi Sonora
 

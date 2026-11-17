@@ -14,6 +14,7 @@ using Sonora.Services;
 using Sonora.ViewModels;
 using Sonora.Views;
 using Sonora.Views.Panels;
+using Sonora.Appearance.Localization;
 
 namespace Sonora;
 
@@ -127,7 +128,7 @@ public partial class MainWindow : Window
             if (_vm.Library.Tracks.Count > 0)
             {
                 _vm.Player.IsMuted = true;
-                _vm.PlayTracks(_vm.Library.Tracks, 0, "Tous les titres");
+                _vm.PlayTracks(_vm.Library.Tracks, 0, Loc.T("library.all_tracks"));
                 await Task.Delay(2500);
                 try
                 {
@@ -196,7 +197,7 @@ public partial class MainWindow : Window
                 _vm.Player.IsMuted = true; // silent self-test
                 _vm.OpenAllTracks();
                 _vm.Layout.Show(PanelIds.Queue);
-                _vm.PlayTracks(_vm.Library.Tracks, 0, "Tous les titres");
+                _vm.PlayTracks(_vm.Library.Tracks, 0, Loc.T("library.all_tracks"));
                 await Task.Delay(3000);
                 // With a sandboxed listening log (--log-dir), run the track to its end and skip on, so the
                 // render also proves a finished listen reaches the log.
@@ -210,7 +211,7 @@ public partial class MainWindow : Window
                 break;
             case "miniplayer" when _vm.Library.Tracks.Count > 0:
                 _vm.Player.IsMuted = true;
-                _vm.PlayTracks(_vm.Library.Tracks, 0, "Tous les titres");
+                _vm.PlayTracks(_vm.Library.Tracks, 0, Loc.T("library.all_tracks"));
                 await Task.Delay(1500);
                 MiniPlayerWindow.Toggle(_vm, this);
                 Show(); // the render needs the main window up; the mini player hid it
@@ -218,14 +219,14 @@ public partial class MainWindow : Window
                 break;
             case "toast" when _vm.Library.Tracks.Count > 0:
                 _vm.Player.IsMuted = true;
-                _vm.PlayTracks(_vm.Library.Tracks, 0, "Tous les titres");
+                _vm.PlayTracks(_vm.Library.Tracks, 0, Loc.T("library.all_tracks"));
                 await Task.Delay(1500);
                 TrackToastWindow.Show(_vm, this);
                 shot = Application.Current.Windows.OfType<TrackToastWindow>().First();
                 break;
             case "fullscreen" when _vm.Library.Tracks.Count > 0:
                 _vm.Player.IsMuted = true;
-                _vm.PlayTracks(_vm.Library.Tracks, 0, "Tous les titres");
+                _vm.PlayTracks(_vm.Library.Tracks, 0, Loc.T("library.all_tracks"));
                 await Task.Delay(1500);
                 FullScreenWindow.Toggle(_vm, this);
                 shot = Application.Current.Windows.OfType<FullScreenWindow>().First();
@@ -314,7 +315,7 @@ public partial class MainWindow : Window
     {
         bool max = WindowState == WindowState.Maximized;
         MaxButton.Content = max ? "" : "";
-        MaxButton.ToolTip = max ? "Restaurer" : "Agrandir";
+        MaxButton.ToolTip = Loc.T(max ? "main.restore" : "main.maximize");
     }
 
     // ---------------- "Afficher" menu ----------------
@@ -331,7 +332,7 @@ public partial class MainWindow : Window
             menu.Items.Add(item);
         }
         menu.Items.Add(new Separator());
-        TrackInteractions.Add(menu, "Réinitialiser la disposition", "", () => _vm.Layout.Reset(App.Themes.Current));
+        TrackInteractions.Add(menu, Loc.T("appearance.reset_the_layout"), "", () => _vm.Layout.Reset(App.Themes.Current));
         menu.IsOpen = true;
     }
 
@@ -483,10 +484,10 @@ static class Prompt
         w.SetResourceReference(Window.BackgroundProperty, "Brush.Surface");
         w.SetResourceReference(Window.ForegroundProperty, "Brush.TextPrimary");
         var box = new TextBox { Text = initial, Margin = new Thickness(0, 12, 0, 20) };
-        var ok = new Button { Content = "Enregistrer", IsDefault = true };
+        var ok = new Button { Content = Loc.T("common.save"), IsDefault = true };
         ok.SetResourceReference(FrameworkElement.StyleProperty, "AccentPill");
         ok.Click += (_, _) => w.DialogResult = true;
-        var cancel = new Button { Content = "Annuler", IsCancel = true, Margin = new Thickness(0, 0, 8, 0) };
+        var cancel = new Button { Content = Loc.T("common.cancel"), IsCancel = true, Margin = new Thickness(0, 0, 8, 0) };
         cancel.SetResourceReference(FrameworkElement.StyleProperty, "PillOutline");
         cancel.Click += (_, _) => w.DialogResult = false;
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };

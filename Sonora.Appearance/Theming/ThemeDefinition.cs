@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Sonora.Appearance.Layout;
+using Sonora.Appearance.Localization;
 
 namespace Sonora.Appearance.Theming;
 
@@ -120,6 +121,9 @@ public sealed partial class ThemeDefinition
 
     public string Id { get; set; } = "";
     public string Name { get; set; } = "";
+
+    /// <summary>The name to show: a built-in palette is called what the language in use calls it, a user's theme keeps its own name.</summary>
+    public string DisplayName => BuiltIn && Loc.Current.Has("palette." + Id) ? Loc.T("palette." + Id) : Name;
     public bool BuiltIn { get; set; }
     public ThemeColors Colors { get; set; } = new();
     public ThemeFonts Fonts { get; set; } = new();
@@ -255,18 +259,18 @@ public sealed partial class ThemeDefinition
     public IReadOnlyList<string> Validate()
     {
         var errors = new List<string>();
-        if (string.IsNullOrWhiteSpace(Id)) errors.Add("L'identifiant du thème est vide.");
-        if (string.IsNullOrWhiteSpace(Name)) errors.Add("Le nom du thème est vide.");
+        if (string.IsNullOrWhiteSpace(Id)) errors.Add(Loc.T("theme.error_empty_id"));
+        if (string.IsNullOrWhiteSpace(Name)) errors.Add(Loc.T("theme.error_empty_name"));
         foreach (var k in ThemeColors.Keys)
             if (!Argb.TryParse(Colors.Get(k), out _))
-                errors.Add($"Couleur « {k} » invalide : « {Colors.Get(k)} » (format attendu #RRGGBB ou #AARRGGBB).");
+                errors.Add(Loc.T("theme.error_bad_color", k, Colors.Get(k)));
         foreach (var c in Background.Colors)
             if (!Argb.TryParse(c, out _))
-                errors.Add($"Couleur de fond invalide : « {c} ».");
+                errors.Add(Loc.T("theme.error_bad_background_color", c));
         if (Frame != null)
             foreach (var k in FrameColors.Keys)
                 if (!Argb.TryParse(Frame.Get(k), out _))
-                    errors.Add($"Couleur de cadre « {k} » invalide : « {Frame.Get(k)} ».");
+                    errors.Add(Loc.T("theme.error_bad_frame_color", k, Frame.Get(k)));
         return errors;
     }
 

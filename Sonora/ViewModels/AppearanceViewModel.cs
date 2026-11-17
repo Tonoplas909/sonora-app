@@ -9,6 +9,7 @@ using Sonora.Appearance.Layout;
 using Sonora.Appearance.Theming;
 using Sonora.Core;
 using Sonora.Views.Panels;
+using Sonora.Appearance.Localization;
 
 namespace Sonora.ViewModels;
 
@@ -75,21 +76,21 @@ public sealed class AppearanceViewModel : ObservableObject
 {
     static readonly (string Key, string Label)[] ColorLabels =
     [
-        ("window", "Fenêtre"), ("surface", "Panneaux"), ("surfaceAlt", "Panneaux secondaires"), ("hover", "Survol"),
-        ("selected", "Sélection"), ("border", "Séparateurs"), ("textPrimary", "Texte principal"), ("textSecondary", "Texte secondaire"),
-        ("textMuted", "Texte discret"), ("accent", "Accent"), ("onAccent", "Texte sur l'accent"), ("rail", "Rail"),
+        ("window", "appearance.color_window"), ("surface", "appearance.color_surface"), ("surfaceAlt", "appearance.color_surfaceAlt"), ("hover", "appearance.color_hover"),
+        ("selected", "appearance.color_selected"), ("border", "appearance.color_border"), ("textPrimary", "appearance.color_textPrimary"), ("textSecondary", "appearance.color_textSecondary"),
+        ("textMuted", "appearance.color_textMuted"), ("accent", "appearance.color_accent"), ("onAccent", "appearance.color_onAccent"), ("rail", "appearance.color_rail"),
     ];
 
     static readonly Dictionary<string, string> SectionTitles = new()
     {
-        [HomeSectionIds.Recent] = "Écoutés récemment",
-        [HomeSectionIds.Playlists] = "Vos playlists",
-        [HomeSectionIds.SavedAlbums] = "Vos albums",
-        [HomeSectionIds.Rediscover] = "À redécouvrir dans vos fichiers",
-        [HomeSectionIds.Artists] = "Vos artistes",
-        [HomeSectionIds.NewReleases] = "Nouveautés de vos artistes",
-        [HomeSectionIds.TopArtists] = "Vos artistes les plus écoutés",
-        [HomeSectionIds.Shows] = "Vos podcasts",
+        [HomeSectionIds.Recent] = "home.recently_played",
+        [HomeSectionIds.Playlists] = "home.your_playlists",
+        [HomeSectionIds.SavedAlbums] = "home.your_albums",
+        [HomeSectionIds.Rediscover] = "home.rediscover",
+        [HomeSectionIds.Artists] = "pages.your_artists",
+        [HomeSectionIds.NewReleases] = "pages.new_releases_from_your_artists",
+        [HomeSectionIds.TopArtists] = "pages.your_most_played_artists",
+        [HomeSectionIds.Shows] = "home.your_podcasts",
     };
 
     readonly MainViewModel _main;
@@ -130,7 +131,7 @@ public sealed class AppearanceViewModel : ObservableObject
     /// <summary>Level 1: the themes (complete styles).</summary>
     public ObservableCollection<StyleTile> StyleTiles { get; } = [];
     public ICommand SelectStyleCommand { get; }
-    public string PaletteSectionTitle => $"Sous-thème · {ThemeStyles.Get(Current.Style).Name}";
+    public string PaletteSectionTitle => Loc.T("appearance.palette_title", ThemeStyles.Get(Current.Style).Name);
 
     /// <summary>Level 2: the sub-themes (colour variants) of the current theme.</summary>
     public ObservableCollection<ThemeTile> Themes { get; } = [];
@@ -197,7 +198,7 @@ public sealed class AppearanceViewModel : ObservableObject
 
     void Rename()
     {
-        var name = Prompt.Show(Application.Current.MainWindow, "Renommer le thème", Current.Name);
+        var name = Prompt.Show(Application.Current.MainWindow, Loc.T("appearance.rename_theme"), Current.Name);
         if (name == null) return;
         Flush();
         Guard(() => App.Catalog.Rename(Current.Id, name));
@@ -206,7 +207,7 @@ public sealed class AppearanceViewModel : ObservableObject
 
     void Delete()
     {
-        var r = MessageBox.Show(Application.Current.MainWindow, $"Supprimer le thème « {Current.Name} » ?", "Supprimer le thème",
+        var r = MessageBox.Show(Application.Current.MainWindow, Loc.T("appearance.delete_theme_confirm", Current.Name), Loc.T("appearance.delete_theme"),
             MessageBoxButton.YesNo, MessageBoxImage.Question);
         if (r != MessageBoxResult.Yes) return;
         _pending = null;
@@ -217,25 +218,25 @@ public sealed class AppearanceViewModel : ObservableObject
 
     void Export()
     {
-        var dlg = new SaveFileDialog { Title = "Exporter le thème", Filter = "Thème Sonora (*.json)|*.json", FileName = Current.Id + ".json" };
+        var dlg = new SaveFileDialog { Title = Loc.T("appearance.export_theme"), Filter = Loc.T("appearance.theme_file") + " (*.json)|*.json", FileName = Current.Id + ".json" };
         if (dlg.ShowDialog() != true) return;
         Flush();
         Guard(() =>
         {
             App.Catalog.Export(Current.Id, dlg.FileName);
-            _main.ReportError($"Thème exporté : {dlg.FileName}");
+            _main.ReportError(Loc.T("appearance.exported", dlg.FileName));
         });
     }
 
     void Import()
     {
-        var dlg = new OpenFileDialog { Title = "Importer un thème", Filter = "Thème Sonora (*.json)|*.json" };
+        var dlg = new OpenFileDialog { Title = Loc.T("appearance.import_theme"), Filter = Loc.T("appearance.theme_file") + " (*.json)|*.json" };
         if (dlg.ShowDialog() != true) return;
         try { Apply(App.Catalog.Import(dlg.FileName)); }
         catch (Exception ex) when (ex is InvalidDataException or IOException or UnauthorizedAccessException
                                        or ArgumentException or NotSupportedException or InvalidOperationException)
         {
-            _main.ReportError("Import impossible : " + ex.Message);
+            _main.ReportError(Loc.T("appearance.import_failed", ex.Message));
         }
     }
 
@@ -254,7 +255,7 @@ public sealed class AppearanceViewModel : ObservableObject
         try { Apply(App.Catalog.ResetToBase(id)); }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
         {
-            _main.ReportError("Réinitialisation impossible : " + ex.Message);
+            _main.ReportError(Loc.T("appearance.reset_failed", ex.Message));
         }
     }
 
@@ -337,7 +338,7 @@ public sealed class AppearanceViewModel : ObservableObject
     /// <summary>The picture can only replace a plain one-colour background.</summary>
     public bool CustomBackgroundAvailable => Current.Background.Mode == "solid";
     public bool HasBackgroundImage => _main.State.BackgroundImage.Length > 0;
-    public string BackgroundImageName => HasBackgroundImage ? System.IO.Path.GetFileName(_main.State.BackgroundImage) : "Aucune image";
+    public string BackgroundImageName => HasBackgroundImage ? System.IO.Path.GetFileName(_main.State.BackgroundImage) : Loc.T("appearance.no_image");
 
     public double BackgroundImageStrength
     {
@@ -358,7 +359,7 @@ public sealed class AppearanceViewModel : ObservableObject
 
     void ChooseBackgroundImage()
     {
-        var dlg = new OpenFileDialog { Title = "Choisir une image de fond", Filter = "Images|*.jpg;*.jpeg;*.png;*.bmp;*.webp|Tous les fichiers|*.*" };
+        var dlg = new OpenFileDialog { Title = Loc.T("appearance.choose_background"), Filter = Loc.T("dialog.images") + "|*.jpg;*.jpeg;*.png;*.bmp;*.webp|" + Loc.T("dialog.all_files") + "|*.*" };
         if (dlg.ShowDialog() == true) SetBackgroundImage(dlg.FileName);
     }
 
@@ -366,7 +367,7 @@ public sealed class AppearanceViewModel : ObservableObject
     {
         if (!App.Themes.SetCustomBackground(path, _main.State.BackgroundImageStrength))
         {
-            _main.ReportError("Cette image n'a pas pu être lue.");
+            _main.ReportError(Loc.T("appearance.image_unreadable"));
             return;
         }
         _main.State.BackgroundImage = path;
@@ -426,7 +427,7 @@ public sealed class AppearanceViewModel : ObservableObject
         OnPropertyChanged(nameof(PaletteSectionTitle));
         Colors.Clear();
         foreach (var (key, label) in ColorLabels)
-            Colors.Add(new ColorSlot(key, label, Current.Colors.Get(key), slot => Edit(() => Current.Colors.Set(slot.Key, slot.Hex))));
+            Colors.Add(new ColorSlot(key, Loc.T(label), Current.Colors.Get(key), slot => Edit(() => Current.Colors.Set(slot.Key, slot.Hex))));
         OnPropertyChanged(nameof(Current));
         OnPropertyChanged(nameof(IsEditable));
         OnPropertyChanged(nameof(IsLocked));
@@ -466,7 +467,7 @@ public sealed class AppearanceViewModel : ObservableObject
         foreach (var s in Content.HomeSections)
         {
             var section = s;
-            HomeSections.Add(new HomeSectionItem(s.Id, SectionTitles.GetValueOrDefault(s.Id, s.Id), s.Visible, () =>
+            HomeSections.Add(new HomeSectionItem(s.Id, Loc.T(SectionTitles.GetValueOrDefault(s.Id, s.Id)), s.Visible, () =>
             {
                 section.Visible = HomeSections.First(h => h.Id == section.Id).Visible;
                 ContentChanged();

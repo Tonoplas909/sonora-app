@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Sonora.Appearance.Layout;
 using Sonora.Views.Panels;
+using Sonora.Appearance.Localization;
 
 namespace Sonora.Docking;
 
@@ -58,7 +59,7 @@ public sealed class PanelFrame : Border
     {
         var bar = new DockPanel { Height = 30, Margin = new Thickness(6, 0, 2, 2), Background = Brushes.Transparent };
 
-        var close = new Button { Content = "", FontSize = 11, Width = 28, Height = 28, ToolTip = "Fermer ce panneau" };
+        var close = new Button { Content = "", FontSize = 11, Width = 28, Height = 28, ToolTip = Loc.T("dock.close_panel") };
         close.SetResourceReference(StyleProperty, "IconButton");
         close.Click += (_, _) => _host.Model?.Close(activeId);
         DockPanel.SetDock(close, Dock.Right);
@@ -96,7 +97,7 @@ public sealed class PanelFrame : Border
             Margin = new Thickness(0, 0, 4, 0),
             Background = Brushes.Transparent,
             Cursor = Cursors.SizeAll,
-            ToolTip = "Glisser pour déplacer ce panneau",
+            ToolTip = Loc.T("dock.move_panel"),
         };
         tab.SetResourceReference(Border.CornerRadiusProperty, "Radius.Control");
         tab.SetResourceReference(TextElement.ForegroundProperty, active ? "Brush.TextPrimary" : "Brush.TextSecondary");
@@ -124,7 +125,7 @@ public sealed class PanelFrame : Border
             Height = orientation == Orientation.Horizontal ? double.NaN : 16,
             Background = Brushes.Transparent,
             Cursor = Cursors.SizeAll,
-            ToolTip = "Glisser pour déplacer la barre de lecture",
+            ToolTip = Loc.T("dock.move_player_bar"),
             Opacity = 0.35,
         };
         grip.MouseEnter += (_, _) => grip.Opacity = 1;

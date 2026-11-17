@@ -2,6 +2,7 @@ using Sonora.Models;
 using Windows.Storage;
 using IOPath = System.IO.Path;
 using FileAttributes = System.IO.FileAttributes;
+using Sonora.Appearance.Localization;
 
 namespace Sonora.Services;
 
@@ -98,10 +99,26 @@ public sealed class LibraryService
         {
             // Unreadable tags: keep file-name based metadata.
         }
-        if (string.IsNullOrWhiteSpace(t.Artist)) t.Artist = "Artiste inconnu";
+        if (string.IsNullOrWhiteSpace(t.Artist)) t.Artist = Loc.T("library.unknown_artist");
         if (string.IsNullOrWhiteSpace(t.Album))
-            t.Album = IOPath.GetFileName(IOPath.GetDirectoryName(fi.FullName)) is { Length: > 0 } dir ? dir : "Album inconnu";
+            t.Album = IOPath.GetFileName(IOPath.GetDirectoryName(fi.FullName)) is { Length: > 0 } dir ? dir : Loc.T("library.unknown_album");
         return t;
+    }
+
+    /// <summary>
+    /// "Unknown artist" and "Unknown album" are written into the tracks when they are scanned, in the language of that
+    /// moment. After a change of language they are written again in the new one. True when something changed.
+    /// </summary>
+    public bool Relocalize()
+    {
+        bool changed = false;
+        string artist = Loc.T("library.unknown_artist"), album = Loc.T("library.unknown_album");
+        foreach (var t in Tracks)
+        {
+            if (t.Artist != artist && Loc.MatchesAnyLanguage("library.unknown_artist", t.Artist)) { t.Artist = artist; changed = true; }
+            if (t.Album != album && Loc.MatchesAnyLanguage("library.unknown_album", t.Album)) { t.Album = album; changed = true; }
+        }
+        return changed;
     }
 
     /// <summary>Rebuilds the in-memory index. Must run on the UI thread.</summary>

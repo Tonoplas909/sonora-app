@@ -6,6 +6,7 @@ using System.Windows.Input;
 using Sonora.Appearance.Layout;
 using Sonora.ViewModels;
 using Sonora.Views.Panels;
+using Sonora.Appearance.Localization;
 
 namespace Sonora.Docking;
 
@@ -192,7 +193,7 @@ public sealed class DockHost : Grid
             ResizeBehavior = GridResizeBehavior.PreviousAndNext,
             ResizeDirection = columns ? GridResizeDirection.Columns : GridResizeDirection.Rows,
             Focusable = false,
-            ToolTip = "Glisser pour redimensionner, double-clic pour replier",
+            ToolTip = Loc.T("dock.resize_hint"),
         };
         if (columns) SetColumn(split, index); else SetRow(split, index);
         split.DragCompleted += (_, _) =>

@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Sonora.Appearance.Localization;
 
 namespace Sonora;
 
@@ -193,22 +194,22 @@ public sealed class RadiusPreviewConverter : IValueConverter
         throw new NotSupportedException();
 }
 
-/// <summary>Theme option values (density, background mode, card size) shown in French.</summary>
+/// <summary>Theme option values (density, background mode, card size) shown in the language in use.</summary>
 public sealed class OptionLabelConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => value switch
     {
-        "compact" => "Compacte",
-        "normal" => "Normale",
-        "confort" => "Confort",
-        "solid" => "Uni",
-        "gradient" => "Dégradé",
-        "artwork" => "Teinté par la pochette",
-        "standard" => "Standard",
-        "terminal" => "Studio (terminal)",
-        "small" => "Petite",
-        "medium" => "Moyenne",
-        "large" => "Grande",
+        "compact" => Loc.T("option.compact"),
+        "normal" => Loc.T("option.normal"),
+        "confort" => Loc.T("option.confort"),
+        "solid" => Loc.T("option.solid"),
+        "gradient" => Loc.T("option.gradient"),
+        "artwork" => Loc.T("option.artwork"),
+        "standard" => Loc.T("option.standard"),
+        "terminal" => Loc.T("option.terminal"),
+        "small" => Loc.T("option.small"),
+        "medium" => Loc.T("option.medium"),
+        "large" => Loc.T("option.large"),
         _ => value?.ToString() ?? "",
     };
 

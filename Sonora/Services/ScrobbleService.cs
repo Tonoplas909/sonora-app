@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Sonora.Appearance.Features;
+using Sonora.Appearance.Localization;
 
 namespace Sonora.Services;
 
@@ -53,14 +54,14 @@ public sealed class ScrobbleService(HttpClient? http = null)
     /// </summary>
     public async Task<string> TestAsync(string? token, CancellationToken ct = default)
     {
-        if (!HasToken(token)) return "Aucun jeton ListenBrainz renseigné.";
+        if (!HasToken(token)) return Loc.T("scrobble.no_token");
         try
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.listenbrainz.org/1/validate-token");
             request.Headers.Authorization = new AuthenticationHeaderValue("Token", token!.Trim());
             using var response = await _http.SendAsync(request, ct);
             var text = await response.Content.ReadAsStringAsync(ct);
-            if (!response.IsSuccessStatusCode) return $"ListenBrainz a refusé le jeton ({(int)response.StatusCode}).";
+            if (!response.IsSuccessStatusCode) return Loc.T("scrobble.token_refused_status", (int)response.StatusCode);
 
             using var json = JsonDocument.Parse(text);
             var root = json.RootElement;
@@ -68,14 +69,14 @@ public sealed class ScrobbleService(HttpClient? http = null)
             if (!valid)
             {
                 var message = root.TryGetProperty("message", out var m) ? m.GetString() : null;
-                return "Jeton refusé par ListenBrainz" + (message is { Length: > 0 } ? $" : {message}" : ".");
+                return message is { Length: > 0 } ? Loc.T("scrobble.token_refused_reason", message) : Loc.T("scrobble.token_refused");
             }
             var name = root.TryGetProperty("user_name", out var user) ? user.GetString() : null;
-            return name is { Length: > 0 } ? $"Jeton valide : {name}." : "Jeton valide.";
+            return name is { Length: > 0 } ? Loc.T("scrobble.token_valid_name", name) : Loc.T("scrobble.token_valid");
         }
         catch (Exception ex)
         {
-            return "ListenBrainz injoignable : " + ex.Message;
+            return Loc.T("scrobble.unreachable", ex.Message);
         }
     }
 
@@ -87,12 +88,12 @@ public sealed class ScrobbleService(HttpClient? http = null)
             request.Headers.Authorization = new AuthenticationHeaderValue("Token", token.Trim());
             using var response = await _http.SendAsync(request, ct);
             if (!response.IsSuccessStatusCode)
-                Error?.Invoke($"Envoi à ListenBrainz refusé ({(int)response.StatusCode}).");
+                Error?.Invoke(Loc.T("scrobble.send_refused", (int)response.StatusCode));
         }
         catch (Exception ex)
         {
             // A listen that fails to leave is already safe in the local log; it is not worth a retry queue.
-            Error?.Invoke("Envoi à ListenBrainz impossible : " + ex.Message);
+            Error?.Invoke(Loc.T("scrobble.send_failed", ex.Message));
         }
     }
 }

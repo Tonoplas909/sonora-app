@@ -5,6 +5,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using Sonora.Models;
 using Sonora.ViewModels;
+using Sonora.Appearance.Localization;
 
 namespace Sonora.Views;
 
@@ -43,20 +44,20 @@ public static class TrackInteractions
         var spotify = t.IsSpotify;
 
         var menu = new ContextMenu();
-        Add(menu, "Lire", "", () => PlayRow(list, row));
-        if (!spotify) Add(menu, "Lire ensuite", "", () => { foreach (var x in Enumerable.Reverse(tracks)) vm.Player.PlayNext(x); });
-        Add(menu, "Ajouter à la file d'attente", "", () => { foreach (var x in tracks) vm.Player.Enqueue(x); });
+        Add(menu, Loc.T("menu.play"), "", () => PlayRow(list, row));
+        if (!spotify) Add(menu, Loc.T("menu.play_next"), "", () => { foreach (var x in Enumerable.Reverse(tracks)) vm.Player.PlayNext(x); });
+        Add(menu, Loc.T("menu.add_to_queue"), "", () => { foreach (var x in tracks) vm.Player.Enqueue(x); });
         menu.Items.Add(new Separator());
 
         if (!many)
-            Add(menu, t.IsLiked ? "Retirer des Titres likés" : "Ajouter aux Titres likés", t.IsLiked ? "" : "", () => vm.ToggleLike(t));
+            Add(menu, t.IsLiked ? Loc.T("menu.remove_from_liked") : Loc.T("common.add_to_liked_songs"), t.IsLiked ? "" : "", () => vm.ToggleLike(t));
         else
-            Add(menu, "Ajouter aux Titres likés", "", () => { foreach (var x in tracks.Where(x => !x.IsLiked)) vm.ToggleLike(x); });
+            Add(menu, Loc.T("common.add_to_liked_songs"), "", () => { foreach (var x in tracks.Where(x => !x.IsLiked)) vm.ToggleLike(x); });
 
-        var sub = new MenuItem { Header = "Ajouter à la playlist", Icon = Glyph("") };
+        var sub = new MenuItem { Header = Loc.T("menu.add_to_playlist"), Icon = Glyph("") };
         if (spotify)
         {
-            Add(sub, "Nouvelle playlist Spotify", "", () => _ = vm.AddToSpotifyPlaylistAsync(null, tracks));
+            Add(sub, Loc.T("menu.new_spotify_playlist"), "", () => _ = vm.AddToSpotifyPlaylistAsync(null, tracks));
             var owned = vm.Spotify.OwnedPlaylists;
             if (owned.Count > 0) sub.Items.Add(new Separator());
             foreach (var p in owned)
@@ -67,7 +68,7 @@ public static class TrackInteractions
         }
         else
         {
-            Add(sub, "Nouvelle playlist", "", () => vm.AddToPlaylist(vm.CreatePlaylist(), tracks));
+            Add(sub, Loc.T("menu.new_playlist"), "", () => vm.AddToPlaylist(vm.CreatePlaylist(), tracks));
             if (vm.Playlists.Count > 0) sub.Items.Add(new Separator());
             foreach (var p in vm.Playlists)
             {
@@ -78,7 +79,7 @@ public static class TrackInteractions
         menu.Items.Add(sub);
 
         if (list?.DataContext is TracksPage { Playlist: { } pl })
-            Add(menu, "Retirer de cette playlist", "", () =>
+            Add(menu, Loc.T("menu.remove_from_playlist"), "", () =>
             {
                 foreach (var r in selected.OrderByDescending(r => r.Number)) vm.RemoveFromPlaylist(pl, r.Number - 1);
             });
@@ -86,12 +87,12 @@ public static class TrackInteractions
         menu.Items.Add(new Separator());
         if (!many)
         {
-            if (t.AlbumRef is { } album) Add(menu, "Accéder à l'album", "", () => vm.OpenAlbum(album));
-            Add(menu, "Accéder à l'artiste", "", () => vm.OpenTrackArtist(t));
+            if (t.AlbumRef is { } album) Add(menu, Loc.T("menu.go_to_album"), "", () => vm.OpenAlbum(album));
+            Add(menu, Loc.T("menu.go_to_artist"), "", () => vm.OpenTrackArtist(t));
             if (spotify)
-                Add(menu, "Copier le lien du titre", "", () => Clipboard.SetText($"https://open.spotify.com/track/{t.SpotifyId}"));
+                Add(menu, Loc.T("menu.copy_track_link"), "", () => Clipboard.SetText($"https://open.spotify.com/track/{t.SpotifyId}"));
             else
-                Add(menu, "Afficher dans l'Explorateur", "", () =>
+                Add(menu, Loc.T("menu.show_in_explorer"), "", () =>
                     Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{t.Path}\"") { UseShellExecute = true }));
         }
 
@@ -106,16 +107,16 @@ public static class TrackInteractions
     {
         var vm = Vm;
         var menu = new ContextMenu();
-        menu.Items.Add(new MenuItem { Header = "Ordre", IsEnabled = false });
-        var recent = new MenuItem { Header = "Récents d'abord", IsChecked = vm.LibrarySort == "recent" };
+        menu.Items.Add(new MenuItem { Header = Loc.T("menu.order"), IsEnabled = false });
+        var recent = new MenuItem { Header = Loc.T("menu.recent_first"), IsChecked = vm.LibrarySort == "recent" };
         recent.Click += (_, _) => vm.LibrarySort = "recent";
         menu.Items.Add(recent);
-        var alpha = new MenuItem { Header = "Ordre alphabétique", IsChecked = vm.LibrarySort == "alpha" };
+        var alpha = new MenuItem { Header = Loc.T("menu.alphabetical"), IsChecked = vm.LibrarySort == "alpha" };
         alpha.Click += (_, _) => vm.LibrarySort = "alpha";
         menu.Items.Add(alpha);
 
         menu.Items.Add(new Separator());
-        var compact = new MenuItem { Header = "Pochettes seules", IsChecked = vm.LibraryCompact };
+        var compact = new MenuItem { Header = Loc.T("menu.covers_only"), IsChecked = vm.LibraryCompact };
         compact.Click += (_, _) => vm.LibraryCompact = !vm.LibraryCompact;
         menu.Items.Add(compact);
         return menu;
@@ -126,12 +127,12 @@ public static class TrackInteractions
     {
         var vm = Vm;
         var menu = new ContextMenu();
-        Add(menu, entry.IsPinned ? "Détacher" : "Épingler", "", () => vm.TogglePin(entry));
+        Add(menu, entry.IsPinned ? Loc.T("menu.unpin") : Loc.T("menu.pin"), "", () => vm.TogglePin(entry));
         if (ShareLink(entry.Source) is { } link)
-            Add(menu, "Copier le lien", "", () =>
+            Add(menu, Loc.T("menu.copy_link"), "", () =>
             {
                 Clipboard.SetText(link);
-                vm.ReportError("Lien copié dans le presse-papiers.");
+                vm.ReportError(Loc.T("menu.link_copied"));
             });
         if (entry.Source is Playlist p)
         {
@@ -153,32 +154,32 @@ public static class TrackInteractions
             var saved = vm.IsSaved(subject);
             var label = subject switch
             {
-                Album { IsShow: true } => saved ? "Retirer ce podcast" : "Enregistrer ce podcast",
-                Album => saved ? "Retirer cet album" : "Enregistrer cet album",
-                Artist => saved ? "Ne plus suivre" : "Suivre cet artiste",
-                _ => saved ? "Ne plus suivre cette playlist" : "Suivre cette playlist",
+                Album { IsShow: true } => saved ? Loc.T("menu.remove_podcast") : Loc.T("menu.save_podcast"),
+                Album => saved ? Loc.T("menu.remove_album") : Loc.T("menu.save_album"),
+                Artist => saved ? Loc.T("menu.unfollow") : Loc.T("menu.follow_artist"),
+                _ => saved ? Loc.T("menu.unfollow_playlist") : Loc.T("menu.follow_playlist"),
             };
             var target = subject;
             Add(menu, label, saved ? "" : "", () => _ = vm.SetSavedAsync(target, !saved));
         }
 
         if (ShareLink(subject) is { } link)
-            Add(menu, "Copier le lien", "", () =>
+            Add(menu, Loc.T("menu.copy_link"), "", () =>
             {
                 Clipboard.SetText(link);
-                vm.ReportError("Lien copié dans le presse-papiers.");
+                vm.ReportError(Loc.T("menu.link_copied"));
             });
 
         if (subject is Artist similar && vm.State.Features.Discovery)
-            Add(menu, "Artistes similaires", "", () => vm.OpenSimilarArtists(similar));
+            Add(menu, Loc.T("menu.similar_artists"), "", () => vm.OpenSimilarArtists(similar));
 
         if (subject is Playlist p) AddPlaylistActions(menu, p, owner);
         if (subject is SpotifyPlaylist own && own.OwnerId == vm.Spotify.UserId) AddOwnedPlaylistActions(menu, own, owner);
 
         if (tracks is { Count: > 0 } && tracks.Any(t => !t.IsSpotify))
-            Add(menu, "Exporter en M3U", "", () => vm.ExportPlaylist(tracks, title));
+            Add(menu, Loc.T("menu.export_m3u"), "", () => vm.ExportPlaylist(tracks, title));
 
-        if (menu.Items.Count == 0) menu.Items.Add(new MenuItem { Header = "Aucune action disponible", IsEnabled = false });
+        if (menu.Items.Count == 0) menu.Items.Add(new MenuItem { Header = Loc.T("menu.no_action"), IsEnabled = false });
         return menu;
     }
 
@@ -202,7 +203,7 @@ public static class TrackInteractions
     public static ContextMenu BuildSortMenu(TracksPage page)
     {
         var menu = new ContextMenu();
-        menu.Items.Add(new MenuItem { Header = "Trier par", IsEnabled = false });
+        menu.Items.Add(new MenuItem { Header = Loc.T("menu.sort_by"), IsEnabled = false });
         foreach (var option in page.SortOptions)
         {
             var chosen = option;
@@ -211,10 +212,10 @@ public static class TrackInteractions
             menu.Items.Add(mi);
         }
         menu.Items.Add(new Separator());
-        var up = new MenuItem { Header = "Croissant", IsChecked = !page.SortDescending, IsEnabled = page.IsSorted };
+        var up = new MenuItem { Header = Loc.T("menu.ascending"), IsChecked = !page.SortDescending, IsEnabled = page.IsSorted };
         up.Click += (_, _) => page.SortDescending = false;
         menu.Items.Add(up);
-        var down = new MenuItem { Header = "Décroissant", IsChecked = page.SortDescending, IsEnabled = page.IsSorted };
+        var down = new MenuItem { Header = Loc.T("menu.descending"), IsChecked = page.SortDescending, IsEnabled = page.IsSorted };
         down.Click += (_, _) => page.SortDescending = true;
         menu.Items.Add(down);
         return menu;
@@ -232,20 +233,20 @@ public static class TrackInteractions
     {
         var vm = Vm;
         menu.Items.Add(new Separator());
-        Add(menu, "Renommer", "", () =>
+        Add(menu, Loc.T("appearance.rename"), "", () =>
         {
-            var name = Prompt.Show(owner, "Renommer la playlist", p.Name);
+            var name = Prompt.Show(owner, Loc.T("menu.rename_playlist"), p.Name);
             if (name is { Length: > 0 }) _ = vm.SetPlaylistDetailsAsync(p, name: name);
         });
-        Add(menu, "Modifier la description", "", () =>
+        Add(menu, Loc.T("menu.edit_description"), "", () =>
         {
-            var text = Prompt.Show(owner, "Description de la playlist", "");
+            var text = Prompt.Show(owner, Loc.T("menu.playlist_description"), "");
             if (text != null) _ = vm.SetPlaylistDetailsAsync(p, description: text);
         });
-        Add(menu, "Changer la pochette", "", () => _ = vm.SetPlaylistCoverAsync(p));
-        Add(menu, p.IsPublic ? "Rendre privée" : "Rendre publique", "",
+        Add(menu, Loc.T("menu.change_cover"), "", () => _ = vm.SetPlaylistCoverAsync(p));
+        Add(menu, p.IsPublic ? Loc.T("menu.make_private") : Loc.T("menu.make_public"), "",
             () => _ = vm.SetPlaylistDetailsAsync(p, isPublic: !p.IsPublic));
-        Add(menu, p.IsCollaborative ? "Arrêter la collaboration" : "Rendre collaborative", "",
+        Add(menu, p.IsCollaborative ? Loc.T("menu.stop_collaborating") : Loc.T("menu.make_collaborative"), "",
             () => _ = vm.SetPlaylistDetailsAsync(p, collaborative: !p.IsCollaborative));
     }
 
@@ -253,14 +254,14 @@ public static class TrackInteractions
     static void AddPlaylistActions(ItemsControl menu, Playlist p, Window owner)
     {
         var vm = Vm;
-        Add(menu, "Renommer", "", () =>
+        Add(menu, Loc.T("appearance.rename"), "", () =>
         {
-            var name = Prompt.Show(owner, "Renommer la playlist", p.Name);
+            var name = Prompt.Show(owner, Loc.T("menu.rename_playlist"), p.Name);
             if (name != null) vm.RenamePlaylist(p, name);
         });
-        Add(menu, "Supprimer", "", () =>
+        Add(menu, Loc.T("appearance.delete"), "", () =>
         {
-            var r = MessageBox.Show(owner, $"Supprimer « {p.Name} » de votre bibliothèque ?", "Supprimer la playlist",
+            var r = MessageBox.Show(owner, Loc.T("menu.delete_playlist_confirm", p.Name), Loc.T("menu.delete_playlist"),
                 MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (r == MessageBoxResult.Yes) vm.DeletePlaylist(p);
         });
@@ -274,8 +275,8 @@ public static class TrackInteractions
         catch (Exception ex) { vm.ReportError(ex.Message); return; }
 
         var menu = new ContextMenu { PlacementTarget = anchor, Placement = PlacementMode.Top };
-        menu.Items.Add(new MenuItem { Header = "Lire sur", IsEnabled = false });
-        if (devices.Count == 0) menu.Items.Add(new MenuItem { Header = "Aucun appareil disponible", IsEnabled = false });
+        menu.Items.Add(new MenuItem { Header = Loc.T("menu.play_on"), IsEnabled = false });
+        if (devices.Count == 0) menu.Items.Add(new MenuItem { Header = Loc.T("menu.no_device"), IsEnabled = false });
         foreach (var d in devices)
         {
             var device = d;
@@ -292,18 +293,18 @@ public static class TrackInteractions
     {
         var vm = Vm;
         var menu = new ContextMenu { PlacementTarget = anchor, Placement = PlacementMode.Top };
-        menu.Items.Add(new MenuItem { Header = "Minuteur de veille", IsEnabled = false });
+        menu.Items.Add(new MenuItem { Header = Loc.T("menu.sleep_timer"), IsEnabled = false });
         foreach (var minutes in new[] { 15, 30, 45, 60 })
         {
             var delay = minutes;
-            Add(menu, $"{minutes} minutes", "", () => vm.StartSleep(delay));
+            Add(menu, Loc.T("menu.sleep_minutes", minutes), "", () => vm.StartSleep(delay));
         }
-        Add(menu, "À la fin du titre", "", vm.StartSleepAtTrackEnd);
+        Add(menu, Loc.T("menu.sleep_end_of_track"), "", vm.StartSleepAtTrackEnd);
         if (vm.IsSleepActive)
         {
             menu.Items.Add(new Separator());
             menu.Items.Add(new MenuItem { Header = vm.SleepStatus, IsEnabled = false });
-            Add(menu, "Annuler", "", vm.CancelSleep);
+            Add(menu, Loc.T("common.cancel"), "", vm.CancelSleep);
         }
         menu.IsOpen = true;
     }

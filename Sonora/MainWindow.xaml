@@ -1,5 +1,5 @@
 <Window x:Class="Sonora.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:loc="clr-namespace:Sonora.Localization"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="clr-namespace:Sonora.Docking"
         xmlns:v="clr-namespace:Sonora.Views"
@@ -103,16 +103,16 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Button Style="{DynamicResource RoundNav}" Content="&#xE72B;" Command="{Binding GoBackCommand}" ToolTip="Retour (Alt+←)" />
-                                <Button Style="{DynamicResource RoundNav}" Content="&#xE72A;" Command="{Binding GoForwardCommand}" ToolTip="Suivant (Alt+→)" Margin="8,0,16,0" />
-                                <TextBox x:Name="SearchBox" Style="{DynamicResource SearchBox}" Width="360" Tag="Que souhaitez-vous écouter ?"
+                                <Button Style="{DynamicResource RoundNav}" Content="&#xE72B;" Command="{Binding GoBackCommand}" ToolTip="{loc:T main.back_alt}" />
+                                <Button Style="{DynamicResource RoundNav}" Content="&#xE72A;" Command="{Binding GoForwardCommand}" ToolTip="{loc:T main.forward_alt}" Margin="8,0,16,0" />
+                                <TextBox x:Name="SearchBox" Style="{DynamicResource SearchBox}" Width="360" Tag="{loc:T main.what_do_you_want_to_listen_to}"
                                          Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock Text="{Binding Status}" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="{DynamicResource Size.Text.Small}"
                                            VerticalAlignment="Center" Margin="0,0,12,0" MaxWidth="360" TextTrimming="CharacterEllipsis" />
-                                <Button Style="{DynamicResource RoundNav}" Content="&#xE8A9;" Click="Display_Click" ToolTip="Afficher les panneaux" Margin="0,0,8,0" />
-                                <Button Style="{DynamicResource RoundNav}" Content="&#xE713;" Command="{Binding OpenSettingsCommand}" ToolTip="Paramètres" />
+                                <Button Style="{DynamicResource RoundNav}" Content="&#xE8A9;" Click="Display_Click" ToolTip="{loc:T main.show_panels}" Margin="0,0,8,0" />
+                                <Button Style="{DynamicResource RoundNav}" Content="&#xE713;" Command="{Binding OpenSettingsCommand}" ToolTip="{loc:T common.settings}" />
                             </StackPanel>
                         </Grid>
                         <ContentControl x:Name="PageHost" Grid.Row="1" Content="{Binding CurrentPage}" Focusable="False" />
@@ -137,9 +137,9 @@
                            Foreground="{DynamicResource Brush.TextSecondary}" />
             </StackPanel>
             <StackPanel Grid.Column="2" Orientation="Horizontal">
-                <Button x:Name="MinButton" Style="{StaticResource CaptionButton}" Content="&#xE921;" ToolTip="Réduire" Click="Minimize_Click" />
-                <Button x:Name="MaxButton" Style="{StaticResource CaptionButton}" Content="&#xE922;" ToolTip="Agrandir" Click="MaximizeRestore_Click" />
-                <Button x:Name="CloseButton" Style="{StaticResource CaptionCloseButton}" Content="&#xE8BB;" ToolTip="Fermer" Click="Close_Click" />
+                <Button x:Name="MinButton" Style="{StaticResource CaptionButton}" Content="&#xE921;" ToolTip="{loc:T main.minimize}" Click="Minimize_Click" />
+                <Button x:Name="MaxButton" Style="{StaticResource CaptionButton}" Content="&#xE922;" ToolTip="{loc:T main.maximize}" Click="MaximizeRestore_Click" />
+                <Button x:Name="CloseButton" Style="{StaticResource CaptionCloseButton}" Content="&#xE8BB;" ToolTip="{loc:T main.close}" Click="Close_Click" />
             </StackPanel>
         </Grid>
     </Grid>

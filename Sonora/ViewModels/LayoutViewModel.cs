@@ -94,6 +94,9 @@ public sealed class LayoutViewModel : ObservableObject
         Raise(save: true);
     }
 
+    /// <summary>Draws the panels again without changing them: the language changed, and their titles with it.</summary>
+    public void Refresh() => Raise(save: false);
+
     void Raise(bool save)
     {
         Changed?.Invoke();

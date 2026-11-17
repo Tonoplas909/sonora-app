@@ -1,5 +1,5 @@
 <p:PanelView x:Class="Sonora.Views.Panels.PlayerPanel"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:loc="clr-namespace:Sonora.Localization"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:p="clr-namespace:Sonora.Views.Panels"
              xmlns:v="clr-namespace:Sonora.Views"
@@ -174,23 +174,23 @@
         <DataTemplate x:Key="TransportRow">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <Button Style="{StaticResource ShuffleButton}" />
-                <Button Style="{DynamicResource IconButton}" Content="&#xE892;" Margin="4,0,0,0" Command="{Binding PreviousCommand}" ToolTip="Pr&#233;c&#233;dent" />
+                <Button Style="{DynamicResource IconButton}" Content="&#xE892;" Margin="4,0,0,0" Command="{Binding PreviousCommand}" ToolTip="{loc:T common.previous}" />
                 <Button Style="{StaticResource PlayPauseButton}" Margin="10,0" />
-                <Button Style="{DynamicResource IconButton}" Content="&#xE893;" Margin="0,0,4,0" Command="{Binding NextCommand}" ToolTip="Suivant" />
+                <Button Style="{DynamicResource IconButton}" Content="&#xE893;" Margin="0,0,4,0" Command="{Binding NextCommand}" ToolTip="{loc:T common.next}" />
                 <Button Style="{StaticResource RepeatButton}" />
             </StackPanel>
         </DataTemplate>
 
         <DataTemplate x:Key="SecondaryRow">
             <DockPanel>
-                <Button DockPanel.Dock="Left" Style="{DynamicResource IconButton}" Content="&#xE7F4;" ToolTip="Appareils Spotify Connect" Click="Devices_Click"
+                <Button DockPanel.Dock="Left" Style="{DynamicResource IconButton}" Content="&#xE7F4;" ToolTip="{loc:T player.spotify_connect_devices}" Click="Devices_Click"
                         Visibility="{Binding Spotify.IsConnected, Converter={StaticResource BoolToVis}}" />
                 <Button DockPanel.Dock="Left" Style="{StaticResource MiniPlayerButton}" Click="MiniPlayer_Click" />
                 <Button DockPanel.Dock="Left" Style="{StaticResource FullScreenButton}" Click="FullScreen_Click" />
                 <Button DockPanel.Dock="Left" Style="{StaticResource SleepButton}" Click="Sleep_Click" />
                 <Button DockPanel.Dock="Left" Style="{StaticResource QueueButton}" />
                 <Button DockPanel.Dock="Left" Style="{StaticResource LyricsButton}" />
-                <Button DockPanel.Dock="Left" Style="{DynamicResource IconButton}" Content="{Binding Player.VolumeGlyph}" Command="{Binding ToggleMuteCommand}" ToolTip="Muet" />
+                <Button DockPanel.Dock="Left" Style="{DynamicResource IconButton}" Content="{Binding Player.VolumeGlyph}" Command="{Binding ToggleMuteCommand}" ToolTip="{loc:T player.mute}" />
                 <Slider Style="{DynamicResource ThinSlider}" Minimum="0" Maximum="100" v:WheelStep.Step="5" Value="{Binding Player.Volume, Mode=TwoWay}" VerticalAlignment="Center" Margin="4,0,0,0" />
             </DockPanel>
         </DataTemplate>
@@ -198,12 +198,12 @@
         <DataTemplate x:Key="RemoteNote">
             <TextBlock Foreground="{DynamicResource Brush.Accent}" FontSize="{DynamicResource Size.Text.Small}" TextTrimming="CharacterEllipsis"
                        Visibility="{Binding Player.IsRemote, Converter={StaticResource BoolToVis}}">
-                <Run Text="Lecture sur " /><Run Text="{Binding Player.RemoteDeviceName, Mode=OneWay}" FontWeight="SemiBold" />
+                <Run Text="{loc:T player.playing_on}" /><Run Text=" " /><Run Text="{Binding Player.RemoteDeviceName, Mode=OneWay}" FontWeight="SemiBold" />
             </TextBlock>
         </DataTemplate>
 
         <DataTemplate x:Key="NothingPlaying">
-            <TextBlock Text="Rien en cours de lecture" Foreground="{DynamicResource Brush.TextSecondary}"
+            <TextBlock Text="{loc:T common.nothing_is_playing}" Foreground="{DynamicResource Brush.TextSecondary}"
                        HorizontalAlignment="Center" VerticalAlignment="Center"
                        Visibility="{Binding Player.HasTrack, Converter={StaticResource InvBoolToVis}}" />
         </DataTemplate>
@@ -240,9 +240,9 @@
             <v:PriorityRow v:Adaptive.Priority="10" v:Adaptive.Weight="4" v:Adaptive.Basis="440" Orientation="Vertical" Align="Center" VerticalAlignment="Center">
                 <v:PriorityRow v:Adaptive.Priority="10" Align="Center">
                     <Button v:Adaptive.Priority="3" Style="{StaticResource ShuffleButton}" Margin="0,0,8,0" />
-                    <Button v:Adaptive.Priority="10" Style="{DynamicResource IconButton}" Content="&#xE892;" Command="{Binding PreviousCommand}" ToolTip="Précédent" />
+                    <Button v:Adaptive.Priority="10" Style="{DynamicResource IconButton}" Content="&#xE892;" Command="{Binding PreviousCommand}" ToolTip="{loc:T common.previous}" />
                     <Button v:Adaptive.Priority="10" Style="{StaticResource PlayPauseButton}" Margin="12,0" />
-                    <Button v:Adaptive.Priority="10" Style="{DynamicResource IconButton}" Content="&#xE893;" Command="{Binding NextCommand}" ToolTip="Suivant" />
+                    <Button v:Adaptive.Priority="10" Style="{DynamicResource IconButton}" Content="&#xE893;" Command="{Binding NextCommand}" ToolTip="{loc:T common.next}" />
                     <Button v:Adaptive.Priority="3" Style="{StaticResource RepeatButton}" Margin="8,0,0,0" />
                 </v:PriorityRow>
                 <v:PriorityRow v:Adaptive.Priority="6" Margin="0,4,0,0">
@@ -259,16 +259,16 @@
             <v:PriorityRow v:Adaptive.Priority="3" v:Adaptive.Weight="3" v:Adaptive.Basis="400" Align="End" VerticalAlignment="Center">
                 <TextBlock v:Adaptive.Priority="1" VerticalAlignment="Center" Foreground="{DynamicResource Brush.Accent}" FontSize="{DynamicResource Size.Text.Small}" Margin="0,0,8,0" MaxWidth="160"
                            TextTrimming="CharacterEllipsis" Visibility="{Binding Player.IsRemote, Converter={StaticResource BoolToVis}}">
-                    <Run Text="Lecture sur " /><Run Text="{Binding Player.RemoteDeviceName, Mode=OneWay}" FontWeight="SemiBold" />
+                    <Run Text="{loc:T player.playing_on}" /><Run Text=" " /><Run Text="{Binding Player.RemoteDeviceName, Mode=OneWay}" FontWeight="SemiBold" />
                 </TextBlock>
-                <Button v:Adaptive.Priority="3" Style="{DynamicResource IconButton}" Content="&#xE7F4;" ToolTip="Appareils Spotify Connect" Click="Devices_Click"
+                <Button v:Adaptive.Priority="3" Style="{DynamicResource IconButton}" Content="&#xE7F4;" ToolTip="{loc:T player.spotify_connect_devices}" Click="Devices_Click"
                         Visibility="{Binding Spotify.IsConnected, Converter={StaticResource BoolToVis}}" />
                 <Button v:Adaptive.Priority="2" Style="{StaticResource MiniPlayerButton}" Click="MiniPlayer_Click" />
                 <Button v:Adaptive.Priority="2" Style="{StaticResource FullScreenButton}" Click="FullScreen_Click" />
                 <Button v:Adaptive.Priority="2" Style="{StaticResource SleepButton}" Click="Sleep_Click" />
                 <Button v:Adaptive.Priority="4" Style="{StaticResource QueueButton}" />
                 <Button v:Adaptive.Priority="4" Style="{StaticResource LyricsButton}" />
-                <Button v:Adaptive.Priority="6" Style="{DynamicResource IconButton}" Content="{Binding Player.VolumeGlyph}" Margin="8,0,4,0" Command="{Binding ToggleMuteCommand}" ToolTip="Muet" />
+                <Button v:Adaptive.Priority="6" Style="{DynamicResource IconButton}" Content="{Binding Player.VolumeGlyph}" Margin="8,0,4,0" Command="{Binding ToggleMuteCommand}" ToolTip="{loc:T player.mute}" />
                 <Slider v:Adaptive.Priority="5" Style="{DynamicResource ThinSlider}" Width="110" Minimum="0" Maximum="100" v:WheelStep.Step="5" Value="{Binding Player.Volume, Mode=TwoWay}" VerticalAlignment="Center" />
             </v:PriorityRow>
         </v:AdaptiveFlow>

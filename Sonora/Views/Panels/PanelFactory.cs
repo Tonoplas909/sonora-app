@@ -1,5 +1,6 @@
 using System.Windows;
 using Sonora.Appearance.Layout;
+using Sonora.Appearance.Localization;
 
 namespace Sonora.Views.Panels;
 
@@ -37,11 +38,11 @@ public static class PanelFactory
 
     public static string Title(string panelId) => panelId switch
     {
-        PanelIds.Navigation => "Navigation",
-        PanelIds.Library => "Bibliothèque",
-        PanelIds.Queue => "File d'attente",
-        PanelIds.Player => "Lecture",
-        PanelIds.Lyrics => "Paroles",
+        PanelIds.Navigation => Loc.T("panel.navigation"),
+        PanelIds.Library => Loc.T("kind.library"),
+        PanelIds.Queue => Loc.T("panel.queue"),
+        PanelIds.Player => Loc.T("panel.player"),
+        PanelIds.Lyrics => Loc.T("pages.lyrics"),
         _ => panelId,
     };
 

@@ -4,6 +4,7 @@ using System.Windows.Threading;
 using Sonora.Core;
 using Sonora.Models;
 using static Sonora.Spotify.SpotifyCatalog;
+using Sonora.Appearance.Localization;
 
 namespace Sonora.Spotify;
 
@@ -39,8 +40,27 @@ public sealed class SpotifyAccount : ObservableObject, IDisposable
     string _userName = "";
     public string UserName { get => _userName; private set => Set(ref _userName, value); }
 
-    string _status = "Non connecté";
-    public string Status { get => _status; set => Set(ref _status, value); }
+    // The status is kept as a key and its arguments, so it is written again when the language changes.
+    string? _statusKey = "spotify.not_connected";
+    object[] _statusArgs = [];
+    string _statusText = "";
+
+    /// <summary>What the account is doing, in a sentence. Setting it to a text (an error from Spotify, say) keeps that text as it is.</summary>
+    public string Status
+    {
+        get => _statusKey != null ? Loc.T(_statusKey, _statusArgs) : _statusText;
+        set { _statusKey = null; _statusText = value; OnPropertyChanged(); }
+    }
+
+    void SetStatus(string key, params object[] args)
+    {
+        _statusKey = key;
+        _statusArgs = args;
+        OnPropertyChanged(nameof(Status));
+    }
+
+    /// <summary>Called when the language changes: the status is written again.</summary>
+    public void RefreshLanguage() => OnPropertyChanged(nameof(Status));
 
     public string UserId { get; private set; } = "";
     public bool IsPremium { get; private set; }
@@ -69,7 +89,7 @@ public sealed class SpotifyAccount : ObservableObject, IDisposable
     public async Task LoginAsync(string clientId, CancellationToken ct = default)
     {
         IsBusy = true;
-        Status = "Connexion dans votre navigateur…";
+        SetStatus("spotify.connecting_in_browser");
         try
         {
             await Auth.LoginAsync(clientId, ct);
@@ -112,15 +132,14 @@ public sealed class SpotifyAccount : ObservableObject, IDisposable
             UserId = Str(me, "id") ?? UserId;
             UserName = Str(me, "display_name") ?? UserId;
             IsPremium = Str(me, "product") == "premium";
-            Status = IsPremium
-                ? $"Connecté en tant que {UserName}"
-                : $"Connecté en tant que {UserName} — Premium requis pour la lecture";
+            if (IsPremium) SetStatus("spotify.connected_as", UserName);
+            else SetStatus("spotify.connected_as_no_premium", UserName);
             return true;
         }
         catch (SpotifyException ex) when (ex.Status == 429)
         {
-            Status = "Connecté, profil indisponible : " + ex.Message;
-            Notice?.Invoke(ex.Message + " Le lecteur et la télécommande restent disponibles ; la bibliothèque se mettra à jour ensuite.");
+            SetStatus("spotify.connected_profile_unavailable", ex.Message);
+            Notice?.Invoke(ex.Message + " " + Loc.T("spotify.rate_limit_still_works"));
             return false;
         }
     }
@@ -147,7 +166,7 @@ public sealed class SpotifyAccount : ObservableObject, IDisposable
         IsFromCache = false;
         Services.SpotifyCacheStore.Clear(); // signing out must not leave the account's library on disk
         Services.RemoteArtCache.Clear();
-        Status = "Non connecté";
+        SetStatus("spotify.not_connected");
         LibraryChanged?.Invoke();
     }
 
@@ -381,7 +400,7 @@ public sealed class SpotifyAccount : ObservableObject, IDisposable
         {
             // Older API revisions expose playlist contents as /tracks.
             try { items = await Api.GetAllAsync($"playlists/{p.Id}/tracks?limit=100"); }
-            catch (SpotifyException) { throw new InvalidOperationException("Spotify ne permet pas aux applications tierces de lire le contenu de cette playlist (playlists éditoriales ou générées par Spotify)."); }
+            catch (SpotifyException) { throw new InvalidOperationException(Loc.T("spotify.playlist_not_readable")); }
         }
         var tracks = new List<Track>();
         var added = new List<long>();
@@ -474,7 +493,7 @@ public sealed class SpotifyAccount : ObservableObject, IDisposable
             try { await Api.SendAsync(method, legacy); }
             catch (SpotifyException)
             {
-                throw new InvalidOperationException("Spotify a refusé cette action. Déconnectez-vous puis reconnectez-vous dans les paramètres pour accorder les nouvelles autorisations.");
+                throw new InvalidOperationException(Loc.T("spotify.action_refused"));
             }
         }
     }
@@ -626,7 +645,7 @@ public sealed class SpotifyAccount : ObservableObject, IDisposable
 
     public async Task<SpotifyPlaylist> CreatePlaylistAsync(string name)
     {
-        var body = new { name, @public = false, description = "Créée avec Sonora" };
+        var body = new { name, @public = false, description = Loc.T("spotify.created_with_sonora") };
         JsonElement? json;
         try { json = await Api.SendAsync(HttpMethod.Post, "me/playlists", body); }
         catch (SpotifyException ex) when (ex.Status is 403 or 404 or 405)

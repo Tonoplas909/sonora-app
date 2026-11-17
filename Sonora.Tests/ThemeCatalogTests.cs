@@ -46,11 +46,11 @@ public class ThemeCatalogTests
         c.Load();
         var a = c.Duplicate("liquide");
         var b = c.Duplicate("liquide");
-        Assert.Equal("liquide-copie", a.Id);
-        Assert.Equal("liquide-copie-2", b.Id);
+        Assert.Equal("liquide-copy", a.Id);
+        Assert.Equal("liquide-copy-2", b.Id);
         Assert.False(a.BuiltIn);
-        Assert.Equal("Océan (copie)", a.Name);
-        Assert.True(File.Exists(Path.Combine(dir, "liquide-copie.json")));
+        Assert.Equal("Ocean (copy)", a.Name);
+        Assert.True(File.Exists(Path.Combine(dir, "liquide-copy.json")));
     }
 
     [Fact]

@@ -72,7 +72,7 @@ public class M3uTests
     [Theory]
     [InlineData(@"C:\Music\Mes titres.m3u8", "Mes titres")]
     [InlineData("rap.m3u", "rap")]
-    [InlineData("", "Playlist importée")]
+    [InlineData("", "Imported playlist")]
     public void NameFromFile_UsesTheFileNameWithoutItsExtension(string file, string expected) =>
         Assert.Equal(expected, M3u.NameFromFile(file));
 }

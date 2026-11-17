@@ -8,6 +8,7 @@ using Sonora.Core;
 using Sonora.Models;
 using Sonora.Services;
 using Sonora.Spotify;
+using Sonora.Appearance.Localization;
 
 namespace Sonora.ViewModels;
 
@@ -134,6 +135,7 @@ public sealed class MainViewModel : ObservableObject
         Spotify = new SpotifyAccount(dispatcher);
         Spotify.Engine.Error += ReportError;
         Spotify.Notice += ReportError;
+        Loc.LanguageChanged += OnLanguageChanged;
         Spotify.LibraryChanged += () => dispatcher.InvokeAsync(OnSpotifyLibraryChanged);
         Player.AttachSpotify(Spotify.Engine);
         _showLoginGate = !Spotify.Auth.IsSignedIn; // known synchronously: no flash of the main UI
@@ -189,7 +191,7 @@ public sealed class MainViewModel : ObservableObject
         CopyRedirectUriCommand = new RelayCommand(() =>
         {
             Clipboard.SetText(SpotifyAuth.RedirectUri);
-            ReportError("Adresse de redirection copiée dans le presse-papiers.");
+            ReportError(Loc.T("spotify.redirect_copied"));
         });
     }
 
@@ -314,7 +316,7 @@ public sealed class MainViewModel : ObservableObject
         var pinned = State.Features.TogglePin(entry.Key);
         ScheduleSave();
         RefreshLibraryEntries();
-        ReportError(pinned ? $"« {entry.Title} » épinglé." : $"« {entry.Title} » détaché.");
+        ReportError(Loc.T(pinned ? "library.pinned" : "library.unpinned", entry.Title));
     }
 
     /// <summary>Drops a pinned entry where another pinned entry sits (the pin order is the user's own).</summary>
@@ -387,7 +389,7 @@ public sealed class MainViewModel : ObservableObject
     }
 
     public string Stats =>
-        $"{Fmt.Count(Library.Tracks.Count, "titre", "titres")} • {Fmt.Count(Library.Albums.Count, "album", "albums")} • {Fmt.Count(Library.Artists.Count, "artiste", "artistes")}";
+        $"{Loc.Count("count.tracks", Library.Tracks.Count)} • {Loc.Count("count.albums", Library.Albums.Count)} • {Loc.Count("count.artists", Library.Artists.Count)}";
 
     /// <summary>What the one-line status of the window can show without cutting it (about 360 px of small text).</summary>
     const int StatusLineFits = 48;
@@ -434,7 +436,7 @@ public sealed class MainViewModel : ObservableObject
             // A retired theme becomes its replacement; leaving Immersif keeps its cover background as an option.
             if (Sonora.Appearance.Theming.ThemeCatalog.WasImmersive(State.ThemeId)) State.CoverBackground = true;
             State.ThemeId = App.Catalog.Get(State.ThemeId).Id;
-            foreach (var err in App.Catalog.LoadErrors) ReportError("Thème ignoré : " + err);
+            foreach (var err in App.Catalog.LoadErrors) ReportError(Loc.T("theme.ignored", err));
         }
         if (State.SpotifyClientId.Length == 0 && Spotify.Auth.ClientId.Length > 0) State.SpotifyClientId = Spotify.Auth.ClientId;
         OnPropertyChanged(nameof(SpotifyClientId));
@@ -480,12 +482,12 @@ public sealed class MainViewModel : ObservableObject
         _scanCts?.Cancel();
         var cts = _scanCts = new CancellationTokenSource();
         IsScanning = true;
-        Status = "Analyse de la bibliothèque…";
+        Status = Loc.T("library.scanning");
         try
         {
             var cache = new Dictionary<string, Track>(StringComparer.OrdinalIgnoreCase);
             foreach (var t in Library.Tracks) cache[t.Path] = t;
-            var progress = new Progress<(int Done, int Total)>(p => Status = $"Analyse… {p.Done}/{p.Total}");
+            var progress = new Progress<(int Done, int Total)>(p => Status = Loc.T("library.scanning_progress", p.Done, p.Total));
             var tracks = await Library.ScanAsync(Folders.ToList(), cache, progress, cts.Token);
 
             ApplyLibrary(tracks);
@@ -497,7 +499,7 @@ public sealed class MainViewModel : ObservableObject
             await LoadArtAsync(cts.Token);
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex) { ReportError("Erreur d'analyse : " + ex.Message); }
+        catch (Exception ex) { ReportError(Loc.T("library.scan_error", ex.Message)); }
         finally
         {
             if (_scanCts == cts) IsScanning = false;
@@ -570,7 +572,7 @@ public sealed class MainViewModel : ObservableObject
     List<Track> LocalContext(string name, Track track)
     {
         List<Track>? list = null;
-        if (name == "Tous les titres") list = Library.Tracks.ToList();
+        if (Loc.MatchesAnyLanguage("library.all_tracks", name)) list = Library.Tracks.ToList();
         else if (Playlists.FirstOrDefault(p => p.Name == name) is { } playlist)
             list = playlist.Paths.Select(Library.Get).OfType<Track>().ToList();
         return list != null && list.Contains(track) ? list : track.AlbumRef?.Tracks ?? [track];
@@ -636,7 +638,7 @@ public sealed class MainViewModel : ObservableObject
         await Task.Delay(1200); // the Spotify engine ignores a seek sent before the stream is running
         if (!ReferenceEquals(Player.Current, t) || Player.SeekValue > ResumeThresholdSeconds) return;
         Player.Seek(seconds);
-        ReportError($"Repris à {Fmt.Time(seconds)}.");
+        ReportError(Loc.T("player.resumed_at", Fmt.Time(seconds)));
     }
 
     /// <summary>Writes a play to the local log once it has been listened to long enough to count.</summary>
@@ -711,7 +713,7 @@ public sealed class MainViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Spotify.Status = "Connexion Spotify impossible : " + ex.Message;
+            Spotify.Status = Loc.T("spotify.connect_failed", ex.Message);
             ReportError(Spotify.Status);
         }
         UpdateLoginGate(); // an expired/revoked session signs out and brings the gate back
@@ -806,16 +808,16 @@ public sealed class MainViewModel : ObservableObject
     public void OpenLiked()
     {
         if (Spotify.IsConnected)
-            Navigate(new TracksPage(this, "Playlist", "Titres likés", Liked, "", "", () => Spotify.LikedTracks)
+            Navigate(new TracksPage(this, "Playlist", Loc.T("library.liked_songs"), Liked, "", "", () => Spotify.LikedTracks)
             { IsSpecial = true, ContextUri = Spotify.LikedContextUri });
         else
             OpenLocalLiked();
     }
 
-    public void OpenLocalLiked() => Navigate(new TracksPage(this, "Playlist", Spotify.IsConnected ? "Favoris locaux" : "Titres likés",
+    public void OpenLocalLiked() => Navigate(new TracksPage(this, "Playlist", Spotify.IsConnected ? Loc.T("library.local_favorites") : Loc.T("library.liked_songs"),
         LocalLiked, "", "", () => State.Liked.Select(Library.Get).OfType<Track>()) { IsSpecial = true });
 
-    public void OpenAllTracks() => Navigate(new TracksPage(this, "Bibliothèque", "Tous les titres", AllTracks, "", "",
+    public void OpenAllTracks() => Navigate(new TracksPage(this, "Bibliothèque", Loc.T("library.all_tracks"), AllTracks, "", "",
         () => Library.Tracks));
 
     public void OpenPlaylist(Playlist p) => Navigate(new TracksPage(this, "Playlist", p.Name, p, "", "",
@@ -829,12 +831,12 @@ public sealed class MainViewModel : ObservableObject
 
     public void OpenTops() => Navigate(new TopsPage(this));
 
-    public void OpenHistory() => Navigate(new TracksPage(this, "Découvrir", "Historique d'écoute", null, "", "",
+    public void OpenHistory() => Navigate(new TracksPage(this, "Découvrir", Loc.T("pages.listening_history"), null, "", "",
         Spotify.GetHistoryAsync));
 
     /// <summary>Latest releases of the followed artists; built once at sign-in, rebuilt if that first pass found none.</summary>
-    public void OpenNewReleases() => Navigate(new AlbumGridPage(this, "Nouveautés",
-        "Aucune sortie récente chez les artistes que vous suivez.",
+    public void OpenNewReleases() => Navigate(new AlbumGridPage(this, Loc.T("discover.new_releases"),
+        Loc.T("discover.new_releases_empty"),
         async () => Spotify.NewReleases.Count > 0 ? Spotify.NewReleases : await Spotify.LoadNewReleasesAsync()));
 
     /// <summary>
@@ -842,16 +844,16 @@ public sealed class MainViewModel : ObservableObject
     /// Spotify so they are playable. Spotify's own "related artists" is refused to third-party apps.
     /// </summary>
     public void OpenSimilarArtists(Artist artist) => Navigate(new ArtistGridPage(this,
-        "Dans le même esprit que " + artist.Name,
-        "D'après ce que les auditeurs de ListenBrainz écoutent à côté — Spotify refuse ses propres recommandations aux applications tierces.",
-        "Aucun artiste proche trouvé. MusicBrainz ne connaît peut-être pas cet artiste.",
+        Loc.T("discover.similar_to", artist.Name),
+        Loc.T("discover.similar_subtitle"),
+        Loc.T("discover.similar_empty"),
         () => SimilarArtistsAsync(artist)));
 
     async Task<List<Artist>> SimilarArtistsAsync(Artist artist)
     {
         if (!State.Features.Discovery)
         {
-            ReportError("La découverte est désactivée dans les paramètres.");
+            ReportError(Loc.T("discover.disabled"));
             return [];
         }
         var similar = await _discovery.SimilarArtistsAsync(artist.Name);
@@ -882,11 +884,11 @@ public sealed class MainViewModel : ObservableObject
         }
     }
 
-    public void OpenSavedEpisodes() => Navigate(new TracksPage(this, "Podcast", "Épisodes enregistrés", null, "", "",
+    public void OpenSavedEpisodes() => Navigate(new TracksPage(this, "Podcast", Loc.T("discover.saved_episodes"), null, "", "",
         Spotify.GetSavedEpisodesAsync));
 
-    public void OpenShows() => Navigate(new AlbumGridPage(this, "Podcasts",
-        "Aucune émission enregistrée dans votre compte Spotify.",
+    public void OpenShows() => Navigate(new AlbumGridPage(this, Loc.T("pages.podcasts"),
+        Loc.T("discover.shows_empty"),
         () => Task.FromResult(Spotify.Shows)));
 
     public void OpenEntry(LibraryEntry e)
@@ -933,9 +935,9 @@ public sealed class MainViewModel : ObservableObject
         if (Player.Current == null)
         {
             if (Spotify.IsConnected && Spotify.LikedTracks.Count > 0)
-                PlayTracks(Spotify.LikedTracks, -1, "Titres likés", contextUri: Spotify.LikedContextUri);
+                PlayTracks(Spotify.LikedTracks, -1, Loc.T("library.liked_songs"), contextUri: Spotify.LikedContextUri);
             else
-                PlayTracks(Library.Tracks, -1, "Tous les titres");
+                PlayTracks(Library.Tracks, -1, Loc.T("library.all_tracks"));
             return;
         }
         Player.Toggle();
@@ -990,6 +992,58 @@ public sealed class MainViewModel : ObservableObject
     {
         get => State.Features.ListeningLog;
         set { if (State.Features.ListeningLog != value) ApplyFeature(() => State.Features.ListeningLog = value); }
+    }
+
+    // ---------------- language ----------------
+
+    /// <summary>A choice in the language list. <paramref name="ShowBadge"/> marks a translation no native speaker has reviewed yet.</summary>
+    public sealed record LanguageOption(string Code, string Name, bool ShowBadge, bool IsSelected);
+
+    /// <summary>"Windows language" first, then every language Sonora speaks, with the chosen one marked.</summary>
+    public IReadOnlyList<LanguageOption> LanguageOptions
+    {
+        get
+        {
+            var chosen = State.Language is { Length: > 0 } c ? c : LanguageCatalog.Auto;
+            var list = new List<LanguageOption> { new(LanguageCatalog.Auto, Loc.T("settings.language_auto"), false, chosen == LanguageCatalog.Auto) };
+            list.AddRange(LanguageCatalog.All().Select(l => new LanguageOption(l.Code, l.Name, !l.Reviewed, l.Code == chosen)));
+            return list;
+        }
+    }
+
+    public ICommand OpenTranslatingGuideCommand => new RelayCommand(() => OpenUrl(UpdatesViewModel.RepositoryUrl + "/blob/main/docs/TRANSLATING.md"));
+
+    public ICommand SetLanguageCommand => _setLanguage ??= new RelayCommand(p => { if (p is string code) SetLanguage(code); });
+    ICommand? _setLanguage;
+
+    /// <summary>Switches the interface to a language (a code, or "auto" for the language of Windows) and remembers it.</summary>
+    public void SetLanguage(string setting)
+    {
+        State.Language = setting;
+        Loc.SetLanguage(LanguageResolver.Resolve(setting, App.WindowsLanguages())); // OnLanguageChanged runs from its event
+        ScheduleSave();
+        OnPropertyChanged(nameof(LanguageOptions));
+    }
+
+    /// <summary>Everything the interface says in words that is not bound straight to a text: written again in the new language.</summary>
+    void OnLanguageChanged()
+    {
+        if (Library.Relocalize()) ApplyLibrary(Library.Tracks.ToList());
+        Spotify.RefreshLanguage();
+        Updates.RefreshLanguage();
+        Layout.Refresh(); // the panels' titles
+        RefreshLibraryEntries();
+        OnPropertyChanged(string.Empty); // every text computed by this view model
+        // The pages that are built once from texts are built again; the settings page stays as it is (its texts are bound live).
+        switch (CurrentPage)
+        {
+            case HomePage: CurrentPage = new HomePage(this); break;
+            case AlbumsPage: CurrentPage = new AlbumsPage(this); break;
+            case ArtistsPage: CurrentPage = new ArtistsPage(this); break;
+            case PlaylistsPage: CurrentPage = new PlaylistsPage(this); break;
+            case DiscoverPage: CurrentPage = new DiscoverPage(this); break;
+            case AppearancePage: _appearance = null; CurrentPage = new AppearancePage(this); break;
+        }
     }
 
     public bool FeatureUpdateCheck
@@ -1097,7 +1151,7 @@ public sealed class MainViewModel : ObservableObject
     {
         public string Id { get; } = id;
         public string Label { get; } = label;
-        public string Gesture { get; } = gesture.Length > 0 ? gesture : "aucun";
+        public string Gesture { get; } = gesture.Length > 0 ? gesture : Loc.T("shortcut.none");
         public bool IsCustom { get; } = !isDefault;
     }
 
@@ -1120,7 +1174,7 @@ public sealed class MainViewModel : ObservableObject
     public ICommand CaptureShortcutCommand => _captureShortcut ??= new RelayCommand(p =>
     {
         CapturingShortcut = p as string;
-        if (_capturing != null) ReportError("Appuyez sur la combinaison voulue, ou Échap pour annuler.");
+        if (_capturing != null) ReportError(Loc.T("shortcut.capture_prompt"));
     });
     ICommand? _captureShortcut;
 
@@ -1130,7 +1184,7 @@ public sealed class MainViewModel : ObservableObject
         CapturingShortcut = null;
         OnPropertyChanged(nameof(ShortcutRows));
         ScheduleSave();
-        ReportError("Raccourcis réinitialisés.");
+        ReportError(Loc.T("shortcut.reset_done"));
     });
     ICommand? _resetShortcuts;
 
@@ -1143,9 +1197,9 @@ public sealed class MainViewModel : ObservableObject
         {
             State.Features.Shortcuts.Bind(action, gesture);
             ScheduleSave();
-            ReportError($"Raccourci défini : {gesture}.");
+            ReportError(Loc.T("shortcut.set_done", gesture));
         }
-        else ReportError("Changement annulé.");
+        else ReportError(Loc.T("shortcut.cancelled"));
         OnPropertyChanged(nameof(ShortcutRows));
         return true;
     }
@@ -1179,7 +1233,7 @@ public sealed class MainViewModel : ObservableObject
         Sleep.Cancel();
         _sleepTimer.Stop();
         NotifySleep();
-        ReportError("Minuteur de veille annulé.");
+        ReportError(Loc.T("sleep.cancelled"));
     }
 
     void OnSleepTick()
@@ -1194,7 +1248,7 @@ public sealed class MainViewModel : ObservableObject
         _sleepTimer.Stop();
         if (Player.IsPlaying) Player.Toggle();
         NotifySleep();
-        ReportError("Minuteur de veille : lecture mise en pause.");
+        ReportError(Loc.T("sleep.paused"));
     }
 
     void NotifySleep()
@@ -1225,7 +1279,7 @@ public sealed class MainViewModel : ObservableObject
                 case SpotifyPlaylist p: await Spotify.SetPlaylistFollowedAsync(p, save); break;
                 default: return;
             }
-            ReportError(save ? "Ajouté à votre bibliothèque." : "Retiré de votre bibliothèque.");
+            ReportError(Loc.T(save ? "library.added_to_library" : "library.removed_from_library"));
         }
         catch (Exception ex) { ReportError(ex.Message); }
     }
@@ -1265,7 +1319,7 @@ public sealed class MainViewModel : ObservableObject
 
     public Playlist CreatePlaylist(Track? first = null)
     {
-        var p = new Playlist { Name = $"Ma playlist n°{Playlists.Count + 1}" };
+        var p = new Playlist { Name = Loc.T("playlist.default_name", Playlists.Count + 1) };
         if (first != null) p.Paths.Add(first.Path);
         Playlists.Add(p);
         RefreshPlaylistArt();
@@ -1284,9 +1338,9 @@ public sealed class MainViewModel : ObservableObject
     {
         try
         {
-            p ??= await Spotify.CreatePlaylistAsync($"Ma playlist n°{Spotify.OwnedPlaylists.Count + 1}");
+            p ??= await Spotify.CreatePlaylistAsync(Loc.T("playlist.default_name", Spotify.OwnedPlaylists.Count + 1));
             await Spotify.AddToPlaylistAsync(p, tracks);
-            ReportError($"Ajouté à « {p.Name} ».");
+            ReportError(Loc.T("playlist.added_to", p.Name));
             if (CurrentPage is TracksPage { SpotifyPlaylist: { } shown } tp && shown.Id == p.Id) _ = tp.Reload();
         }
         catch (Exception ex) { ReportError(ex.Message); }
@@ -1324,7 +1378,7 @@ public sealed class MainViewModel : ObservableObject
         {
             await Spotify.SetPlaylistDetailsAsync(p, name, description, isPublic, collaborative);
             if (CurrentPage is TracksPage tp && tp.SpotifyPlaylist == p && name != null) tp.Header = name;
-            ReportError("Playlist mise à jour.");
+            ReportError(Loc.T("playlist.updated"));
         }
         catch (Exception ex) { ReportError(ex.Message); }
     }
@@ -1334,21 +1388,21 @@ public sealed class MainViewModel : ObservableObject
     {
         var dialog = new OpenFileDialog
         {
-            Title = "Choisir une pochette",
-            Filter = "Images (*.jpg;*.jpeg;*.png;*.bmp;*.webp)|*.jpg;*.jpeg;*.png;*.bmp;*.webp|Tous les fichiers|*.*",
+            Title = Loc.T("dialog.choose_cover"),
+            Filter = Loc.T("dialog.images") + " (*.jpg;*.jpeg;*.png;*.bmp;*.webp)|*.jpg;*.jpeg;*.png;*.bmp;*.webp|" + Loc.T("dialog.all_files") + "|*.*",
         };
         if (dialog.ShowDialog() != true) return;
 
         var jpeg = CoverImage.ToSquareJpeg(dialog.FileName);
         if (jpeg == null)
         {
-            ReportError("Image illisible ou trop lourde pour Spotify, même compressée.");
+            ReportError(Loc.T("playlist.cover_unreadable"));
             return;
         }
         try
         {
             await Spotify.SetPlaylistCoverAsync(p, jpeg);
-            ReportError("Pochette mise à jour. Spotify met parfois une minute à l'afficher partout.");
+            ReportError(Loc.T("playlist.cover_updated"));
         }
         catch (Exception ex) { ReportError(ex.Message); }
     }
@@ -1379,15 +1433,15 @@ public sealed class MainViewModel : ObservableObject
         var local = tracks.Where(t => !t.IsSpotify).ToList();
         if (local.Count == 0)
         {
-            ReportError("Rien à exporter : un fichier M3U ne peut pointer que vers des fichiers locaux.");
+            ReportError(Loc.T("m3u.nothing_to_export"));
             return;
         }
         var dialog = new SaveFileDialog
         {
-            Title = "Exporter la playlist",
+            Title = Loc.T("dialog.export_playlist"),
             FileName = Sanitize(suggestedName) + ".m3u8",
             DefaultExt = ".m3u8",
-            Filter = "Playlist M3U (*.m3u8;*.m3u)|*.m3u8;*.m3u",
+            Filter = Loc.T("dialog.m3u_playlist") + " (*.m3u8;*.m3u)|*.m3u8;*.m3u",
         };
         if (dialog.ShowDialog() != true) return;
 
@@ -1398,10 +1452,10 @@ public sealed class MainViewModel : ObservableObject
             File.WriteAllText(dialog.FileName, text, new System.Text.UTF8Encoding(false));
             var skipped = tracks.Count - local.Count;
             ReportError(skipped > 0
-                ? $"{Fmt.Count(local.Count, "titre exporté", "titres exportés")} ({skipped} titre(s) Spotify ignoré(s))."
-                : $"{Fmt.Count(local.Count, "titre exporté", "titres exportés")}.");
+                ? Loc.Count("m3u.exported_with_skipped", local.Count, skipped)
+                : Loc.Count("count.tracks_exported", local.Count));
         }
-        catch (Exception ex) { ReportError("Export impossible : " + ex.Message); }
+        catch (Exception ex) { ReportError(Loc.T("m3u.export_failed", ex.Message)); }
     }
 
     /// <summary>Reads an .m3u/.m3u8 into a new local playlist, keeping the tracks the library knows.</summary>
@@ -1409,8 +1463,8 @@ public sealed class MainViewModel : ObservableObject
     {
         var dialog = new OpenFileDialog
         {
-            Title = "Importer une playlist",
-            Filter = "Playlist M3U (*.m3u8;*.m3u)|*.m3u8;*.m3u|Tous les fichiers|*.*",
+            Title = Loc.T("dialog.import_playlist"),
+            Filter = Loc.T("dialog.m3u_playlist") + " (*.m3u8;*.m3u)|*.m3u8;*.m3u|" + Loc.T("dialog.all_files") + "|*.*",
         };
         if (dialog.ShowDialog() != true) return;
 
@@ -1421,7 +1475,7 @@ public sealed class MainViewModel : ObservableObject
             var found = paths.Select(Library.Get).OfType<Track>().ToList();
             if (found.Count == 0)
             {
-                ReportError("Aucun titre de cette playlist n'est dans votre bibliothèque. Ajoutez son dossier puis réessayez.");
+                ReportError(Loc.T("m3u.none_found"));
                 return;
             }
             var playlist = CreatePlaylist();
@@ -1429,11 +1483,11 @@ public sealed class MainViewModel : ObservableObject
             AddToPlaylist(playlist, found);
             var missing = paths.Count - found.Count;
             ReportError(missing > 0
-                ? $"{Fmt.Count(found.Count, "titre importé", "titres importés")}, {missing} introuvable(s) dans votre bibliothèque."
-                : $"{Fmt.Count(found.Count, "titre importé", "titres importés")}.");
+                ? Loc.Count("m3u.imported_with_missing", found.Count, missing)
+                : Loc.Count("count.tracks_imported", found.Count));
             OpenPlaylist(playlist);
         }
-        catch (Exception ex) { ReportError("Import impossible : " + ex.Message); }
+        catch (Exception ex) { ReportError(Loc.T("m3u.import_failed", ex.Message)); }
     }
 
     /// <summary>Strips what Windows will not accept in a file name.</summary>
@@ -1474,36 +1528,36 @@ public sealed class MainViewModel : ObservableObject
         var connected = Spotify.IsConnected;
         entries.Add(new LibraryEntry
         {
-            Source = Liked, Title = "Titres likés", IsSpecial = true, Glyph = "",
-            Subtitle = $"Playlist • {Fmt.Count(connected ? Spotify.LikedTracks.Count : _liked.Count, "titre", "titres")}",
+            Source = Liked, Title = Loc.T("library.liked_songs"), IsSpecial = true, Glyph = "",
+            Subtitle = Loc.T("library.subtitle_playlist", Loc.Count("count.tracks", connected ? Spotify.LikedTracks.Count : _liked.Count)),
         });
         switch (LibraryFilter)
         {
             case "Albums":
                 foreach (var a in Spotify.SavedAlbums.Concat(Library.Albums))
-                    entries.Add(new LibraryEntry { Source = a, Title = a.Title, Subtitle = "Album • " + a.Artist, Glyph = "" });
+                    entries.Add(new LibraryEntry { Source = a, Title = a.Title, Subtitle = Loc.T("library.subtitle_album", a.Artist), Glyph = "" });
                 break;
             case "Artists":
                 foreach (var a in Spotify.Artists.Concat(Library.Artists))
-                    entries.Add(new LibraryEntry { Source = a, Title = a.Name, Subtitle = "Artiste", Glyph = "", IsRound = true });
+                    entries.Add(new LibraryEntry { Source = a, Title = a.Name, Subtitle = Loc.T("kind.artist"), Glyph = "", IsRound = true });
                 break;
             default:
                 if (connected && _liked.Count > 0)
                     entries.Add(new LibraryEntry
                     {
-                        Source = LocalLiked, Title = "Favoris locaux", IsSpecial = true, Glyph = "",
-                        Subtitle = $"Fichiers locaux • {Fmt.Count(_liked.Count, "titre", "titres")}",
+                        Source = LocalLiked, Title = Loc.T("library.local_favorites"), IsSpecial = true, Glyph = "",
+                        Subtitle = Loc.T("library.subtitle_local_files", Loc.Count("count.tracks", _liked.Count)),
                     });
                 foreach (var p in Spotify.Playlists)
                     entries.Add(new LibraryEntry { Source = p, Title = p.Name, Subtitle = p.Subtitle, Glyph = "" });
                 if (Library.Tracks.Count > 0)
                     entries.Add(new LibraryEntry
                     {
-                        Source = AllTracks, Title = "Tous les titres", Glyph = "",
-                        Subtitle = $"Fichiers locaux • {Fmt.Count(Library.Tracks.Count, "titre", "titres")}",
+                        Source = AllTracks, Title = Loc.T("library.all_tracks"), Glyph = "",
+                        Subtitle = Loc.T("library.subtitle_local_files", Loc.Count("count.tracks", Library.Tracks.Count)),
                     });
                 foreach (var p in Playlists)
-                    entries.Add(new LibraryEntry { Source = p, Title = p.Name, Subtitle = p.Subtitle + " • local", Glyph = "" });
+                    entries.Add(new LibraryEntry { Source = p, Title = p.Name, Subtitle = Loc.T("library.subtitle_local", p.Subtitle), Glyph = "" });
                 break;
         }
     
@@ -1547,7 +1601,7 @@ public sealed class MainViewModel : ObservableObject
 
     void AddFolder()
     {
-        var dlg = new OpenFolderDialog { Title = "Choisir un dossier de musique", Multiselect = true };
+        var dlg = new OpenFolderDialog { Title = Loc.T("dialog.choose_music_folder"), Multiselect = true };
         if (dlg.ShowDialog() != true) return;
         bool changed = false;
         foreach (var f in dlg.FolderNames)

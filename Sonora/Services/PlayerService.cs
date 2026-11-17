@@ -9,6 +9,7 @@ using Windows.Media.Playback;
 using Windows.Storage;
 using Windows.Storage.Streams;
 using WinMediaPlayer = Windows.Media.Playback.MediaPlayer;
+using Sonora.Appearance.Localization;
 
 namespace Sonora.Services;
 
@@ -391,7 +392,7 @@ public sealed class PlayerService : ObservableObject, IDisposable
 
         if (tracks[start].IsSpotify)
         {
-            if (_spotify == null) { Error?.Invoke("Connectez votre compte Spotify dans les paramètres."); return; }
+            if (_spotify == null) { Error?.Invoke(Loc.T("player.connect_spotify")); return; }
             EnterSpotifyMode();
             _resume = null;
             _context = tracks.ToList();
@@ -439,7 +440,7 @@ public sealed class PlayerService : ObservableObject, IDisposable
     /// <summary>Plays a Spotify context URI (album, playlist, artist) from its start.</summary>
     public void PlaySpotifyContext(string contextUri, string name)
     {
-        if (_spotify == null) { Error?.Invoke("Connectez votre compte Spotify dans les paramètres."); return; }
+        if (_spotify == null) { Error?.Invoke(Loc.T("player.connect_spotify")); return; }
         EnterSpotifyMode();
         _resume = null;
         _context = [];

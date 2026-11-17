@@ -1,5 +1,5 @@
 <ResourceDictionary x:Class="Sonora.Views.Pages"
-                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:loc="clr-namespace:Sonora.Localization"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:vm="clr-namespace:Sonora.ViewModels"
                     xmlns:v="clr-namespace:Sonora.Views">
@@ -10,7 +10,7 @@
 
     <DataTemplate x:Key="ShelfHeader" DataType="{x:Type v:HomeSectionView}">
         <DockPanel>
-            <Button DockPanel.Dock="Right" Style="{StaticResource LinkText}" Content="Tout afficher" Foreground="{DynamicResource Brush.TextSecondary}"
+            <Button DockPanel.Dock="Right" Style="{StaticResource LinkText}" Content="{loc:T pages.show_all}" Foreground="{DynamicResource Brush.TextSecondary}"
                     FontWeight="SemiBold" VerticalAlignment="Bottom" Margin="0,0,0,12" Command="{Binding ShowAll}"
                     Visibility="{Binding HasShowAll, Converter={StaticResource BoolToVis}}" />
             <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{Binding Title}" />
@@ -51,12 +51,12 @@
 
                 <StackPanel Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}" Margin="0,32,0,0">
                     <TextBlock Text="&#xE8D6;" FontFamily="{StaticResource Icons}" FontSize="56" Foreground="{DynamicResource Brush.TextMuted}" HorizontalAlignment="Left" />
-                    <ContentControl Content="Votre bibliothèque est vide" Style="{DynamicResource SectionTitleBox}" Margin="0,16,0,6" />
+                    <ContentControl Content="{loc:T pages.your_library_is_empty}" Style="{DynamicResource SectionTitleBox}" Margin="0,16,0,6" />
                     <TextBlock Foreground="{DynamicResource Brush.TextSecondary}" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left"
-                               Text="Sonora lit vos fichiers audio locaux (MP3, FLAC, AAC/M4A, WAV, OGG, Opus, WMA) et votre compte Spotify. Ajoutez un dossier de musique pour commencer." />
-                    <TextBlock Text="Analyse en cours…" Foreground="{DynamicResource Brush.Accent}" Margin="0,12,0,0"
+                               Text="{loc:T pages.sonora_plays_your_local_audio_files}" />
+                    <TextBlock Text="{loc:T pages.scanning}" Foreground="{DynamicResource Brush.Accent}" Margin="0,12,0,0"
                                Visibility="{Binding Main.IsScanning, Converter={StaticResource BoolToVis}}" />
-                    <Button Style="{DynamicResource PillButton}" Content="Ajouter un dossier" Margin="0,20,0,0" Command="{Binding Main.AddFolderCommand}" />
+                    <Button Style="{DynamicResource PillButton}" Content="{loc:T pages.add_a_folder}" Margin="0,20,0,0" Command="{Binding Main.AddFolderCommand}" />
                 </StackPanel>
 
                 <ItemsControl ItemsSource="{Binding Sections}" ItemTemplateSelector="{StaticResource ShelfSelector}" />
@@ -95,7 +95,7 @@
                         </Border>
                     </Grid>
                     <StackPanel Margin="24,0,0,0" VerticalAlignment="Bottom">
-                        <TextBlock Text="{Binding Kind}" FontSize="{DynamicResource Size.Text.Small}" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
+                        <TextBlock Text="{Binding KindLabel}" FontSize="{DynamicResource Size.Text.Small}" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
                         <TextBlock Text="{Binding Header}" Style="{DynamicResource HeaderTitle}" />
                         <TextBlock Text="{Binding Subtitle}" Foreground="{DynamicResource Brush.TextSecondary}" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
@@ -107,11 +107,11 @@
                 <StackPanel.LayoutTransform>
                     <ScaleTransform x:Name="ButtonsScale" ScaleY="1" />
                 </StackPanel.LayoutTransform>
-                <Button Style="{DynamicResource BigPlay}" Command="{Binding PlayCommand}" ToolTip="Lecture" />
+                <Button Style="{DynamicResource BigPlay}" Command="{Binding PlayCommand}" ToolTip="{loc:T pages.play}" />
                 <Button Style="{DynamicResource IconButton}" Content="&#xE8B1;" FontSize="22" Width="48" Height="48" Margin="16,0,0,0"
-                        Command="{Binding ShuffleCommand}" ToolTip="Lecture aléatoire" />
+                        Command="{Binding ShuffleCommand}" ToolTip="{loc:T common.shuffle}" />
                 <Button Style="{DynamicResource IconButton}" Content="&#xE712;" FontSize="20" Width="48" Height="48"
-                        Click="PageMore_Click" ToolTip="Plus d'options" />
+                        Click="PageMore_Click" ToolTip="{loc:T pages.more_options}" />
             </StackPanel>
 
             <!-- Collapsed compact bar: hidden (ScaleY 0) until the header band above collapses, then this one
@@ -128,9 +128,9 @@
                            Foreground="{DynamicResource Brush.TextPrimary}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Style="{DynamicResource IconButton}" Content="&#xE768;" FontSize="16" Width="32" Height="32"
-                            Command="{Binding PlayCommand}" ToolTip="Lecture" />
+                            Command="{Binding PlayCommand}" ToolTip="{loc:T pages.play}" />
                     <Button Style="{DynamicResource IconButton}" Content="&#xE8B1;" FontSize="16" Width="32" Height="32" Margin="8,0,0,0"
-                            Command="{Binding ShuffleCommand}" ToolTip="Lecture aléatoire" />
+                            Command="{Binding ShuffleCommand}" ToolTip="{loc:T common.shuffle}" />
                 </StackPanel>
             </Grid>
 
@@ -143,20 +143,20 @@
                 </Grid.ColumnDefinitions>
                 <Grid HorizontalAlignment="Left" Width="260">
                     <TextBox x:Name="ListFilterBox" Style="{DynamicResource SearchBox}" Height="34" FontSize="{DynamicResource Size.Text.Small}"
-                             Tag="Filtrer dans cette liste"
+                             Tag="{loc:T pages.filter_this_list}"
                              Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged, Delay=150}" />
                     <Button Style="{DynamicResource IconButton}" Content="&#xE711;" FontSize="12" Width="24" Height="24"
-                            HorizontalAlignment="Right" Margin="0,0,6,0" Command="{Binding ClearFilterCommand}" ToolTip="Effacer le filtre"
+                            HorizontalAlignment="Right" Margin="0,0,6,0" Command="{Binding ClearFilterCommand}" ToolTip="{loc:T pages.clear_the_filter}"
                             Visibility="{Binding IsFiltered, Converter={StaticResource BoolToVis}}" />
                 </Grid>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Style="{StaticResource LinkText}" Content="{Binding SelectedSort.Label}" Click="Sort_Click"
                             Foreground="{DynamicResource Brush.TextSecondary}" FontSize="{DynamicResource Size.Text.Small}"
-                            FontWeight="SemiBold" VerticalAlignment="Center" ToolTip="Trier la liste" />
+                            FontWeight="SemiBold" VerticalAlignment="Center" ToolTip="{loc:T pages.sort_the_list}" />
                     <Button Style="{DynamicResource IconButton}" Content="&#xE8CB;" FontSize="16" Width="30" Height="30"
-                            Margin="4,0,0,0" Click="Sort_Click" ToolTip="Trier la liste" />
+                            Margin="4,0,0,0" Click="Sort_Click" ToolTip="{loc:T pages.sort_the_list}" />
                     <Button Style="{DynamicResource IconButton}" Content="{Binding SortDirectionGlyph}" FontSize="14" Width="30" Height="30"
-                            Command="{Binding ToggleSortDirectionCommand}" ToolTip="Inverser le sens du tri"
+                            Command="{Binding ToggleSortDirectionCommand}" ToolTip="{loc:T pages.reverse_the_sort_order}"
                             Visibility="{Binding IsSorted, Converter={StaticResource BoolToVis}}" />
                 </StackPanel>
             </Grid>
@@ -166,7 +166,7 @@
             <ListBox x:Name="TrackListBox" Grid.Row="5" Style="{StaticResource TrackList}" ItemsSource="{Binding Rows}" Margin="16,8,8,0" />
             <TextBlock Grid.Row="5" Text="{Binding EmptyText}" Foreground="{DynamicResource Brush.TextSecondary}" Margin="24,24,24,0"
                        TextWrapping="Wrap" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}" />
-            <TextBlock Grid.Row="5" Text="Chargement…" Foreground="{DynamicResource Brush.TextSecondary}" Margin="24,24,24,0"
+            <TextBlock Grid.Row="5" Text="{loc:T pages.loading}" Foreground="{DynamicResource Brush.TextSecondary}" Margin="24,24,24,0"
                        Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}" />
         </Grid>
         <DataTemplate.Triggers>
@@ -195,7 +195,7 @@
                             </Border>
                         </Grid>
                         <StackPanel Margin="24,0,0,0" VerticalAlignment="Bottom">
-                            <TextBlock Text="Artiste" FontSize="{DynamicResource Size.Text.Small}" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
+                            <TextBlock Text="{loc:T pages.artist}" FontSize="{DynamicResource Size.Text.Small}" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
                             <TextBlock Text="{Binding Artist.Name}" Style="{DynamicResource HeaderTitle}" />
                             <TextBlock Text="{Binding Subtitle}" Foreground="{DynamicResource Brush.TextSecondary}" />
                         </StackPanel>
@@ -203,18 +203,18 @@
                 </Border>
                 <StackPanel Margin="24,16,24,32">
                     <StackPanel Orientation="Horizontal">
-                        <Button Style="{DynamicResource BigPlay}" Command="{Binding PlayCommand}" ToolTip="Lecture" />
+                        <Button Style="{DynamicResource BigPlay}" Command="{Binding PlayCommand}" ToolTip="{loc:T pages.play}" />
                         <Button Style="{DynamicResource IconButton}" Content="&#xE8B1;" FontSize="22" Width="48" Height="48" Margin="16,0,0,0"
-                                Command="{Binding ShuffleCommand}" ToolTip="Lecture aléatoire" />
+                                Command="{Binding ShuffleCommand}" ToolTip="{loc:T common.shuffle}" />
                         <Button Style="{DynamicResource IconButton}" Content="&#xE712;" FontSize="20" Width="48" Height="48"
-                                Click="PageMore_Click" ToolTip="Plus d'options" />
+                                Click="PageMore_Click" ToolTip="{loc:T pages.more_options}" />
                     </StackPanel>
-                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Titres" />
+                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T pages.tracks}" />
                     <ListBox Style="{StaticResource TrackListStatic}" ItemsSource="{Binding TopRows}" Margin="-8,0,0,0" />
                     <Button Style="{StaticResource LinkText}" Content="{Binding ShowMoreText}" Foreground="{DynamicResource Brush.TextSecondary}" FontWeight="SemiBold"
                             Margin="0,12,0,0" Command="{Binding ShowMoreCommand}" Visibility="{Binding HasMore, Converter={StaticResource BoolToVis}}" />
-                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Discographie" />
-                    <TextBlock Text="Chargement…" Foreground="{DynamicResource Brush.TextSecondary}" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}" />
+                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T pages.discography}" />
+                    <TextBlock Text="{loc:T pages.loading}" Foreground="{DynamicResource Brush.TextSecondary}" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}" />
                     <ItemsControl ItemsSource="{Binding Albums}" ItemTemplate="{DynamicResource AlbumCard}" ItemsPanel="{DynamicResource WrapPanelTemplate}" Margin="-12,0,0,0" />
                 </StackPanel>
             </StackPanel>
@@ -228,17 +228,17 @@
             <StackPanel Margin="24,8,24,32">
                 <!-- Type filters: they only hide sections of the results already fetched, so switching is instant. -->
                 <WrapPanel Margin="0,4,0,4" Visibility="{Binding HasQuery, Converter={StaticResource BoolToVis}}">
-                    <RadioButton Style="{DynamicResource Chip}" GroupName="SearchType" Content="Tout" Margin="0,0,8,4"
+                    <RadioButton Style="{DynamicResource Chip}" GroupName="SearchType" Content="{loc:T pages.all}" Margin="0,0,8,4"
                                  IsChecked="{Binding TypeFilter, Converter={StaticResource Eq}, ConverterParameter=all}" />
-                    <RadioButton Style="{DynamicResource Chip}" GroupName="SearchType" Content="Titres" Margin="0,0,8,4"
+                    <RadioButton Style="{DynamicResource Chip}" GroupName="SearchType" Content="{loc:T pages.tracks}" Margin="0,0,8,4"
                                  IsChecked="{Binding TypeFilter, Converter={StaticResource Eq}, ConverterParameter=tracks}" />
-                    <RadioButton Style="{DynamicResource Chip}" GroupName="SearchType" Content="Artistes" Margin="0,0,8,4"
+                    <RadioButton Style="{DynamicResource Chip}" GroupName="SearchType" Content="{loc:T common.artists}" Margin="0,0,8,4"
                                  IsChecked="{Binding TypeFilter, Converter={StaticResource Eq}, ConverterParameter=artists}" />
-                    <RadioButton Style="{DynamicResource Chip}" GroupName="SearchType" Content="Albums" Margin="0,0,8,4"
+                    <RadioButton Style="{DynamicResource Chip}" GroupName="SearchType" Content="{loc:T common.albums}" Margin="0,0,8,4"
                                  IsChecked="{Binding TypeFilter, Converter={StaticResource Eq}, ConverterParameter=albums}" />
-                    <RadioButton Style="{DynamicResource Chip}" GroupName="SearchType" Content="Playlists" Margin="0,0,8,4"
+                    <RadioButton Style="{DynamicResource Chip}" GroupName="SearchType" Content="{loc:T common.playlists}" Margin="0,0,8,4"
                                  IsChecked="{Binding TypeFilter, Converter={StaticResource Eq}, ConverterParameter=playlists}" />
-                    <RadioButton Style="{DynamicResource Chip}" GroupName="SearchType" Content="Podcasts" Margin="0,0,8,4"
+                    <RadioButton Style="{DynamicResource Chip}" GroupName="SearchType" Content="{loc:T pages.podcasts}" Margin="0,0,8,4"
                                  IsChecked="{Binding TypeFilter, Converter={StaticResource Eq}, ConverterParameter=shows}" />
                 </WrapPanel>
 
@@ -246,9 +246,9 @@
                     <!-- Recent searches, newest first. Kept in state.json; can be turned off in the settings. -->
                     <StackPanel Visibility="{Binding HasRecentSearches, Converter={StaticResource BoolToVis}}">
                         <DockPanel>
-                            <Button DockPanel.Dock="Right" Style="{StaticResource LinkText}" Content="Effacer" VerticalAlignment="Bottom" Margin="0,0,0,12"
+                            <Button DockPanel.Dock="Right" Style="{StaticResource LinkText}" Content="{loc:T pages.clear}" VerticalAlignment="Bottom" Margin="0,0,0,12"
                                     Foreground="{DynamicResource Brush.TextSecondary}" FontWeight="SemiBold" Command="{Binding ClearRecentCommand}" />
-                            <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Recherches récentes" />
+                            <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T pages.recent_searches}" />
                         </DockPanel>
                         <ItemsControl ItemsSource="{Binding RecentSearches}" ItemsPanel="{DynamicResource WrapPanelTemplate}" Margin="0,0,0,8">
                             <ItemsControl.ItemTemplate>
@@ -262,8 +262,8 @@
                     </StackPanel>
 
                     <TextBlock Foreground="{DynamicResource Brush.TextSecondary}" TextWrapping="Wrap" Margin="0,0,0,8"
-                               Text="Astuce : la recherche accepte les opérateurs de Spotify — artist:, album:, track:, year:2020-2024, genre:, label:, isrc:." />
-                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Parcourir par genre" />
+                               Text="{loc:T pages.tip_search_accepts_spotify_s}" />
+                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T pages.browse_by_genre}" />
                     <ItemsControl ItemsSource="{Binding Genres}" ItemsPanel="{DynamicResource WrapPanelTemplate}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -286,15 +286,15 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <TextBlock Text="Aucun genre dans les métadonnées de vos fichiers." Foreground="{DynamicResource Brush.TextSecondary}"
+                    <TextBlock Text="{loc:T pages.no_genre_in_your_files_metadata}" Foreground="{DynamicResource Brush.TextSecondary}"
                                Visibility="{Binding NoGenres, Converter={StaticResource BoolToVis}}" />
                 </StackPanel>
 
-                <ContentControl Content="Aucun résultat" Style="{DynamicResource SectionTitleBox}" Visibility="{Binding NoResults, Converter={StaticResource BoolToVis}}" />
+                <ContentControl Content="{loc:T pages.no_results}" Style="{DynamicResource SectionTitleBox}" Visibility="{Binding NoResults, Converter={StaticResource BoolToVis}}" />
 
                 <!-- Top result: Sonora's own pick, since Spotify computes its own server-side and keeps it. -->
                 <StackPanel Visibility="{Binding HasTopResult, Converter={StaticResource BoolToVis}}">
-                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Résultat principal" />
+                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T pages.top_result}" />
                     <Button Style="{StaticResource CardButton}" Command="{Binding TopResult.Open}" HorizontalAlignment="Left" Margin="0,0,0,8">
                         <Border Width="380" CornerRadius="{DynamicResource Radius.Panel}" Background="{DynamicResource Brush.SurfaceAlt}" Padding="18">
                             <DockPanel>
@@ -340,31 +340,31 @@
                 </StackPanel>
 
                 <StackPanel Visibility="{Binding HasTracks, Converter={StaticResource BoolToVis}}">
-                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Titres" />
+                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T pages.tracks}" />
                     <ListBox Style="{StaticResource TrackListStatic}" ItemsSource="{Binding Tracks}" Margin="-8,0,0,0" />
                 </StackPanel>
                 <StackPanel Visibility="{Binding HasLocalTracks, Converter={StaticResource BoolToVis}}">
-                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Dans vos fichiers locaux" />
+                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T pages.in_your_local_files}" />
                     <ListBox Style="{StaticResource TrackListStatic}" ItemsSource="{Binding LocalTracks}" Margin="-8,0,0,0" />
                 </StackPanel>
                 <StackPanel Visibility="{Binding HasPlaylists, Converter={StaticResource BoolToVis}}">
-                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Playlists" />
+                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T common.playlists}" />
                     <ItemsControl ItemsSource="{Binding Playlists}" ItemTemplate="{DynamicResource PlaylistCard}" ItemsPanel="{DynamicResource WrapPanelTemplate}" Margin="-12,0,0,0" />
                 </StackPanel>
                 <StackPanel Visibility="{Binding HasArtists, Converter={StaticResource BoolToVis}}">
-                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Artistes" />
+                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T common.artists}" />
                     <ItemsControl ItemsSource="{Binding Artists}" ItemTemplate="{DynamicResource ArtistCard}" ItemsPanel="{DynamicResource WrapPanelTemplate}" Margin="-12,0,0,0" />
                 </StackPanel>
                 <StackPanel Visibility="{Binding HasAlbums, Converter={StaticResource BoolToVis}}">
-                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Albums" />
+                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T common.albums}" />
                     <ItemsControl ItemsSource="{Binding Albums}" ItemTemplate="{DynamicResource AlbumCard}" ItemsPanel="{DynamicResource WrapPanelTemplate}" Margin="-12,0,0,0" />
                 </StackPanel>
                 <StackPanel Visibility="{Binding HasShows, Converter={StaticResource BoolToVis}}">
-                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Podcasts" />
+                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T pages.podcasts}" />
                     <ItemsControl ItemsSource="{Binding Shows}" ItemTemplate="{DynamicResource AlbumCard}" ItemsPanel="{DynamicResource WrapPanelTemplate}" Margin="-12,0,0,0" />
                 </StackPanel>
                 <StackPanel Visibility="{Binding HasEpisodes, Converter={StaticResource BoolToVis}}">
-                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Épisodes" />
+                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T pages.episodes}" />
                     <ListBox Style="{StaticResource TrackListStatic}" ItemsSource="{Binding Episodes}" Margin="-8,0,0,0" />
                 </StackPanel>
             </StackPanel>
@@ -376,10 +376,10 @@
     <DataTemplate DataType="{x:Type vm:DiscoverPage}">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="24,8,24,32">
-                <ContentControl Content="Découvrir" Style="{DynamicResource PageTitleBox}" />
-                <TextBlock Text="Connectez votre compte Spotify pour remplir ces pages." Foreground="{DynamicResource Brush.TextSecondary}"
+                <ContentControl Content="{loc:T common.discover}" Style="{DynamicResource PageTitleBox}" />
+                <TextBlock Text="{loc:T pages.connect_your_spotify_account_to_fill}" Foreground="{DynamicResource Brush.TextSecondary}"
                            Margin="0,0,0,16" TextWrapping="Wrap" Visibility="{Binding NeedsSpotify, Converter={StaticResource BoolToVis}}" />
-                <TextBlock Text="Toutes les sections de Découvrir sont désactivées dans les paramètres." Foreground="{DynamicResource Brush.TextSecondary}"
+                <TextBlock Text="{loc:T pages.all_the_discover_sections_are_turned}" Foreground="{DynamicResource Brush.TextSecondary}"
                            TextWrapping="Wrap" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}" />
                 <ItemsControl ItemsSource="{Binding Tiles}" ItemsPanel="{DynamicResource WrapPanelTemplate}" Margin="-12,0,0,0">
                     <ItemsControl.ItemTemplate>
@@ -407,23 +407,23 @@
     <DataTemplate DataType="{x:Type vm:TopsPage}">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="24,8,24,32">
-                <ContentControl Content="Vos tops" Style="{DynamicResource PageTitleBox}" />
+                <ContentControl Content="{loc:T pages.your_tops}" Style="{DynamicResource PageTitleBox}" />
                 <WrapPanel Margin="0,0,0,8">
-                    <RadioButton Style="{DynamicResource Chip}" GroupName="TopRange" Content="4 semaines" Margin="0,0,8,4"
+                    <RadioButton Style="{DynamicResource Chip}" GroupName="TopRange" Content="{loc:T pages.4_weeks}" Margin="0,0,8,4"
                                  IsChecked="{Binding Range, Converter={StaticResource Eq}, ConverterParameter=short_term}" />
-                    <RadioButton Style="{DynamicResource Chip}" GroupName="TopRange" Content="6 mois" Margin="0,0,8,4"
+                    <RadioButton Style="{DynamicResource Chip}" GroupName="TopRange" Content="{loc:T pages.6_months}" Margin="0,0,8,4"
                                  IsChecked="{Binding Range, Converter={StaticResource Eq}, ConverterParameter=medium_term}" />
-                    <RadioButton Style="{DynamicResource Chip}" GroupName="TopRange" Content="Depuis toujours" Margin="0,0,8,4"
+                    <RadioButton Style="{DynamicResource Chip}" GroupName="TopRange" Content="{loc:T pages.all_time}" Margin="0,0,8,4"
                                  IsChecked="{Binding Range, Converter={StaticResource Eq}, ConverterParameter=long_term}" />
                 </WrapPanel>
-                <TextBlock Text="Chargement…" Foreground="{DynamicResource Brush.TextSecondary}"
+                <TextBlock Text="{loc:T pages.loading}" Foreground="{DynamicResource Brush.TextSecondary}"
                            Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}" />
                 <TextBlock Text="{Binding EmptyText}" Foreground="{DynamicResource Brush.TextSecondary}" TextWrapping="Wrap"
                            Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}" />
-                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Vos titres" />
-                <Button Style="{DynamicResource BigPlay}" Command="{Binding PlayCommand}" ToolTip="Lecture" HorizontalAlignment="Left" Margin="0,0,0,8" />
+                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T pages.your_tracks}" />
+                <Button Style="{DynamicResource BigPlay}" Command="{Binding PlayCommand}" ToolTip="{loc:T pages.play}" HorizontalAlignment="Left" Margin="0,0,0,8" />
                 <ListBox Style="{StaticResource TrackListStatic}" ItemsSource="{Binding Tracks}" Margin="-8,0,0,0" />
-                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Vos artistes" />
+                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T pages.your_artists}" />
                 <ItemsControl ItemsSource="{Binding Artists}" ItemTemplate="{DynamicResource ArtistCard}" ItemsPanel="{DynamicResource WrapPanelTemplate}" Margin="-12,0,0,0" />
             </StackPanel>
         </ScrollViewer>
@@ -432,17 +432,17 @@
     <DataTemplate DataType="{x:Type vm:StatsPage}">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="24,8,24,32">
-                <ContentControl Content="Vos statistiques" Style="{DynamicResource PageTitleBox}" />
+                <ContentControl Content="{loc:T pages.your_statistics}" Style="{DynamicResource PageTitleBox}" />
                 <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,12"
-                           Text="Compté par Sonora sur cette machine, à partir de vos écoutes réelles. Spotify n'ouvre ces chiffres à aucune application tierce." />
+                           Text="{loc:T pages.counted_by_sonora_on_this_machine}" />
                 <WrapPanel Margin="0,0,0,8">
-                    <RadioButton Style="{DynamicResource Chip}" GroupName="StatsPeriod" Content="7 jours" Margin="0,0,8,4"
+                    <RadioButton Style="{DynamicResource Chip}" GroupName="StatsPeriod" Content="{loc:T pages.7_days}" Margin="0,0,8,4"
                                  IsChecked="{Binding Days, Converter={StaticResource Eq}, ConverterParameter=7}" />
-                    <RadioButton Style="{DynamicResource Chip}" GroupName="StatsPeriod" Content="30 jours" Margin="0,0,8,4"
+                    <RadioButton Style="{DynamicResource Chip}" GroupName="StatsPeriod" Content="{loc:T pages.30_days}" Margin="0,0,8,4"
                                  IsChecked="{Binding Days, Converter={StaticResource Eq}, ConverterParameter=30}" />
-                    <RadioButton Style="{DynamicResource Chip}" GroupName="StatsPeriod" Content="12 mois" Margin="0,0,8,4"
+                    <RadioButton Style="{DynamicResource Chip}" GroupName="StatsPeriod" Content="{loc:T pages.12_months}" Margin="0,0,8,4"
                                  IsChecked="{Binding Days, Converter={StaticResource Eq}, ConverterParameter=365}" />
-                    <RadioButton Style="{DynamicResource Chip}" GroupName="StatsPeriod" Content="Depuis toujours" Margin="0,0,8,4"
+                    <RadioButton Style="{DynamicResource Chip}" GroupName="StatsPeriod" Content="{loc:T pages.all_time}" Margin="0,0,8,4"
                                  IsChecked="{Binding Days, Converter={StaticResource Eq}, ConverterParameter=0}" />
                 </WrapPanel>
                 <TextBlock Text="{Binding Totals}" FontWeight="SemiBold" FontSize="{DynamicResource Size.Text.Large}"
@@ -451,7 +451,7 @@
                            Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}" />
 
                 <StackPanel Visibility="{Binding IsEmpty, Converter={StaticResource InvBoolToVis}}">
-                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Quand vous écoutez" />
+                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T pages.when_you_listen}" />
                     <!-- One bar per hour of the day, each as tall as its share of the busiest hour. -->
                     <ItemsControl ItemsSource="{Binding Hours}" Height="120">
                         <ItemsControl.ItemsPanel>
@@ -475,7 +475,7 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
-                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Vos titres les plus écoutés" />
+                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T pages.your_most_played_tracks}" />
                     <ItemsControl ItemsSource="{Binding TopTracks}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -498,7 +498,7 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
-                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Vos artistes les plus écoutés" />
+                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T pages.your_most_played_artists}" />
                     <ItemsControl ItemsSource="{Binding TopArtists}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -513,7 +513,7 @@
                     </ItemsControl>
                 </StackPanel>
 
-                <Button Style="{DynamicResource PillOutline}" Content="Effacer l'historique local" Margin="0,24,0,0"
+                <Button Style="{DynamicResource PillOutline}" Content="{loc:T pages.clear_the_local_history}" Margin="0,24,0,0"
                         Command="{Binding ClearCommand}" />
             </StackPanel>
         </ScrollViewer>
@@ -524,7 +524,7 @@
             <StackPanel Margin="24,8,24,32">
                 <ContentControl Content="{Binding Title}" Style="{DynamicResource PageTitleBox}" />
                 <TextBlock Text="{Binding Subtitle}" Foreground="{DynamicResource Brush.TextSecondary}" TextWrapping="Wrap" Margin="0,0,0,12" />
-                <TextBlock Text="Recherche des artistes proches…" Foreground="{DynamicResource Brush.TextSecondary}"
+                <TextBlock Text="{loc:T pages.looking_for_similar_artists}" Foreground="{DynamicResource Brush.TextSecondary}"
                            Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}" />
                 <TextBlock Text="{Binding EmptyText}" Foreground="{DynamicResource Brush.TextSecondary}" TextWrapping="Wrap"
                            Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}" />
@@ -537,7 +537,7 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="24,8,24,32">
                 <ContentControl Content="{Binding Title}" Style="{DynamicResource PageTitleBox}" />
-                <TextBlock Text="Chargement…" Foreground="{DynamicResource Brush.TextSecondary}"
+                <TextBlock Text="{loc:T pages.loading}" Foreground="{DynamicResource Brush.TextSecondary}"
                            Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}" />
                 <TextBlock Text="{Binding EmptyText}" Foreground="{DynamicResource Brush.TextSecondary}" TextWrapping="Wrap"
                            Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}" />
@@ -551,7 +551,7 @@
     <DataTemplate DataType="{x:Type vm:AlbumsPage}">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="24,8,24,32">
-                <ContentControl Content="Albums" Style="{DynamicResource PageTitleBox}" />
+                <ContentControl Content="{loc:T common.albums}" Style="{DynamicResource PageTitleBox}" />
                 <ItemsControl ItemsSource="{Binding Items}" ItemTemplate="{DynamicResource AlbumCard}" ItemsPanel="{DynamicResource WrapPanelTemplate}" Margin="-12,0,0,0" />
             </StackPanel>
         </ScrollViewer>
@@ -560,7 +560,7 @@
     <DataTemplate DataType="{x:Type vm:ArtistsPage}">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="24,8,24,32">
-                <ContentControl Content="Artistes" Style="{DynamicResource PageTitleBox}" />
+                <ContentControl Content="{loc:T common.artists}" Style="{DynamicResource PageTitleBox}" />
                 <ItemsControl ItemsSource="{Binding Items}" ItemTemplate="{DynamicResource ArtistCard}" ItemsPanel="{DynamicResource WrapPanelTemplate}" Margin="-12,0,0,0" />
             </StackPanel>
         </ScrollViewer>
@@ -569,7 +569,7 @@
     <DataTemplate DataType="{x:Type vm:PlaylistsPage}">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="24,8,24,32">
-                <ContentControl Content="Playlists" Style="{DynamicResource PageTitleBox}" />
+                <ContentControl Content="{loc:T common.playlists}" Style="{DynamicResource PageTitleBox}" />
                 <ItemsControl ItemsSource="{Binding Items}" ItemTemplate="{DynamicResource PlaylistCard}" ItemsPanel="{DynamicResource WrapPanelTemplate}" Margin="-12,0,0,0" />
             </StackPanel>
         </ScrollViewer>
@@ -580,7 +580,7 @@
     <DataTemplate DataType="{x:Type vm:SettingsPage}">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="32,8,32,32" MaxWidth="820" HorizontalAlignment="Left" TextElement.Foreground="{DynamicResource Brush.TextPrimary}">
-                <ContentControl Content="Paramètres" Style="{DynamicResource PageTitleBox}" />
+                <ContentControl Content="{loc:T common.settings}" Style="{DynamicResource PageTitleBox}" />
 
                 <Button Style="{DynamicResource NavItem}" Command="{Binding Main.OpenAppearanceCommand}" Padding="16,14" HorizontalAlignment="Stretch"
                         Background="{DynamicResource Brush.SurfaceAlt}">
@@ -588,44 +588,81 @@
                         <TextBlock DockPanel.Dock="Right" Text="&#xE76C;" FontFamily="{StaticResource Icons}" VerticalAlignment="Center" />
                         <TextBlock Text="&#xE790;" FontFamily="{StaticResource Icons}" FontSize="20" VerticalAlignment="Center" Margin="0,0,14,0" />
                         <StackPanel>
-                            <TextBlock Text="Apparence" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
-                            <TextBlock Text="Thèmes, couleurs, typo, disposition des panneaux et contenu affiché" FontSize="{DynamicResource Size.Text.Small}" />
+                            <TextBlock Text="{loc:T common.appearance}" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
+                            <TextBlock Text="{loc:T pages.themes_colors_type_panel_layout_and}" FontSize="{DynamicResource Size.Text.Small}" />
                         </StackPanel>
                     </DockPanel>
                 </Button>
 
-                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Compte Spotify" />
+                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T settings.language}" />
+                <Border Background="{DynamicResource Brush.SurfaceAlt}" CornerRadius="{DynamicResource Radius.Panel}" Padding="20">
+                    <StackPanel>
+                        <ItemsControl ItemsSource="{Binding Main.LanguageOptions}" ItemsPanel="{StaticResource WrapPanelTemplate}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <RadioButton Style="{DynamicResource Chip}" GroupName="Language" Margin="0,0,8,8" IsChecked="{Binding IsSelected, Mode=OneWay}"
+                                                 Command="{Binding DataContext.Main.SetLanguageCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                 CommandParameter="{Binding Code}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding Name}" />
+                                            <!-- A translation no native speaker has read yet. -->
+                                            <Border x:Name="Badge" Margin="8,0,0,0" Padding="6,1" CornerRadius="8" Background="{DynamicResource Brush.AccentSoft}"
+                                                    BorderThickness="1" BorderBrush="Transparent"
+                                                    ToolTip="{loc:T settings.unreviewed_tip}" Visibility="{Binding ShowBadge, Converter={StaticResource BoolToVis}}">
+                                                <TextBlock x:Name="BadgeText" Text="{loc:T settings.unreviewed}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Accent}" />
+                                            </Border>
+                                        </StackPanel>
+                                    </RadioButton>
+                                    <DataTemplate.Triggers>
+                                        <!-- On the chosen chip the accent is the background: the badge turns into an outline in the on-accent colour. -->
+                                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                            <Setter TargetName="Badge" Property="Background" Value="Transparent" />
+                                            <Setter TargetName="Badge" Property="BorderBrush" Value="{DynamicResource Brush.OnAccent}" />
+                                            <Setter TargetName="BadgeText" Property="Foreground" Value="{DynamicResource Brush.OnAccent}" />
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="{loc:T settings.language_help}" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="{DynamicResource Size.Text.Small}"
+                                   TextWrapping="Wrap" Margin="0,4,0,0" />
+                        <Button Style="{StaticResource LinkText}" Content="{loc:T settings.translate_link}" Foreground="{DynamicResource Brush.Accent}"
+                                Margin="0,8,0,0" HorizontalAlignment="Left" Command="{Binding Main.OpenTranslatingGuideCommand}" />
+                    </StackPanel>
+                </Border>
+
+                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T pages.spotify_account}" />
                 <Border Background="{DynamicResource Brush.SurfaceAlt}" CornerRadius="{DynamicResource Radius.Panel}" Padding="20">
                     <StackPanel>
                         <TextBlock Text="{Binding Main.Spotify.Status}" FontWeight="SemiBold" TextWrapping="Wrap" />
                         <StackPanel Visibility="{Binding Main.Spotify.IsConnected, Converter={StaticResource InvBoolToVis}}" Margin="0,12,0,0">
                             <TextBlock Text="Client ID" FontWeight="SemiBold" Margin="0,0,0,6" />
                             <TextBox Text="{Binding Main.SpotifyClientId, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBlock Text="Adresse de redirection" FontWeight="SemiBold" Margin="0,16,0,6" />
+                            <TextBlock Text="{loc:T pages.redirect_uri}" FontWeight="SemiBold" Margin="0,16,0,6" />
                             <DockPanel>
-                                <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE8C8;" ToolTip="Copier" Command="{Binding Main.CopyRedirectUriCommand}" />
+                                <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE8C8;" ToolTip="{loc:T common.copy}" Command="{Binding Main.CopyRedirectUriCommand}" />
                                 <TextBox Text="{Binding Main.RedirectUri, Mode=OneWay}" IsReadOnly="True" />
                             </DockPanel>
                             <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
-                                <Button Style="{DynamicResource AccentPill}" Content="Se connecter avec Spotify" Command="{Binding Main.SpotifyLoginCommand}" />
-                                <Button Style="{DynamicResource PillOutline}" Content="Tableau de bord développeur" Margin="12,0,0,0" Command="{Binding Main.OpenDeveloperDashboardCommand}" />
+                                <Button Style="{DynamicResource AccentPill}" Content="{loc:T pages.sign_in_with_spotify}" Command="{Binding Main.SpotifyLoginCommand}" />
+                                <Button Style="{DynamicResource PillOutline}" Content="{loc:T pages.developer_dashboard}" Margin="12,0,0,0" Command="{Binding Main.OpenDeveloperDashboardCommand}" />
                             </StackPanel>
                         </StackPanel>
                         <StackPanel Visibility="{Binding Main.Spotify.IsConnected, Converter={StaticResource BoolToVis}}" Orientation="Horizontal" Margin="0,16,0,0">
-                            <Button Style="{DynamicResource PillOutline}" Content="Actualiser la bibliothèque" Command="{Binding Main.SpotifyRefreshCommand}" />
-                            <Button Style="{DynamicResource PillOutline}" Content="Se déconnecter" Margin="12,0,0,0" Command="{Binding Main.SpotifyLogoutCommand}" />
+                            <Button Style="{DynamicResource PillOutline}" Content="{loc:T pages.refresh_the_library}" Command="{Binding Main.SpotifyRefreshCommand}" />
+                            <Button Style="{DynamicResource PillOutline}" Content="{loc:T pages.sign_out}" Margin="12,0,0,0" Command="{Binding Main.SpotifyLogoutCommand}" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
 
-                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Fichiers locaux" />
+                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T pages.local_files}" />
                 <TextBlock Text="{Binding Main.Stats}" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,12" />
                 <ItemsControl ItemsSource="{Binding Main.Folders}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Border Background="{DynamicResource Brush.SurfaceAlt}" CornerRadius="{DynamicResource Radius.Control}" Padding="12,6" Margin="0,0,0,6">
                                 <DockPanel>
-                                    <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE74D;" ToolTip="Retirer ce dossier"
+                                    <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE74D;" ToolTip="{loc:T pages.remove_this_folder}"
                                             Command="{Binding DataContext.RemoveFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" />
                                     <TextBlock Text="&#xE8B7;" FontFamily="{StaticResource Icons}" Foreground="{DynamicResource Brush.TextSecondary}" VerticalAlignment="Center" Margin="0,0,12,0" />
                                     <TextBlock Text="{Binding}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
@@ -635,45 +672,45 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
                 <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                    <Button Style="{DynamicResource PillButton}" Content="Ajouter un dossier" Command="{Binding Main.AddFolderCommand}" />
-                    <Button Style="{DynamicResource PillOutline}" Content="Réanalyser" Margin="12,0,0,0" Command="{Binding Main.RescanCommand}" />
+                    <Button Style="{DynamicResource PillButton}" Content="{loc:T pages.add_a_folder}" Command="{Binding Main.AddFolderCommand}" />
+                    <Button Style="{DynamicResource PillOutline}" Content="{loc:T pages.rescan}" Margin="12,0,0,0" Command="{Binding Main.RescanCommand}" />
                 </StackPanel>
 
-                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Fonctionnalités" />
+                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T pages.features}" />
                 <Border Background="{DynamicResource Brush.SurfaceAlt}" CornerRadius="{DynamicResource Radius.Panel}" Padding="20">
                     <StackPanel>
-                        <TextBlock Text="Ce que Sonora affiche. Désactiver une section la retire de Découvrir, de l'accueil et de la recherche."
+                        <TextBlock Text="{loc:T pages.what_sonora_shows_turning_a_section}"
                                    Foreground="{DynamicResource Brush.TextSecondary}" TextWrapping="Wrap" Margin="0,0,0,12" />
-                        <CheckBox Style="{DynamicResource Toggle}" Content="Paroles" IsChecked="{Binding Main.FeatureLyrics}" />
-                        <CheckBox Style="{DynamicResource Toggle}" Content="Podcasts" IsChecked="{Binding Main.FeaturePodcasts}" />
-                        <CheckBox Style="{DynamicResource Toggle}" Content="Vos tops" IsChecked="{Binding Main.FeatureTops}" />
-                        <CheckBox Style="{DynamicResource Toggle}" Content="Historique d'écoute" IsChecked="{Binding Main.FeatureHistory}" />
-                        <CheckBox Style="{DynamicResource Toggle}" Content="Nouveautés de vos artistes" IsChecked="{Binding Main.FeatureNewReleases}" />
-                        <CheckBox Style="{DynamicResource Toggle}" Content="Historique d'écoute local et statistiques" IsChecked="{Binding Main.FeatureListeningLog}" />
-                        <CheckBox Style="{DynamicResource Toggle}" Content="Découverte d'artistes (MusicBrainz, ListenBrainz)" IsChecked="{Binding Main.FeatureDiscovery}" />
-                        <CheckBox Style="{DynamicResource Toggle}" Content="Mémoriser les recherches récentes" IsChecked="{Binding Main.FeatureRecentSearches}" />
-                        <CheckBox Style="{DynamicResource Toggle}" Content="Bulle au changement de titre" IsChecked="{Binding Main.FeatureTrackToast}" />
+                        <CheckBox Style="{DynamicResource Toggle}" Content="{loc:T pages.lyrics}" IsChecked="{Binding Main.FeatureLyrics}" />
+                        <CheckBox Style="{DynamicResource Toggle}" Content="{loc:T pages.podcasts}" IsChecked="{Binding Main.FeaturePodcasts}" />
+                        <CheckBox Style="{DynamicResource Toggle}" Content="{loc:T pages.your_tops}" IsChecked="{Binding Main.FeatureTops}" />
+                        <CheckBox Style="{DynamicResource Toggle}" Content="{loc:T pages.listening_history}" IsChecked="{Binding Main.FeatureHistory}" />
+                        <CheckBox Style="{DynamicResource Toggle}" Content="{loc:T pages.new_releases_from_your_artists}" IsChecked="{Binding Main.FeatureNewReleases}" />
+                        <CheckBox Style="{DynamicResource Toggle}" Content="{loc:T pages.local_listening_history_and_statistics}" IsChecked="{Binding Main.FeatureListeningLog}" />
+                        <CheckBox Style="{DynamicResource Toggle}" Content="{loc:T pages.artist_discovery_musicbrainz}" IsChecked="{Binding Main.FeatureDiscovery}" />
+                        <CheckBox Style="{DynamicResource Toggle}" Content="{loc:T pages.remember_recent_searches}" IsChecked="{Binding Main.FeatureRecentSearches}" />
+                        <CheckBox Style="{DynamicResource Toggle}" Content="{loc:T pages.notification_when_the_track_changes}" IsChecked="{Binding Main.FeatureTrackToast}" />
 
                         <StackPanel Visibility="{Binding Main.FeatureTrackToast, Converter={StaticResource BoolToVis}}" Margin="0,12,0,0">
-                            <TextBlock Text="Durée de la bulle (secondes)" FontWeight="SemiBold" Margin="0,0,0,6" />
+                            <TextBlock Text="{loc:T pages.notification_duration_seconds}" FontWeight="SemiBold" Margin="0,0,0,6" />
                             <Slider Style="{DynamicResource ThinSlider}" Minimum="2" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True"
                                     Width="260" HorizontalAlignment="Left" Value="{Binding Main.ToastSeconds, Mode=TwoWay}" />
                         </StackPanel>
 
-                        <CheckBox Style="{DynamicResource Toggle}" Content="Mini-lecteur toujours au premier plan" IsChecked="{Binding Main.MiniPlayerOnTop}" />
-                        <TextBlock Text="Opacité du mini-lecteur" FontWeight="SemiBold" Margin="0,12,0,6" />
+                        <CheckBox Style="{DynamicResource Toggle}" Content="{loc:T pages.mini_player_always_on_top}" IsChecked="{Binding Main.MiniPlayerOnTop}" />
+                        <TextBlock Text="{loc:T pages.mini_player_opacity}" FontWeight="SemiBold" Margin="0,12,0,6" />
                         <Slider Style="{DynamicResource ThinSlider}" Minimum="0.4" Maximum="1" Width="260" HorizontalAlignment="Left"
                                 Value="{Binding Main.MiniPlayerOpacity, Mode=TwoWay}" />
 
                         <StackPanel Visibility="{Binding Main.FeatureLyrics, Converter={StaticResource BoolToVis}}" Margin="0,16,0,0">
-                            <TextBlock Text="Taille des paroles" FontWeight="SemiBold" Margin="0,0,0,6" />
+                            <TextBlock Text="{loc:T pages.lyrics_size}" FontWeight="SemiBold" Margin="0,0,0,6" />
                             <Slider Style="{DynamicResource ThinSlider}" Minimum="0.8" Maximum="1.6" Width="260" HorizontalAlignment="Left"
                                     Value="{Binding Main.LyricsScale, Mode=TwoWay}" />
-                            <TextBlock Text="Alignement des paroles" FontWeight="SemiBold" Margin="0,14,0,6" />
+                            <TextBlock Text="{loc:T pages.lyrics_alignment}" FontWeight="SemiBold" Margin="0,14,0,6" />
                             <WrapPanel>
-                                <RadioButton Style="{DynamicResource Chip}" GroupName="LyricsAlign" Content="À gauche" Margin="0,0,8,4"
+                                <RadioButton Style="{DynamicResource Chip}" GroupName="LyricsAlign" Content="{loc:T pages.left}" Margin="0,0,8,4"
                                              IsChecked="{Binding Main.LyricsAlign, Converter={StaticResource Eq}, ConverterParameter=left}" />
-                                <RadioButton Style="{DynamicResource Chip}" GroupName="LyricsAlign" Content="Centré" Margin="0,0,8,4"
+                                <RadioButton Style="{DynamicResource Chip}" GroupName="LyricsAlign" Content="{loc:T pages.centered}" Margin="0,0,8,4"
                                              IsChecked="{Binding Main.LyricsAlign, Converter={StaticResource Eq}, ConverterParameter=center}" />
                             </WrapPanel>
                         </StackPanel>
@@ -684,22 +721,22 @@
                 <Border Background="{DynamicResource Brush.SurfaceAlt}" CornerRadius="{DynamicResource Radius.Panel}" Padding="20">
                     <StackPanel>
                         <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,12"
-                                   Text="Envoyez vos écoutes à ListenBrainz, le service ouvert d'historique d'écoute — ce que Spotify ne permet à aucune application tierce. Tant que ce champ est vide, rien ne quitte cette machine." />
-                        <TextBlock Text="Jeton utilisateur" FontWeight="SemiBold" Margin="0,0,0,6" />
+                                   Text="{loc:T pages.send_your_listens_to_listenbrainz_the}" />
+                        <TextBlock Text="{loc:T pages.user_token}" FontWeight="SemiBold" Margin="0,0,0,6" />
                         <TextBox Text="{Binding Main.ListenBrainzToken, UpdateSourceTrigger=PropertyChanged}" />
                         <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
-                            <Button Style="{DynamicResource PillOutline}" Content="Vérifier le jeton" Command="{Binding Main.TestScrobbleCommand}" />
-                            <TextBlock Text="Envoi actif" VerticalAlignment="Center" Margin="12,0,0,0" Foreground="{DynamicResource Brush.Accent}"
+                            <Button Style="{DynamicResource PillOutline}" Content="{loc:T pages.check_the_token}" Command="{Binding Main.TestScrobbleCommand}" />
+                            <TextBlock Text="{loc:T pages.sending_is_on}" VerticalAlignment="Center" Margin="12,0,0,0" Foreground="{DynamicResource Brush.Accent}"
                                        Visibility="{Binding Main.IsScrobbling, Converter={StaticResource BoolToVis}}" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
 
-                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Raccourcis clavier" />
+                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T pages.keyboard_shortcuts}" />
                 <Border Background="{DynamicResource Brush.SurfaceAlt}" CornerRadius="{DynamicResource Radius.Panel}" Padding="20">
                     <StackPanel>
                         <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,12"
-                                   Text="Cliquez sur un raccourci puis appuyez sur la combinaison voulue. Une combinaison déjà prise est retirée à son ancienne action. Alt+← / Alt+→ (navigation) et les touches média du clavier ne se changent pas." />
+                                   Text="{loc:T pages.click_a_shortcut_then_press_the}" />
                         <ItemsControl ItemsSource="{Binding Main.ShortcutRows}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -714,15 +751,15 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                         <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                            <Button Style="{DynamicResource PillOutline}" Content="Tout réinitialiser" Command="{Binding Main.ResetShortcutsCommand}" />
-                            <TextBlock Text="En attente d'une combinaison…" VerticalAlignment="Center" Margin="12,0,0,0"
+                            <Button Style="{DynamicResource PillOutline}" Content="{loc:T pages.reset_all}" Command="{Binding Main.ResetShortcutsCommand}" />
+                            <TextBlock Text="{loc:T pages.waiting_for_a_combination}" VerticalAlignment="Center" Margin="12,0,0,0"
                                        Foreground="{DynamicResource Brush.Accent}"
                                        Visibility="{Binding Main.IsCapturingShortcut, Converter={StaticResource BoolToVis}}" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
 
-                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="Mises à jour" />
+                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T pages.updates}" />
                 <Border Background="{DynamicResource Brush.SurfaceAlt}" CornerRadius="{DynamicResource Radius.Panel}" Padding="20">
                     <StackPanel>
                         <TextBlock Text="{Binding Main.Updates.VersionLine}" FontWeight="SemiBold" />
@@ -732,21 +769,21 @@
                                      Value="{Binding Main.Updates.Progress, Mode=OneWay}"
                                      Visibility="{Binding Main.Updates.IsDownloading, Converter={StaticResource BoolToVis}}" />
                         <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
-                            <Button Style="{DynamicResource PillOutline}" Content="Rechercher des mises à jour" Command="{Binding Main.Updates.CheckCommand}" />
+                            <Button Style="{DynamicResource PillOutline}" Content="{loc:T pages.check_for_updates}" Command="{Binding Main.Updates.CheckCommand}" />
                             <Button Style="{DynamicResource AccentPill}" Content="{Binding Main.Updates.InstallLabel}" Margin="12,0,0,0" Command="{Binding Main.Updates.InstallCommand}"
                                     Visibility="{Binding Main.Updates.HasUpdate, Converter={StaticResource BoolToVis}}" />
-                            <Button Style="{DynamicResource PillOutline}" Content="Page des versions" Margin="12,0,0,0" Command="{Binding Main.Updates.OpenReleasesCommand}"
+                            <Button Style="{DynamicResource PillOutline}" Content="{loc:T pages.releases_page}" Margin="12,0,0,0" Command="{Binding Main.Updates.OpenReleasesCommand}"
                                     Visibility="{Binding Main.Updates.IsNotInstalled, Converter={StaticResource BoolToVis}}" />
                         </StackPanel>
-                        <CheckBox Style="{DynamicResource Toggle}" Content="Vérifier les mises à jour à l'ouverture de Sonora" IsChecked="{Binding Main.FeatureUpdateCheck}" Margin="0,16,0,0" />
+                        <CheckBox Style="{DynamicResource Toggle}" Content="{loc:T pages.check_for_updates_when_sonora_opens}" IsChecked="{Binding Main.FeatureUpdateCheck}" Margin="0,16,0,0" />
                         <TextBlock Foreground="{DynamicResource Brush.TextSecondary}" FontSize="{DynamicResource Size.Text.Small}" TextWrapping="Wrap" Margin="0,4,0,0"
-                                   Text="La vérification interroge GitHub (github.com) et ne lui envoie rien d'autre que ce que toute requête web contient. L'installation n'a jamais lieu sans votre clic." />
+                                   Text="{loc:T pages.the_check_contacts_github_github_com}" />
                     </StackPanel>
                 </Border>
 
-                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="À propos" />
+                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T pages.about}" />
                 <TextBlock Foreground="{DynamicResource Brush.TextSecondary}" TextWrapping="Wrap"
-                           Text="Sonora — lecteur de musique natif (.NET 10 / WPF). Fichiers locaux via Windows Media Foundation ; Spotify via l'API Web officielle et le Web Playback SDK. Sonora n'est ni affilié à Spotify ni approuvé par Spotify." />
+                           Text="{loc:T pages.sonora_a_native_music_player_net_10}" />
             </StackPanel>
         </ScrollViewer>
     </DataTemplate>

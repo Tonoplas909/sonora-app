@@ -1,3 +1,4 @@
+using Sonora.Appearance.Localization;
 namespace Sonora.Appearance.Features;
 
 /// <summary>Sleep timer: stop playback after a delay, or when the current track ends.</summary>
@@ -45,8 +46,8 @@ public sealed class SleepTimer
 
     public string Describe(DateTime now)
     {
-        if (AtTrackEnd) return "Arrêt à la fin du titre";
+        if (AtTrackEnd) return Loc.T("sleep.at_track_end");
         if (Remaining(now) is not { } left) return "";
-        return $"Arrêt dans {Math.Max(1, (int)Math.Ceiling(left.TotalMinutes))} min";
+        return Loc.T("sleep.in_minutes", Math.Max(1, (int)Math.Ceiling(left.TotalMinutes)));
     }
 }

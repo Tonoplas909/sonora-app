@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Sonora.Services;
+using Sonora.Appearance.Localization;
 
 namespace Sonora.Spotify;
 
@@ -70,7 +71,7 @@ public sealed class SpotifyAuth(HttpClient http)
     public async Task LoginAsync(string clientId, CancellationToken ct)
     {
         clientId = clientId.Trim();
-        if (clientId.Length == 0) throw new InvalidOperationException("Renseignez d'abord le Client ID de votre application Spotify.");
+        if (clientId.Length == 0) throw new InvalidOperationException(Loc.T("spotify.auth_enter_client_id"));
 
         var verifier = B64Url(RandomNumberGenerator.GetBytes(64));
         var challenge = B64Url(SHA256.HashData(Encoding.ASCII.GetBytes(verifier)));
@@ -78,7 +79,7 @@ public sealed class SpotifyAuth(HttpClient http)
 
         var listener = new TcpListener(IPAddress.Loopback, Port);
         try { listener.Start(); }
-        catch (SocketException) { throw new InvalidOperationException($"Le port {Port} est déjà utilisé : fermez l'autre application qui l'occupe."); }
+        catch (SocketException) { throw new InvalidOperationException(Loc.T("spotify.auth_port_in_use", Port)); }
 
         try
         {
@@ -105,16 +106,16 @@ public sealed class SpotifyAuth(HttpClient http)
                 var q = ParseQuery(target);
                 if (q.GetValueOrDefault("state") != state)
                 {
-                    await RespondAsync(stream, "400 Bad Request", Page("Requête de connexion invalide."));
+                    await RespondAsync(stream, "400 Bad Request", Page(Loc.T("spotify.auth_page_invalid")));
                     continue;
                 }
                 if (q.TryGetValue("error", out var error))
                 {
-                    await RespondAsync(stream, "200 OK", Page("Connexion annulée. Vous pouvez fermer cet onglet."));
-                    throw new InvalidOperationException("Connexion refusée par Spotify : " + error);
+                    await RespondAsync(stream, "200 OK", Page(Loc.T("spotify.auth_page_cancelled")));
+                    throw new InvalidOperationException(Loc.T("spotify.auth_refused", error));
                 }
 
-                await RespondAsync(stream, "200 OK", Page("Connexion réussie. Vous pouvez fermer cet onglet et revenir dans Sonora."));
+                await RespondAsync(stream, "200 OK", Page(Loc.T("spotify.auth_page_done")));
                 await ExchangeAsync(new Dictionary<string, string>
                 {
                     ["grant_type"] = "authorization_code",
@@ -130,7 +131,7 @@ public sealed class SpotifyAuth(HttpClient http)
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
-            throw new InvalidOperationException("Délai de connexion dépassé (5 minutes).");
+            throw new InvalidOperationException(Loc.T("spotify.auth_timeout"));
         }
         finally
         {
@@ -144,7 +145,7 @@ public sealed class SpotifyAuth(HttpClient http)
         try
         {
             if (_access != null && DateTime.UtcNow < _expiresUtc.AddSeconds(-60)) return _access;
-            if (_refresh == null) throw new InvalidOperationException("Non connecté à Spotify.");
+            if (_refresh == null) throw new InvalidOperationException(Loc.T("spotify.auth_not_signed_in"));
             try
             {
                 await ExchangeAsync(new Dictionary<string, string>
@@ -157,7 +158,7 @@ public sealed class SpotifyAuth(HttpClient http)
             catch (SpotifyAuthException ex) when (ex.Status == 400)
             {
                 SignOut(); // refresh token revoked or expired
-                throw new InvalidOperationException("Session Spotify expirée : reconnectez-vous dans les paramètres.");
+                throw new InvalidOperationException(Loc.T("spotify.auth_session_expired"));
             }
             Save();
             return _access!;
@@ -173,7 +174,7 @@ public sealed class SpotifyAuth(HttpClient http)
         using var res = await http.PostAsync("https://accounts.spotify.com/api/token", new FormUrlEncodedContent(form), ct);
         var body = await res.Content.ReadAsStringAsync(ct);
         if (!res.IsSuccessStatusCode)
-            throw new SpotifyAuthException((int)res.StatusCode, $"Échec de l'authentification Spotify ({(int)res.StatusCode}) : {body}");
+            throw new SpotifyAuthException((int)res.StatusCode, Loc.T("spotify.auth_failed", (int)res.StatusCode, body));
         using var doc = JsonDocument.Parse(body);
         var r = doc.RootElement;
         _access = r.GetProperty("access_token").GetString();

@@ -1,5 +1,5 @@
 <p:PanelView x:Class="Sonora.Views.Panels.LibraryPanel"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:loc="clr-namespace:Sonora.Localization"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:p="clr-namespace:Sonora.Views.Panels"
              xmlns:v="clr-namespace:Sonora.Views">
@@ -11,24 +11,24 @@
         </Grid.RowDefinitions>
         <!-- The frame header already shows the "Bibliothèque" title: only the actions here. -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,4,0">
-            <Button Style="{DynamicResource IconButton}" Content="&#xE8CB;" Click="Sort_Click" ToolTip="Ordre de la bibliothèque" />
-            <Button Style="{DynamicResource IconButton}" Content="&#xE8B7;" Command="{Binding AddFolderCommand}" ToolTip="Ajouter un dossier de musique" />
-            <Button Style="{DynamicResource IconButton}" Content="&#xE710;" Command="{Binding NewPlaylistCommand}" ToolTip="Créer une playlist" />
-            <Button Style="{DynamicResource IconButton}" Content="&#xE8E5;" Command="{Binding ImportPlaylistCommand}" ToolTip="Importer une playlist M3U" />
+            <Button Style="{DynamicResource IconButton}" Content="&#xE8CB;" Click="Sort_Click" ToolTip="{loc:T library.library_order}" />
+            <Button Style="{DynamicResource IconButton}" Content="&#xE8B7;" Command="{Binding AddFolderCommand}" ToolTip="{loc:T library.add_a_music_folder}" />
+            <Button Style="{DynamicResource IconButton}" Content="&#xE710;" Command="{Binding NewPlaylistCommand}" ToolTip="{loc:T library.create_a_playlist}" />
+            <Button Style="{DynamicResource IconButton}" Content="&#xE8E5;" Command="{Binding ImportPlaylistCommand}" ToolTip="{loc:T library.import_an_m3u_playlist}" />
         </StackPanel>
         <!-- Search and order. Both run on the entries already built, so neither costs a request. -->
         <StackPanel Grid.Row="1" Margin="12,0,12,8">
             <Grid Margin="0,0,0,8">
                 <TextBox Style="{DynamicResource SearchBox}" Height="32" FontSize="{DynamicResource Size.Text.Small}"
-                         Tag="Rechercher dans la bibliothèque"
+                         Tag="{loc:T library.search_the_library}"
                          Text="{Binding LibrarySearch, UpdateSourceTrigger=PropertyChanged, Delay=150}" />
             </Grid>
             <WrapPanel>
-                <RadioButton Style="{DynamicResource Chip}" GroupName="LibFilter" Content="Playlists" Margin="0,0,8,4"
+                <RadioButton Style="{DynamicResource Chip}" GroupName="LibFilter" Content="{loc:T common.playlists}" Margin="0,0,8,4"
                              IsChecked="{Binding LibraryFilter, Converter={StaticResource Eq}, ConverterParameter=Playlists}" />
-                <RadioButton Style="{DynamicResource Chip}" GroupName="LibFilter" Content="Albums" Margin="0,0,8,4"
+                <RadioButton Style="{DynamicResource Chip}" GroupName="LibFilter" Content="{loc:T common.albums}" Margin="0,0,8,4"
                              IsChecked="{Binding LibraryFilter, Converter={StaticResource Eq}, ConverterParameter=Albums}" />
-                <RadioButton Style="{DynamicResource Chip}" GroupName="LibFilter" Content="Artistes" Margin="0,0,8,4"
+                <RadioButton Style="{DynamicResource Chip}" GroupName="LibFilter" Content="{loc:T common.artists}" Margin="0,0,8,4"
                              IsChecked="{Binding LibraryFilter, Converter={StaticResource Eq}, ConverterParameter=Artists}" />
             </WrapPanel>
         </StackPanel>

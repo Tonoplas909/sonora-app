@@ -1,5 +1,5 @@
 <p:PanelView x:Class="Sonora.Views.Panels.NavigationPanel"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:loc="clr-namespace:Sonora.Localization"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:p="clr-namespace:Sonora.Views.Panels"
              x:Name="Root">
@@ -13,31 +13,31 @@
             <Button Style="{DynamicResource NavItem}" Command="{Binding GoHomeCommand}" Padding="12,5">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="&#xE80F;" FontFamily="{StaticResource Icons}" FontSize="20" VerticalAlignment="Center" />
-                    <TextBlock Text="Accueil" FontWeight="Bold" FontSize="{DynamicResource Size.Text.Large}" Margin="16,0,0,0" VerticalAlignment="Center" />
+                    <TextBlock Text="{loc:T nav.home}" FontWeight="Bold" FontSize="{DynamicResource Size.Text.Large}" Margin="16,0,0,0" VerticalAlignment="Center" />
                 </StackPanel>
             </Button>
             <Button Style="{DynamicResource NavItem}" Command="{Binding GoSearchCommand}" Padding="12,5">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="&#xE721;" FontFamily="{StaticResource Icons}" FontSize="20" VerticalAlignment="Center" />
-                    <TextBlock Text="Rechercher" FontWeight="Bold" FontSize="{DynamicResource Size.Text.Large}" Margin="16,0,0,0" VerticalAlignment="Center" />
+                    <TextBlock Text="{loc:T nav.search}" FontWeight="Bold" FontSize="{DynamicResource Size.Text.Large}" Margin="16,0,0,0" VerticalAlignment="Center" />
                 </StackPanel>
             </Button>
             <Button Style="{DynamicResource NavItem}" Command="{Binding OpenDiscoverCommand}" Padding="12,5">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="&#xE1D3;" FontFamily="{StaticResource Icons}" FontSize="20" VerticalAlignment="Center" />
-                    <TextBlock Text="Découvrir" FontWeight="Bold" FontSize="{DynamicResource Size.Text.Large}" Margin="16,0,0,0" VerticalAlignment="Center" />
+                    <TextBlock Text="{loc:T common.discover}" FontWeight="Bold" FontSize="{DynamicResource Size.Text.Large}" Margin="16,0,0,0" VerticalAlignment="Center" />
                 </StackPanel>
             </Button>
             <Button Style="{DynamicResource NavItem}" Command="{Binding OpenAppearanceCommand}" Padding="12,5">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="&#xE790;" FontFamily="{StaticResource Icons}" FontSize="20" VerticalAlignment="Center" />
-                    <TextBlock Text="Apparence" FontWeight="Bold" FontSize="{DynamicResource Size.Text.Large}" Margin="16,0,0,0" VerticalAlignment="Center" />
+                    <TextBlock Text="{loc:T common.appearance}" FontWeight="Bold" FontSize="{DynamicResource Size.Text.Large}" Margin="16,0,0,0" VerticalAlignment="Center" />
                 </StackPanel>
             </Button>
             <Button Style="{DynamicResource NavItem}" Command="{Binding OpenSettingsCommand}" Padding="12,5">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="&#xE713;" FontFamily="{StaticResource Icons}" FontSize="20" VerticalAlignment="Center" />
-                    <TextBlock Text="Paramètres" FontWeight="Bold" FontSize="{DynamicResource Size.Text.Large}" Margin="16,0,0,0" VerticalAlignment="Center" />
+                    <TextBlock Text="{loc:T common.settings}" FontWeight="Bold" FontSize="{DynamicResource Size.Text.Large}" Margin="16,0,0,0" VerticalAlignment="Center" />
                 </StackPanel>
             </Button>
         </ItemsControl>

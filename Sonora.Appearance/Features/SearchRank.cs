@@ -1,3 +1,4 @@
+using Sonora.Appearance.Localization;
 namespace Sonora.Appearance.Features;
 
 /// <summary>What kind of thing a search result is, in the order used to break ties.</summary>
@@ -61,10 +62,10 @@ public static class SearchRank
     /// <summary>The label shown under the top result's name.</summary>
     public static string KindLabel(ResultKind kind) => kind switch
     {
-        ResultKind.Artist => "Artiste",
-        ResultKind.Album => "Album",
-        ResultKind.Track => "Titre",
-        ResultKind.Playlist => "Playlist",
-        _ => "Podcast",
+        ResultKind.Artist => Loc.T("kind.artist"),
+        ResultKind.Album => Loc.T("kind.album"),
+        ResultKind.Track => Loc.T("kind.track"),
+        ResultKind.Playlist => Loc.T("kind.playlist"),
+        _ => Loc.T("kind.podcast"),
     };
 }

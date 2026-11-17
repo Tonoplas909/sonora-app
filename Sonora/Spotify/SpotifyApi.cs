@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Sonora.Models;
+using Sonora.Appearance.Localization;
 
 namespace Sonora.Spotify;
 
@@ -36,7 +37,7 @@ public sealed class SpotifyApi(HttpClient http, SpotifyAuth auth)
         _blockedUntil.TryGetValue(Key(path), out var until) && until > DateTime.UtcNow ? until : null;
 
     static SpotifyException Limited(DateTime untilUtc) =>
-        new(429, $"Spotify limite cette application (trop de requêtes) jusqu'à {untilUtc.ToLocalTime():HH:mm}.");
+        new(429, Loc.T("spotify.rate_limited_until", untilUtc.ToLocalTime().ToString("HH:mm")));
 
     /// <summary>How long to wait before trying again after a 429, or a thrown block when Spotify asked for a long one.</summary>
     TimeSpan WaitAfterTooManyRequests(string path, HttpResponseMessage res)
@@ -83,7 +84,7 @@ public sealed class SpotifyApi(HttpClient http, SpotifyAuth auth)
                 return null; // some endpoints answer with a plain snapshot id
             }
         }
-        throw new SpotifyException(429, "Spotify limite temporairement les requêtes, réessayez dans un instant.");
+        throw new SpotifyException(429, Loc.T("spotify.rate_limited_briefly"));
     }
 
     /// <summary>
@@ -113,7 +114,7 @@ public sealed class SpotifyApi(HttpClient http, SpotifyAuth auth)
             if (res.IsSuccessStatusCode) return;
             throw new SpotifyException((int)res.StatusCode, Describe((int)res.StatusCode, await res.Content.ReadAsStringAsync(ct)));
         }
-        throw new SpotifyException(429, "Spotify limite temporairement les requêtes, réessayez dans un instant.");
+        throw new SpotifyException(429, Loc.T("spotify.rate_limited_briefly"));
     }
 
     public async Task<JsonElement> GetAsync(string path, CancellationToken ct = default) =>
@@ -150,12 +151,12 @@ public sealed class SpotifyApi(HttpClient http, SpotifyAuth auth)
         return status switch
         {
             403 when message?.Contains("premium", StringComparison.OrdinalIgnoreCase) == true =>
-                "Cette action nécessite Spotify Premium.",
-            403 => "Spotify refuse l'accès à cette ressource pour les applications tierces" + (message != null ? $" ({message})." : "."),
+                Loc.T("spotify.error_premium_required"),
+            403 => Loc.T("spotify.error_forbidden") + (message != null ? $" ({message})." : "."),
             404 when message?.Contains("device", StringComparison.OrdinalIgnoreCase) == true =>
-                "Aucun appareil Spotify actif. Choisissez un appareil dans le menu Appareils.",
-            404 => "Élément introuvable ou non accessible via l'API Spotify.",
-            _ => $"Erreur Spotify {status}" + (message != null ? $" : {message}" : ""),
+                Loc.T("spotify.error_no_device"),
+            404 => Loc.T("spotify.error_not_found"),
+            _ => message != null ? Loc.T("spotify.error_generic_message", status, message) : Loc.T("spotify.error_generic", status),
         };
     }
 }
@@ -219,7 +220,7 @@ public sealed class SpotifyCatalog
         }
         var artists = a.TryGetProperty("artists", out var ar) && ar.ValueKind == JsonValueKind.Array
             ? string.Join(", ", ar.EnumerateArray().Select(x => Str(x, "name")).OfType<string>())
-            : Str(a, "publisher") ?? (Str(a, "type") == "show" ? "Podcast" : "");
+            : Str(a, "publisher") ?? (Str(a, "type") == "show" ? Loc.T("kind.podcast") : "");
         var date = Str(a, "release_date") ?? "";
         var album = new Album
         {
@@ -271,9 +272,9 @@ public sealed class SpotifyCatalog
             Path = uri,
             Uri = uri,
             Title = name,
-            Artist = "Épisode",
+            Artist = Loc.T("spotify.episode"),
             DurationSec = Num(e, "duration_ms") / 1000.0,
-            AlbumRef = AlbumFor(uri, name, "Épisode", Image(e), 0, Str(e, "release_date") ?? ""),
+            AlbumRef = AlbumFor(uri, name, Loc.T("spotify.episode"), Image(e), 0, Str(e, "release_date") ?? ""),
         };
         _tracks[uri] = track;
         return track;

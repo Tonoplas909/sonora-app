@@ -1,7 +1,12 @@
+using Sonora.Appearance.Localization;
 namespace Sonora.Appearance.Features;
 
 /// <summary>One thing a keyboard shortcut can do, with the keys it uses out of the box.</summary>
-public sealed record ShortcutAction(string Id, string Label, string Default);
+public sealed record ShortcutAction(string Id, string Default)
+{
+    /// <summary>What the action is called, in the language in use.</summary>
+    public string Label => Loc.T("shortcut." + Id);
+}
 
 /// <summary>
 /// The keyboard map. Gestures are plain strings ("Ctrl+Q") so this stays free of any UI framework: the
@@ -12,19 +17,19 @@ public sealed class Shortcuts
     /// <summary>Every action that can be rebound, in the order the settings page lists them.</summary>
     public static readonly ShortcutAction[] Actions =
     [
-        new("playPause", "Lecture / pause", "Space"),
-        new("next", "Titre suivant", "Ctrl+Right"),
-        new("previous", "Titre précédent", "Ctrl+Left"),
-        new("volumeUp", "Monter le volume", "Ctrl+Up"),
-        new("volumeDown", "Baisser le volume", "Ctrl+Down"),
-        new("shuffle", "Lecture aléatoire", "Ctrl+S"),
-        new("repeat", "Répétition", "Ctrl+R"),
-        new("queue", "File d'attente", "Ctrl+Q"),
-        new("lyrics", "Paroles", "Ctrl+P"),
-        new("search", "Rechercher", "Ctrl+L"),
-        new("filter", "Filtrer la liste", "Ctrl+F"),
-        new("miniPlayer", "Mini-lecteur", "Ctrl+M"),
-        new("fullScreen", "Plein écran", "F11"),
+        new("playPause", "Space"),
+        new("next", "Ctrl+Right"),
+        new("previous", "Ctrl+Left"),
+        new("volumeUp", "Ctrl+Up"),
+        new("volumeDown", "Ctrl+Down"),
+        new("shuffle", "Ctrl+S"),
+        new("repeat", "Ctrl+R"),
+        new("queue", "Ctrl+Q"),
+        new("lyrics", "Ctrl+P"),
+        new("search", "Ctrl+L"),
+        new("filter", "Ctrl+F"),
+        new("miniPlayer", "Ctrl+M"),
+        new("fullScreen", "F11"),
     ];
 
     /// <summary>Gestures the user changed; anything absent keeps its default.</summary>

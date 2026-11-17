@@ -6,6 +6,7 @@ using Sonora.Appearance.Features;
 using Sonora.Core;
 using Velopack;
 using Velopack.Sources;
+using Sonora.Appearance.Localization;
 
 namespace Sonora.ViewModels;
 
@@ -48,10 +49,28 @@ public sealed class UpdatesViewModel : ObservableObject
 
     public string VersionLine => $"Sonora {CurrentVersion}";
 
-    string _status = "";
+    // The status is kept as a key and its arguments, so it is written again when the language changes.
+    string? _statusKey;
+    object[] _statusArgs = [];
+
     /// <summary>What happened last, in a sentence (empty until something has).</summary>
-    public string Status { get => _status; private set { if (Set(ref _status, value)) OnPropertyChanged(nameof(HasStatus)); } }
-    public bool HasStatus => _status.Length > 0;
+    public string Status => _statusKey != null ? Loc.T(_statusKey, _statusArgs) : "";
+    public bool HasStatus => _statusKey != null;
+
+    void SetStatus(string key, params object[] args)
+    {
+        _statusKey = key;
+        _statusArgs = args;
+        OnPropertyChanged(nameof(Status));
+        OnPropertyChanged(nameof(HasStatus));
+    }
+
+    /// <summary>Called when the language changes: what is shown is written again.</summary>
+    public void RefreshLanguage()
+    {
+        OnPropertyChanged(nameof(Status));
+        OnPropertyChanged(nameof(InstallLabel));
+    }
 
     bool _isBusy;
     public bool IsBusy { get => _isBusy; private set { if (Set(ref _isBusy, value)) CommandManager.InvalidateRequerySuggested(); } }
@@ -62,7 +81,7 @@ public sealed class UpdatesViewModel : ObservableObject
     string _updateVersion = "";
     public string UpdateVersion { get => _updateVersion; private set { if (Set(ref _updateVersion, value)) OnPropertyChanged(nameof(InstallLabel)); } }
 
-    public string InstallLabel => $"Installer la version {UpdateVersion}";
+    public string InstallLabel => Loc.T("update.install_version", UpdateVersion);
 
     bool _isDownloading;
     public bool IsDownloading { get => _isDownloading; private set => Set(ref _isDownloading, value); }
@@ -90,12 +109,11 @@ public sealed class UpdatesViewModel : ObservableObject
         {
             if (!IsInstalled)
             {
-                Status = "Cette copie n'a pas été installée avec l'installeur de Sonora, elle ne peut pas se mettre à jour toute seule. "
-                         + "Téléchargez la dernière version sur la page des versions.";
+                SetStatus("update.not_installed");
                 return;
             }
 
-            if (manual) Status = "Recherche d'une mise à jour…";
+            if (manual) SetStatus("update.checking");
             var info = await _manager.CheckForUpdatesAsync();
             _main.State.Features.LastUpdateCheckUtc = DateTime.UtcNow;
             _main.ScheduleSave();
@@ -104,22 +122,22 @@ public sealed class UpdatesViewModel : ObservableObject
             {
                 _pending = null;
                 HasUpdate = false;
-                Status = $"Sonora est à jour ({CurrentVersion}).";
+                SetStatus("update.up_to_date", CurrentVersion);
                 return;
             }
 
             _pending = info;
             UpdateVersion = info.TargetFullRelease.Version.ToString();
             HasUpdate = true;
-            Status = $"La version {UpdateVersion} est disponible.";
+            SetStatus("update.available", UpdateVersion);
             // On opening, a card says so once; the install itself is always a deliberate click in the settings.
             if (!manual)
-                _main.ReportError($"Sonora {UpdateVersion} est disponible. Vous pouvez l'installer depuis Paramètres › Mises à jour.");
+                _main.ReportError(Loc.T("update.available_notice", UpdateVersion));
         }
         catch (Exception ex)
         {
             // Offline, GitHub unreachable, a release without packages: nothing to nag about on opening.
-            if (manual) Status = "Impossible de vérifier les mises à jour : " + ex.Message;
+            if (manual) SetStatus("update.check_failed", ex.Message);
         }
         finally
         {
@@ -137,17 +155,17 @@ public sealed class UpdatesViewModel : ObservableObject
         {
             IsDownloading = true;
             Progress = 0;
-            Status = $"Téléchargement de la version {UpdateVersion}…";
+            SetStatus("update.downloading", UpdateVersion);
             await _manager.DownloadUpdatesAsync(_pending, p => Application.Current.Dispatcher.Invoke(() => Progress = p));
 
-            Status = "Installation… Sonora va redémarrer (la lecture s'interrompt le temps du redémarrage).";
+            SetStatus("update.installing");
             // The updater replaces the files once this process has ended, then starts the new version.
             _manager.WaitExitThenApplyUpdates(_pending.TargetFullRelease, silent: false, restart: true);
             Application.Current.Shutdown();
         }
         catch (Exception ex)
         {
-            Status = "La mise à jour a échoué : " + ex.Message;
+            SetStatus("update.failed", ex.Message);
             IsDownloading = false;
         }
         finally

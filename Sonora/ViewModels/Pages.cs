@@ -6,6 +6,7 @@ using Sonora.Appearance.Features;
 using Sonora.Core;
 using Sonora.Models;
 using Sonora.Views;
+using Sonora.Appearance.Localization;
 
 namespace Sonora.ViewModels;
 
@@ -31,7 +32,7 @@ public sealed class HomePage : PageViewModel
         TopArtists = f.Tops ? sp.TopArtists.Take(10).ToList() : [];
         Shows = f.Podcasts ? sp.Shows.Take(10).ToList() : [];
         var h = DateTime.Now.Hour;
-        Greeting = h is >= 5 and < 12 ? "Bonjour" : h is >= 12 and < 18 ? "Bon après-midi" : "Bonsoir";
+        Greeting = Loc.T(h is >= 5 and < 12 ? "greeting.morning" : h is >= 12 and < 18 ? "greeting.afternoon" : "greeting.evening");
 
         // Shelves in the user's order; hidden or empty ones are left out.
         Sections = [];
@@ -39,16 +40,16 @@ public sealed class HomePage : PageViewModel
         {
             HomeSectionView? v = s.Id switch
             {
-                HomeSectionIds.Recent => new(s.Id, "Écoutés récemment", Recent, "albums", null),
-                HomeSectionIds.Playlists => new(s.Id, "Vos playlists", Playlists, "playlists", main.OpenPlaylistsCommand),
-                HomeSectionIds.SavedAlbums => new(s.Id, "Vos albums", SavedAlbums, "albums", main.OpenAlbumsCommand),
-                HomeSectionIds.Rediscover => new(s.Id, "À redécouvrir dans vos fichiers", Rediscover, "albums", main.OpenAlbumsCommand),
-                HomeSectionIds.Artists => new(s.Id, "Vos artistes", Artists, "artists", main.OpenArtistsCommand),
-                HomeSectionIds.NewReleases => new(s.Id, "Nouveautés de vos artistes", NewReleases, "albums",
+                HomeSectionIds.Recent => new(s.Id, Loc.T("home.recently_played"), Recent, "albums", null),
+                HomeSectionIds.Playlists => new(s.Id, Loc.T("home.your_playlists"), Playlists, "playlists", main.OpenPlaylistsCommand),
+                HomeSectionIds.SavedAlbums => new(s.Id, Loc.T("home.your_albums"), SavedAlbums, "albums", main.OpenAlbumsCommand),
+                HomeSectionIds.Rediscover => new(s.Id, Loc.T("home.rediscover"), Rediscover, "albums", main.OpenAlbumsCommand),
+                HomeSectionIds.Artists => new(s.Id, Loc.T("pages.your_artists"), Artists, "artists", main.OpenArtistsCommand),
+                HomeSectionIds.NewReleases => new(s.Id, Loc.T("pages.new_releases_from_your_artists"), NewReleases, "albums",
                     new RelayCommand(main.OpenNewReleases)),
-                HomeSectionIds.TopArtists => new(s.Id, "Vos artistes les plus écoutés", TopArtists, "artists",
+                HomeSectionIds.TopArtists => new(s.Id, Loc.T("pages.your_most_played_artists"), TopArtists, "artists",
                     new RelayCommand(main.OpenTops)),
-                HomeSectionIds.Shows => new(s.Id, "Vos podcasts", Shows, "albums", new RelayCommand(main.OpenShows)),
+                HomeSectionIds.Shows => new(s.Id, Loc.T("home.your_podcasts"), Shows, "albums", new RelayCommand(main.OpenShows)),
                 _ => null,
             };
             if (v != null && v.Items.Cast<object>().Any()) Sections.Add(v);
@@ -75,7 +76,10 @@ public sealed class HomePage : PageViewModel
 }
 
 /// <summary>One entry of a track list's sort selector.</summary>
-public sealed record SortOption(string Key, string Label);
+public sealed record SortOption(string Key)
+{
+    public string Label => Loc.T("sort." + Key);
+}
 
 /// <summary>Album, playlist, liked songs, genre or "all tracks" view (local or Spotify).</summary>
 public sealed class TracksPage : PageViewModel
@@ -83,14 +87,14 @@ public sealed class TracksPage : PageViewModel
     /// <summary>Sort choices offered by every track list, in <see cref="ListQuery.SortKeys"/> order.</summary>
     public static readonly List<SortOption> Sorts =
     [
-        new("default", "Ordre d'origine"),
-        new("title", "Titre"),
-        new("artist", "Artiste"),
-        new("album", "Album"),
-        new("duration", "Durée"),
+        new("default"),
+        new("title"),
+        new("artist"),
+        new("album"),
+        new("duration"),
     ];
 
-    static readonly SortOption AddedSort = new("added", "Date d'ajout");
+    static readonly SortOption AddedSort = new("added");
 
     readonly Func<Task<PlaylistContent>> _load;
     readonly string _subtitlePrefix;
@@ -125,7 +129,20 @@ public sealed class TracksPage : PageViewModel
         _ = Reload();
     }
 
+    /// <summary>What sort of page this is. An identifier, also compared in code: the words shown are in <see cref="KindLabel"/>.</summary>
     public string Kind { get; }
+
+    public string KindLabel => Kind switch
+    {
+        "Playlist" => Loc.T("kind.playlist"),
+        "Album" => Loc.T("kind.album"),
+        "Bibliothèque" => Loc.T("kind.library"),
+        "Genre" => Loc.T("kind.genre"),
+        "Podcast" => Loc.T("kind.podcast"),
+        "Découvrir" => Loc.T("common.discover"),
+        _ => Kind,
+    };
+
     public string Glyph { get; }
     public object? ArtSource { get; }
     public bool IsSpecial { get; init; }
@@ -153,10 +170,10 @@ public sealed class TracksPage : PageViewModel
 
     public bool IsEmpty => !_isLoading && _rows.Count == 0;
     public string EmptyText => _error ?? (IsFiltered
-        ? "Aucun titre ne correspond à ce filtre."
+        ? Loc.T("tracks.empty_filtered")
         : IsPlaylist || IsSpecial
-            ? "Rien ici pour l'instant. Faites un clic droit sur un titre pour l'ajouter."
-            : "Aucun titre.");
+            ? Loc.T("tracks.empty_playlist")
+            : Loc.T("tracks.empty"));
 
     public List<Track> Tracks => _rows.Select(r => r.Track).ToList();
 
@@ -263,7 +280,7 @@ public sealed class TracksPage : PageViewModel
             if (version != _loadVersion) return;
             var tracks = _all = content.Tracks;
             _added = content.Added;
-            Subtitle = $"{_subtitlePrefix}{Fmt.Count(tracks.Count, "titre", "titres")}, {Fmt.Total(tracks)}";
+            Subtitle = $"{_subtitlePrefix}{Loc.Count("count.tracks", tracks.Count)}, {Fmt.Total(tracks)}";
             Error = null;
             Apply();
         }
@@ -330,8 +347,8 @@ public sealed class ArtistPage : PageViewModel
     public Artist Artist { get; }
     public override string Title => Artist.Name;
     public string Subtitle => Artist.Uri != null
-        ? "Artiste Spotify"
-        : $"{Fmt.Count(_all.Count, "titre", "titres")} • {Fmt.Count(Albums.Count, "album", "albums")}";
+        ? Loc.T("artist.spotify_artist")
+        : $"{Loc.Count("count.tracks", _all.Count)} • {Loc.Count("count.albums", Albums.Count)}";
 
     public List<Album> Albums { get; private set; } = [];
 
@@ -349,7 +366,7 @@ public sealed class ArtistPage : PageViewModel
     }
 
     public bool HasMore => _all.Count > TopCount;
-    public string ShowMoreText => ShowingAll ? "Afficher moins" : "Afficher plus";
+    public string ShowMoreText => Loc.T(ShowingAll ? "common.show_less" : "common.show_more");
 
     public ICommand PlayCommand { get; }
     public ICommand ShuffleCommand { get; }
@@ -563,32 +580,32 @@ public sealed class DiscoverPage : PageViewModel
         var f = main.State.Features;
         Tiles = [];
         if (f.Tops)
-            Tiles.Add(new DiscoverTile("Vos tops", "Vos titres et artistes les plus écoutés", "",
+            Tiles.Add(new DiscoverTile(Loc.T("pages.your_tops"), Loc.T("discover.tops_desc"), "",
                 new RelayCommand(main.OpenTops)));
         if (f.History)
-            Tiles.Add(new DiscoverTile("Historique", "Les 50 derniers titres joués", "",
+            Tiles.Add(new DiscoverTile(Loc.T("discover.history"), Loc.T("discover.history_desc"), "",
                 new RelayCommand(main.OpenHistory)));
         if (f.NewReleases)
-            Tiles.Add(new DiscoverTile("Nouveautés", "Dernières sorties des artistes que vous suivez", "",
+            Tiles.Add(new DiscoverTile(Loc.T("discover.new_releases"), Loc.T("discover.new_releases_desc"), "",
                 new RelayCommand(main.OpenNewReleases)));
         if (f.Podcasts)
-            Tiles.Add(new DiscoverTile("Podcasts", "Vos émissions enregistrées", "",
+            Tiles.Add(new DiscoverTile(Loc.T("pages.podcasts"), Loc.T("discover.shows_desc"), "",
                 new RelayCommand(main.OpenShows)));
         if (f.Podcasts)
-            Tiles.Add(new DiscoverTile("Épisodes enregistrés", "Les épisodes mis de côté pour plus tard", "",
+            Tiles.Add(new DiscoverTile(Loc.T("discover.saved_episodes"), Loc.T("discover.episodes_desc"), "",
                 new RelayCommand(main.OpenSavedEpisodes)));
         if (f.ListeningLog)
-            Tiles.Add(new DiscoverTile("Vos statistiques", "Ce que Sonora a enregistré de vos écoutes", "",
+            Tiles.Add(new DiscoverTile(Loc.T("pages.your_statistics"), Loc.T("discover.stats_desc"), "",
                 new RelayCommand(main.OpenStats)));
         if (f.Discovery && main.Spotify.TopArtists.Count > 0)
         {
             var seed = main.Spotify.TopArtists[0];
-            Tiles.Add(new DiscoverTile("Dans le même esprit", "Des artistes proches de " + seed.Name, "",
+            Tiles.Add(new DiscoverTile(Loc.T("discover.similar_tile"), Loc.T("discover.similar_tile_desc", seed.Name), "",
                 new RelayCommand(() => main.OpenSimilarArtists(seed))));
         }
     }
 
-    public override string Title => "Découvrir";
+    public override string Title => Loc.T("common.discover");
     public List<DiscoverTile> Tiles { get; }
     public bool IsEmpty => Tiles.Count == 0;
 
@@ -607,7 +624,7 @@ public sealed class TopsPage : PageViewModel
         _ = Reload();
     }
 
-    public override string Title => "Vos tops";
+    public override string Title => Loc.T("pages.your_tops");
 
     string _range;
     /// <summary>A Spotify time range: short_term (4 weeks), medium_term (6 months) or long_term.</summary>
@@ -636,10 +653,10 @@ public sealed class TopsPage : PageViewModel
     public string? Error { get => _error; private set { if (Set(ref _error, value)) { OnPropertyChanged(nameof(EmptyText)); OnPropertyChanged(nameof(IsEmpty)); } } }
 
     public bool IsEmpty => !_isLoading && _tracks.Count == 0 && _artists.Count == 0;
-    public string EmptyText => _error ?? "Spotify n'a pas encore assez d'écoutes sur cette période.";
+    public string EmptyText => _error ?? Loc.T("tops.empty");
 
     public ICommand PlayCommand => _play ??= new RelayCommand(() =>
-        Main.PlayTracks(_tracks.Select(r => r.Track).ToList(), 0, "Vos tops"));
+        Main.PlayTracks(_tracks.Select(r => r.Track).ToList(), 0, Loc.T("pages.your_tops")));
     ICommand? _play;
 
     public async Task Reload()
@@ -687,7 +704,7 @@ public sealed class StatsPage : PageViewModel
         Apply();
     }
 
-    public override string Title => "Vos statistiques";
+    public override string Title => Loc.T("pages.your_statistics");
 
     public List<int> PeriodDays => [.. Listening.Periods];
 
@@ -708,20 +725,20 @@ public sealed class StatsPage : PageViewModel
 
     public bool IsEmpty => TopTracks.Count == 0;
     public string EmptyText => Main.State.Features.ListeningLog
-        ? "Rien encore sur cette période. Sonora enregistre un titre une fois qu'il a été écouté pour de bon."
-        : "L'historique d'écoute local est désactivé dans les paramètres.";
+        ? Loc.T("stats.empty")
+        : Loc.T("stats.log_disabled");
 
     void Apply()
     {
         var entries = Listening.Since(Main.Listening.Entries, _days, DateTime.UtcNow);
         var totals = Listening.Totals(entries);
-        Totals = $"{Fmt.Count(totals.Plays, "écoute", "écoutes")} • {Listening.Duration(totals.Seconds)} • " +
-                 $"{Fmt.Count(totals.Tracks, "titre", "titres")} • {Fmt.Count(totals.Artists, "artiste", "artistes")}";
+        Totals = $"{Loc.Count("count.plays", totals.Plays)} • {Listening.Duration(totals.Seconds)} • " +
+                 $"{Loc.Count("count.tracks", totals.Tracks)} • {Loc.Count("count.artists", totals.Artists)}";
         TopTracks = Listening.TopTracks(entries, 25)
-            .Select(c => new StatRow(c.Title, c.Artist, Fmt.Count(c.Plays, "écoute", "écoutes"), Listening.Duration(c.Seconds)))
+            .Select(c => new StatRow(c.Title, c.Artist, Loc.Count("count.plays", c.Plays), Listening.Duration(c.Seconds)))
             .ToList();
         TopArtists = Listening.TopArtists(entries, 25)
-            .Select(c => new StatRow(c.Artist, "", Fmt.Count(c.Plays, "écoute", "écoutes"), Listening.Duration(c.Seconds)))
+            .Select(c => new StatRow(c.Artist, "", Loc.Count("count.plays", c.Plays), Listening.Duration(c.Seconds)))
             .ToList();
 
         var byHour = Listening.ByHour(entries);
@@ -844,29 +861,29 @@ public sealed class AlbumGridPage : PageViewModel
 
 public sealed class AlbumsPage(MainViewModel main) : PageViewModel(main)
 {
-    public override string Title => "Albums";
+    public override string Title => Loc.T("common.albums");
     public List<Album> Items { get; } = main.Spotify.SavedAlbums.Concat(main.Library.Albums).ToList();
 }
 
 public sealed class ArtistsPage(MainViewModel main) : PageViewModel(main)
 {
-    public override string Title => "Artistes";
+    public override string Title => Loc.T("common.artists");
     public List<Artist> Items { get; } = main.Spotify.Artists.Concat(main.Library.Artists).ToList();
 }
 
 public sealed class PlaylistsPage(MainViewModel main) : PageViewModel(main)
 {
-    public override string Title => "Playlists";
+    public override string Title => Loc.T("common.playlists");
     public List<SpotifyPlaylist> Items { get; } = main.Spotify.Playlists;
 }
 
 public sealed class AppearancePage(MainViewModel main) : PageViewModel(main)
 {
-    public override string Title => "Apparence";
+    public override string Title => Loc.T("common.appearance");
     public AppearanceViewModel Settings => Main.Appearance;
 }
 
 public sealed class SettingsPage(MainViewModel main) : PageViewModel(main)
 {
-    public override string Title => "Paramètres";
+    public override string Title => Loc.T("common.settings");
 }

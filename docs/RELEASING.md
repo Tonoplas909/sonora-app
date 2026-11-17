@@ -21,7 +21,7 @@ The release notes are the commit subjects since the previous tag, so write them 
 
 ## How updates work
 
-An installed Sonora asks GitHub for the latest release when it opens (at most once an hour, and it can be switched off in *Paramètres › Mises à jour*) and has a button for a manual check. When there is a newer version it says so; installing is always the user's click. Velopack then downloads the package (a small delta when possible), Sonora closes, the files are replaced and the new version starts.
+An installed Sonora asks GitHub for the latest release when it opens (at most once an hour, and it can be switched off in *Settings › Updates*) and has a button for a manual check. When there is a newer version it says so; installing is always the user's click. Velopack then downloads the package (a small delta when possible), Sonora closes, the files are replaced and the new version starts.
 
 A copy that was not installed by the installer (a build from source, `dotnet run`) never updates itself and sends no request on opening: its settings page links to the releases page instead.
 

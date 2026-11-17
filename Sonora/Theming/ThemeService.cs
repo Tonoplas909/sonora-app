@@ -4,6 +4,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using Sonora.Appearance.Theming;
+using Sonora.Appearance.Localization;
 
 namespace Sonora.Theming;
 
@@ -405,7 +406,7 @@ public sealed class ThemeService(ResourceDictionary resources, Dispatcher ui)
             return new FontFamily(new Uri("pack://application:,,,/"), $"./Fonts/#{name}, {Fallbacks}");
         if (!InstalledFonts.Value.Contains(name))
         {
-            warnings.Add($"Police « {name} » introuvable, remplacée par Segoe UI.");
+            warnings.Add(Loc.T("theme.font_missing", name));
             return new FontFamily("Segoe UI Variable Text, " + Fallbacks);
         }
         return new FontFamily($"{name}, {Fallbacks}");

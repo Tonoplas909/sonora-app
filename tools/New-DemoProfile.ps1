@@ -101,7 +101,7 @@ foreach ($a in $albums) {
 }
 
 $tracks | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $data 'library.json') -Encoding UTF8
-@{ Folders = @($music); ThemeId = 'liquide'; Volume = 70 } | ConvertTo-Json | Set-Content (Join-Path $data 'state.json') -Encoding UTF8
+@{ Folders = @($music); ThemeId = 'liquide'; Volume = 70; Language = 'en' } | ConvertTo-Json | Set-Content (Join-Path $data 'state.json') -Encoding UTF8
 
 Write-Host "Demo profile ready in $Out"
 Write-Host "  data folder : $data   (set SONORA_DATA_DIR to it)"

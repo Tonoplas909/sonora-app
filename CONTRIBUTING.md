@@ -8,7 +8,7 @@ By taking part you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md). To
 
 - **Report a bug.** Open an [issue](https://github.com/Tonoplas909/sonora-app/issues/new/choose) with what you did, what you expected and what happened. The app version and your Windows version help a lot. Never paste a Spotify Client ID, token or the contents of `state.json`.
 - **Suggest a feature.** Say what you are trying to do rather than only the solution you have in mind. Sonora leans towards *customizable* over *opinionated*, so "make it a setting" is often the right shape.
-- **Translate.** The interface is French today and its text lives inline in the XAML and C#. A pull request that moves it into resource files and adds a language would be a big contribution: open an issue first so we agree on the approach.
+- **Translate.** Every language is a plain JSON file, and all but French are still waiting for a native speaker's review: see [docs/TRANSLATING.md](docs/TRANSLATING.md). Fixing a sentence is a one-line pull request; adding a language is a copy of `en.json` plus one line of code.
 - **Improve the docs, themes or screenshots.**
 
 ## Set up
@@ -50,6 +50,8 @@ You need your own Spotify developer application and a Premium account, as descri
 | `Sonora.Appearance` | **No UI, no Windows APIs.** Themes, dock layout, settings, shortcuts, LRC, M3U, sleep timer, search ranking. Anything that can be plain logic belongs here **with tests**. |
 | `Sonora` | The WPF app. Views stay thin; logic goes in view models and services, or down into `Sonora.Appearance` when it can. |
 | `Sonora.Tests` | xUnit. A bug fix should come with a test that fails without it, when the code is testable. |
+
+Texts are not written in the XAML or the C#: they are keys (`{loc:T nav.home}`, `Loc.T("nav.home")`) looked up in `Sonora.Appearance/Localization/Languages/*.json`. Add a key to every file when you add text; the tests tell you what is missing.
 
 Releases are made by pushing a tag; [docs/RELEASING.md](docs/RELEASING.md) explains how, and how the in-app updates work.
 

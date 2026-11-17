@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows.Input;
+using Sonora.Appearance.Localization;
 
 namespace Sonora.Core;
 
@@ -49,7 +50,7 @@ public static class Fmt
     public static string Total(IEnumerable<Models.Track> tracks)
     {
         var t = TimeSpan.FromSeconds(tracks.Sum(x => x.DurationSec));
-        return t.TotalHours >= 1 ? $"{(int)t.TotalHours} h {t.Minutes} min" : $"{t.Minutes} min {t.Seconds} s";
+        return t.TotalHours >= 1 ? Loc.T("duration.hours_minutes", (int)t.TotalHours, t.Minutes) : Loc.T("duration.minutes_seconds", t.Minutes, t.Seconds);
     }
 
     public static string Count(int n, string one, string many) => $"{n} {(n > 1 ? many : one)}";

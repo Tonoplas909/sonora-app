@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Sonora.Core;
+using Sonora.Appearance.Localization;
 
 namespace Sonora.Models;
 
@@ -99,7 +100,7 @@ public sealed class Playlist : ObservableObject
     string? _artPath;
     [JsonIgnore] public string? ArtPath { get => _artPath; set => Set(ref _artPath, value); }
 
-    [JsonIgnore] public string Subtitle => $"Playlist • {Fmt.Count(Paths.Count, "titre", "titres")}";
+    [JsonIgnore] public string Subtitle => Loc.T("library.subtitle_playlist", Loc.Count("count.tracks", Paths.Count));
 
     public void Touch() => OnPropertyChanged(nameof(Subtitle));
 }
@@ -127,7 +128,7 @@ public sealed class SpotifyPlaylist : ObservableObject
     string? _artPath;
     public string? ArtPath { get => _artPath; set => Set(ref _artPath, value); }
 
-    public string Subtitle => string.IsNullOrEmpty(Owner) ? "Playlist" : $"Playlist • {Owner}";
+    public string Subtitle => string.IsNullOrEmpty(Owner) ? Loc.T("kind.playlist") : Loc.T("library.subtitle_playlist", Owner);
 }
 
 public sealed record SpotifyDevice(string Id, string Name, string Type, bool IsActive);
@@ -172,6 +173,9 @@ public sealed class AppState
     /// <summary>Order last chosen on a playlist screen (a key of <c>ListQuery.SortKeys</c>), applied to every playlist opened next.</summary>
     public string PlaylistSort { get; set; } = "default";
     public bool PlaylistSortDescending { get; set; }
+    /// <summary>The interface language: a code such as "fr", or "auto" for the language of Windows.</summary>
+    public string Language { get; set; } = Sonora.Appearance.Localization.LanguageCatalog.Auto;
+
     public string ThemeId { get; set; } = "liquide";
     /// <summary>Verre liquide only: the blurred cover of the current track as the window's background.</summary>
     public bool CoverBackground { get; set; }

@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using Sonora.Appearance.Localization;
 
 namespace Sonora.Appearance.Features;
 
@@ -67,7 +68,7 @@ public static class M3u
     public static string NameFromFile(string fileName)
     {
         var name = System.IO.Path.GetFileNameWithoutExtension(fileName ?? "");
-        return name.Length > 0 ? name : "Playlist importée";
+        return name.Length > 0 ? name : Loc.T("m3u.imported_playlist");
     }
 
     /// <summary>Line breaks in a title would split the entry in two.</summary>

@@ -113,6 +113,6 @@ public class ListeningTests
     public void PeriodLabel_CoversEveryOfferedPeriod()
     {
         Assert.All(Listening.Periods, d => Assert.False(string.IsNullOrWhiteSpace(Listening.PeriodLabel(d))));
-        Assert.Equal("Depuis toujours", Listening.PeriodLabel(0));
+        Assert.Equal("All time", Listening.PeriodLabel(0));
     }
 }

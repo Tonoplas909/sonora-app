@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Sonora.Appearance.Localization;
 using Sonora.Appearance.Theming;
 using Sonora.Services;
 using Sonora.Theming;
@@ -28,6 +29,7 @@ public partial class App : Application
             new MouseWheelEventHandler(OnScrollViewerMouseWheel));
 
         var state = StateStore.LoadState();
+        Loc.SetLanguage(LanguageResolver.Resolve(state.Language, WindowsLanguages())); // before any window, so it opens in the right language
         var content = state.Content ?? Sonora.Appearance.Content.ContentSettings.Default();
         content.Repair();
         Themes.SetCardSize(content.CardPixels);
@@ -37,6 +39,13 @@ public partial class App : Application
         Themes.Apply(Catalog.Get(state.ThemeId));
 
         base.OnStartup(e);
+    }
+
+    /// <summary>The languages the user asked Windows for, most wanted first.</summary>
+    public static IReadOnlyList<string> WindowsLanguages()
+    {
+        try { return global::Windows.System.UserProfile.GlobalizationPreferences.Languages.ToList(); }
+        catch { return [System.Globalization.CultureInfo.CurrentUICulture.Name]; }
     }
 
     /// <summary>
