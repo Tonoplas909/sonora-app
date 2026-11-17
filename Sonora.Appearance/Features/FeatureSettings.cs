@@ -47,6 +47,8 @@ public sealed class FeatureSettings
     public bool KeepRecentSearches { get; set; } = true;
     public List<string> RecentSearches { get; set; } = [];
     public string LibrarySort { get; set; } = "recent";
+    /// <summary>The library panel's source tab (a <see cref="LibrarySources"/> id).</summary>
+    public string LibrarySource { get; set; } = LibrarySources.All;
     public List<string> Pinned { get; set; } = [];
 
     public void Repair()
@@ -56,6 +58,7 @@ public sealed class FeatureSettings
         ToastSeconds = Math.Clamp(ToastSeconds, 2, 10);
         if (!Alignments.Contains(LyricsAlign)) LyricsAlign = "left";
         if (!LibrarySorts.Contains(LibrarySort)) LibrarySort = "recent";
+        if (string.IsNullOrEmpty(LibrarySource)) LibrarySource = LibrarySources.All;
         if (!TopRanges.Contains(TopRange)) TopRange = "short_term";
         RecentSearches = (RecentSearches ?? []).Where(s => !string.IsNullOrWhiteSpace(s)).Take(MaxRecentSearches).ToList();
         Pinned = (Pinned ?? []).Where(s => !string.IsNullOrWhiteSpace(s)).Distinct().ToList();
