@@ -44,7 +44,8 @@ It is a native [WPF](https://learn.microsoft.com/dotnet/desktop/wpf/) applicatio
 - **Synchronized lyrics** from [LRCLIB](https://lrclib.net): the current line is highlighted and scrolls, a click jumps to it.
 - **Full-screen "now playing"** (`F11`) with a giant cover, movable to another monitor; a **mini-player** that can stay on top; a bubble when the track changes; a **sleep timer**.
 - Media keys and the Windows media overlay, a queue panel, and Sonora picks up where you stopped.
-- Drag tracks onto playlists, import and export **M3U**, filter and sort any list, smart search with recent searches.
+- Drag tracks onto playlists (a card follows the pointer and says where they will land), export and import playlists as a **Sonora playlist file** (Spotify tracks included) or **M3U**, filter and sort any list, smart search with recent searches.
+- Library tabs by source (All / Local / Spotify). Local files that were added to a Spotify playlist are listed, found in your library and played in sequence with the Spotify tracks; one that is not on this computer can be located by hand.
 
 **Discovery and privacy**
 - Your tops, history, new releases and listening statistics.

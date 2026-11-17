@@ -3,6 +3,33 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:p="clr-namespace:Sonora.Views.Panels"
              xmlns:v="clr-namespace:Sonora.Views">
+    <p:PanelView.Resources>
+        <!-- A text tab with an accent underline when selected: different from the round chips below it, which filter by kind. -->
+        <Style x:Key="SourceTab" TargetType="RadioButton">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}" />
+            <Setter Property="FontSize" Value="{DynamicResource Size.Text.Body}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Line" BorderThickness="0,0,0,2" BorderBrush="Transparent" Padding="2,4" Margin="0,0,14,0" Background="Transparent">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}" />
+                                <Setter TargetName="Line" Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </p:PanelView.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -14,10 +41,22 @@
             <Button Style="{DynamicResource IconButton}" Content="&#xE8CB;" Click="Sort_Click" ToolTip="{loc:T library.library_order}" />
             <Button Style="{DynamicResource IconButton}" Content="&#xE8B7;" Command="{Binding AddFolderCommand}" ToolTip="{loc:T library.add_a_music_folder}" />
             <Button Style="{DynamicResource IconButton}" Content="&#xE710;" Command="{Binding NewPlaylistCommand}" ToolTip="{loc:T library.create_a_playlist}" />
-            <Button Style="{DynamicResource IconButton}" Content="&#xE8E5;" Command="{Binding ImportPlaylistCommand}" ToolTip="{loc:T library.import_an_m3u_playlist}" />
+            <Button Style="{DynamicResource IconButton}" Content="&#xE8E5;" Command="{Binding ImportPlaylistCommand}" ToolTip="{loc:T library.import_a_playlist}" />
         </StackPanel>
         <!-- Search and order. Both run on the entries already built, so neither costs a request. -->
         <StackPanel Grid.Row="1" Margin="12,0,12,8">
+            <!-- One tab per source of music that is available (All / Local / Spotify, and later other providers). -->
+            <ItemsControl ItemsSource="{Binding LibrarySourceTabs}" Margin="0,0,0,8"
+                          Visibility="{Binding ShowLibrarySourceTabs, Converter={StaticResource BoolToVis}}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <RadioButton Style="{StaticResource SourceTab}" GroupName="LibSource" Content="{Binding Title}" IsChecked="{Binding IsSelected, Mode=TwoWay}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
             <Grid Margin="0,0,0,8">
                 <TextBox Style="{DynamicResource SearchBox}" Height="32" FontSize="{DynamicResource Size.Text.Small}"
                          Tag="{loc:T library.search_the_library}"

@@ -41,6 +41,13 @@
         <EventSetter Event="PreviewMouseMove" Handler="TrackItem_DragMove" />
         <EventSetter Event="DragOver" Handler="TrackItem_DragOver" />
         <EventSetter Event="Drop" Handler="TrackItem_Drop" />
+        <Style.Triggers>
+            <!-- A local file listed in a Spotify playlist that is not on this machine: shown, but cannot be played until located. -->
+            <DataTrigger Binding="{Binding Track.IsMissing}" Value="True">
+                <Setter Property="Opacity" Value="0.45" />
+                <Setter Property="ToolTip" Value="{loc:T playlist.file_missing}" />
+            </DataTrigger>
+        </Style.Triggers>
     </Style>
 
     <!-- Play button over a cover, shown while the row is hovered: one click starts the track, as in Spotify. -->
@@ -228,15 +235,36 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ListBoxItem">
-                    <Border x:Name="Bd" Background="Transparent" CornerRadius="{DynamicResource Radius.Control}" Padding="8,4">
-                        <ContentPresenter />
-                    </Border>
+                    <Grid x:Name="Root">
+                        <Border x:Name="Bd" Background="Transparent" CornerRadius="{DynamicResource Radius.Control}" Padding="8,4">
+                            <ContentPresenter />
+                        </Border>
+                        <!-- Shown while tracks are dragged over the entry (accepted), and as a pulse once they have landed. -->
+                        <Border x:Name="DropRing" Visibility="Collapsed" IsHitTestVisible="False" CornerRadius="{DynamicResource Radius.Control}" BorderThickness="2"
+                                BorderBrush="{DynamicResource Brush.Accent}" Background="{DynamicResource Brush.AccentSoft}" />
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush.Hover}" />
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush.Selected}" />
+                        </Trigger>
+                        <Trigger Property="v:TrackDragDrop.DropState" Value="Accepts">
+                            <Setter TargetName="DropRing" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="v:TrackDragDrop.DropState" Value="Refuses">
+                            <Setter TargetName="Root" Property="Opacity" Value="0.4" />
+                        </Trigger>
+                        <Trigger Property="v:TrackDragDrop.DropState" Value="Landed">
+                            <Setter TargetName="DropRing" Property="Visibility" Value="Visible" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="DropRing" Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.65" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -248,6 +276,7 @@
         <EventSetter Event="PreviewMouseRightButtonUp" Handler="LibraryItem_RightClick" />
         <Setter Property="AllowDrop" Value="True" />
         <EventSetter Event="DragOver" Handler="LibraryItem_DragOver" />
+        <EventSetter Event="DragLeave" Handler="LibraryItem_DragLeave" />
         <EventSetter Event="Drop" Handler="LibraryItem_Drop" />
     </Style>
 

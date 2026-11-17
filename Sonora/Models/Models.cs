@@ -22,6 +22,14 @@ public sealed class Track : ObservableObject
     [JsonIgnore] public string? Uri { get; set; }
     [JsonIgnore] public string? ArtistUri { get; set; }
     [JsonIgnore] public bool IsSpotify => Uri != null;
+
+    /// <summary>
+    /// spotify:local:… for a local file listed in a Spotify playlist (added in Spotify's own app: the API cannot add one).
+    /// Spotify knows only its name, not where the file is, so Sonora looks for it on this machine.
+    /// </summary>
+    [JsonIgnore] public string? LocalRef { get; set; }
+    /// <summary>A <see cref="LocalRef"/> entry whose file is not (yet) found here: listed, greyed, skipped when playing, until it is located.</summary>
+    [JsonIgnore] public bool IsMissing { get; set; }
     [JsonIgnore] public string? SpotifyId => Uri?[(Uri.LastIndexOf(':') + 1)..];
 
     [JsonIgnore] public Album? AlbumRef { get; set; }
@@ -159,6 +167,8 @@ public sealed class AppState
     public List<string> Liked { get; set; } = [];
     public List<Playlist> Playlists { get; set; } = [];
     public List<string> RecentAlbums { get; set; } = [];
+    /// <summary>Files the user pointed to for local-file entries of Spotify playlists: spotify:local:… → path.</summary>
+    public Dictionary<string, string> LocalLinks { get; set; } = [];
     public double Volume { get; set; } = 70;
     public bool Shuffle { get; set; }
     public RepeatMode Repeat { get; set; }

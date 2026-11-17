@@ -21,6 +21,11 @@ public static class TrackInteractions
             Vm.Player.JumpTo(row);
             return;
         }
+        if (row.Track.IsMissing)
+        {
+            Vm.LocateLocalEntry(row.Track); // nothing to play yet: ask for the file instead
+            return;
+        }
         var rows = (list?.ItemsSource as IEnumerable<TrackRow>)?.ToList() ?? [row];
         var index = rows.FindIndex(r => ReferenceEquals(r, row));
         var page = list?.DataContext as PageViewModel;
@@ -44,6 +49,13 @@ public static class TrackInteractions
         var spotify = t.IsSpotify;
 
         var menu = new ContextMenu();
+        if (t.IsMissing)
+        {
+            // A placeholder for a file that is not here: the only useful thing to do with it is to point to the file.
+            Add(menu, Loc.T("menu.locate_file"), "", () => vm.LocateLocalEntry(t));
+            menu.PlacementTarget = item;
+            return menu;
+        }
         Add(menu, Loc.T("menu.play"), "", () => PlayRow(list, row));
         if (!spotify) Add(menu, Loc.T("menu.play_next"), "", () => { foreach (var x in Enumerable.Reverse(tracks)) vm.Player.PlayNext(x); });
         Add(menu, Loc.T("menu.add_to_queue"), "", () => { foreach (var x in tracks) vm.Player.Enqueue(x); });
@@ -176,8 +188,8 @@ public static class TrackInteractions
         if (subject is Playlist p) AddPlaylistActions(menu, p, owner);
         if (subject is SpotifyPlaylist own && own.OwnerId == vm.Spotify.UserId) AddOwnedPlaylistActions(menu, own, owner);
 
-        if (tracks is { Count: > 0 } && tracks.Any(t => !t.IsSpotify))
-            Add(menu, Loc.T("menu.export_m3u"), "", () => vm.ExportPlaylist(tracks, title));
+        if (tracks is { Count: > 0 })
+            Add(menu, Loc.T("menu.export_playlist"), "", () => vm.ExportPlaylist(tracks, title));
 
         if (menu.Items.Count == 0) menu.Items.Add(new MenuItem { Header = Loc.T("menu.no_action"), IsEnabled = false });
         return menu;

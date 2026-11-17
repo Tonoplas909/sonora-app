@@ -42,6 +42,7 @@ public partial class Templates : ResourceDictionary
     void TrackItem_DragOver(object sender, DragEventArgs e) => TrackDragDrop.RowDragOver(sender, e);
     void TrackItem_Drop(object sender, DragEventArgs e) => TrackDragDrop.RowDrop(sender, e);
     void LibraryItem_DragOver(object sender, DragEventArgs e) => TrackDragDrop.LibraryDragOver(sender, e);
+    void LibraryItem_DragLeave(object sender, DragEventArgs e) => TrackDragDrop.LibraryDragLeave(sender, e);
     void LibraryItem_Drop(object sender, DragEventArgs e) => TrackDragDrop.LibraryDrop(sender, e);
 
     void LibraryItem_DragArm(object sender, MouseButtonEventArgs e) => TrackDragDrop.ArmPinDrag(sender, e);

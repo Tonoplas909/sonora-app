@@ -44,7 +44,8 @@ C'est une application [WPF](https://learn.microsoft.com/dotnet/desktop/wpf/) nat
 - **Paroles synchronisées** via [LRCLIB](https://lrclib.net) : la ligne en cours est mise en évidence et défile, un clic y saute.
 - **Plein écran « en cours de lecture »** (`F11`) avec une pochette géante, déplaçable sur un autre écran ; un **mini-lecteur** qui peut rester au premier plan ; une bulle à chaque changement de titre ; un **minuteur de veille**.
 - Touches multimédia et surcouche média de Windows, un panneau de file d'attente, et Sonora reprend où vous vous étiez arrêté.
-- Glissez des titres sur une playlist, importez et exportez en **M3U**, filtrez et triez toute liste, recherche intelligente avec recherches récentes.
+- Glissez des titres sur une playlist (une carte suit le curseur et dit où ils vont atterrir), exportez et importez les playlists en **fichier Sonora** (titres Spotify compris) ou en **M3U**, filtrez et triez toute liste, recherche intelligente avec recherches récentes.
+- Onglets de la bibliothèque par source (Tout / Local / Spotify). Les fichiers locaux ajoutés à une playlist Spotify sont listés, retrouvés dans votre bibliothèque et lus à la suite des titres Spotify ; un fichier absent de cet ordinateur peut être localisé à la main.
 
 **Découverte et vie privée**
 - Vos tops, votre historique, les nouveautés et vos statistiques d'écoute.

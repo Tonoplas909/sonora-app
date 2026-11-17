@@ -369,9 +369,47 @@ public sealed class SpotifyCatalog
     /// <summary>Playlist entries are {"track": {...}} (or {"item": {...}} in newer payloads).</summary>
     public Track? MapPlaylistItem(JsonElement item)
     {
-        if (item.TryGetProperty("track", out var t) && t.ValueKind == JsonValueKind.Object) return MapTrack(t);
-        if (item.TryGetProperty("item", out var i) && i.ValueKind == JsonValueKind.Object) return MapTrack(i);
+        if (item.TryGetProperty("track", out var t) && t.ValueKind == JsonValueKind.Object) return MapPlaylistTrack(t);
+        if (item.TryGetProperty("item", out var i) && i.ValueKind == JsonValueKind.Object) return MapPlaylistTrack(i);
         return null;
+    }
+
+    Track? MapPlaylistTrack(JsonElement t) => IsLocalEntry(t) ? MapLocalEntry(t) : MapTrack(t);
+
+    static bool IsLocalEntry(JsonElement t) =>
+        (t.TryGetProperty("is_local", out var l) && l.ValueKind == JsonValueKind.True) || Str(t, "uri")?.StartsWith("spotify:local:", StringComparison.Ordinal) == true;
+
+    /// <summary>
+    /// A local file somebody added to the playlist in Spotify's app. The API gives its tags (and a spotify:local: URI that
+    /// is only a name), never the file, so the entry comes back as a placeholder for the app to resolve.
+    /// </summary>
+    static Track? MapLocalEntry(JsonElement t)
+    {
+        var uri = Str(t, "uri");
+        if (uri == null) return null;
+        // spotify:local:<artist>:<album>:<title>:<seconds>, each part URL-encoded: the fallback when the tags are missing.
+        var parts = uri.Split(':');
+        string Part(int i) => i < parts.Length ? Uri.UnescapeDataString(parts[i].Replace('+', ' ')) : "";
+
+        var artists = new List<string>();
+        if (t.TryGetProperty("artists", out var ar) && ar.ValueKind == JsonValueKind.Array)
+            foreach (var a in ar.EnumerateArray())
+                if (Str(a, "name") is { Length: > 0 } n) artists.Add(n);
+
+        var album = t.TryGetProperty("album", out var al) ? Str(al, "name") : null;
+        var seconds = Num(t, "duration_ms") / 1000.0;
+        if (seconds <= 0 && double.TryParse(Part(5), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var fromUri)) seconds = fromUri;
+
+        return new Track
+        {
+            Path = "",
+            LocalRef = uri,
+            IsMissing = true,
+            Title = Str(t, "name") is { Length: > 0 } name ? name : Part(4),
+            Artist = artists.Count > 0 ? string.Join(", ", artists) : Part(2),
+            Album = !string.IsNullOrEmpty(album) ? album : Part(3),
+            DurationSec = seconds,
+        };
     }
 
     /// <summary>When a playlist entry was added, as ticks (UTC); 0 when Spotify does not say.</summary>

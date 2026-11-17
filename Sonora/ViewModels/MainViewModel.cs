@@ -8,6 +8,7 @@ using Sonora.Core;
 using Sonora.Models;
 using Sonora.Services;
 using Sonora.Spotify;
+using Sonora.Appearance.Features;
 using Sonora.Appearance.Localization;
 
 namespace Sonora.ViewModels;
@@ -35,6 +36,9 @@ public sealed class LibraryEntry : ObservableObject
     };
 
     public bool IsPinned { get; set; }
+
+    /// <summary>Where the entry comes from, a <see cref="LibrarySources"/> id: what the library panel's tabs filter on.</summary>
+    public string Provider { get; init; } = LibrarySources.Local;
 
     int _playState;
     /// <summary>0: not what is playing; 1: what the current track comes from, paused; 2: the same, playing.</summary>
@@ -179,7 +183,7 @@ public sealed class MainViewModel : ObservableObject
         ToggleLikeCurrentCommand = new RelayCommand(() => { if (Player.Current is { } t) ToggleLike(t); });
 
         NewPlaylistCommand = new RelayCommand(() => OpenPlaylist(CreatePlaylist()));
-        ImportPlaylistCommand = new RelayCommand(ImportPlaylist);
+        ImportPlaylistCommand = new RelayCommand(() => _ = ImportPlaylistAsync());
         AddFolderCommand = new RelayCommand(AddFolder);
         RemoveFolderCommand = new RelayCommand(p => { if (p is string f) RemoveFolder(f); });
         RescanCommand = new RelayCommand(() => _ = RescanAsync());
@@ -264,6 +268,37 @@ public sealed class MainViewModel : ObservableObject
             if (CurrentPage is SearchPage sp) sp.Query = _searchText;
             else Navigate(new SearchPage(this, _searchText));
         }
+    }
+
+    /// <summary>A tab of the library panel: one per source of music that is available, plus "all".</summary>
+    public sealed class LibrarySourceTab(string id, string title, bool selected, Action<string> select) : IEquatable<LibrarySourceTab>
+    {
+        public string Id { get; } = id;
+        public string Title { get; } = title;
+
+        /// <summary>Two-way so a click, the keyboard and a screen reader all select the tab the same way.</summary>
+        public bool IsSelected
+        {
+            get => selected;
+            set { if (value && !selected) select(Id); }
+        }
+
+        public bool Equals(LibrarySourceTab? other) => other != null && Id == other.Id && Title == other.Title && IsSelected == other.IsSelected;
+        public override bool Equals(object? obj) => Equals(obj as LibrarySourceTab);
+        public override int GetHashCode() => HashCode.Combine(Id, Title, selected);
+    }
+
+    public ObservableCollection<LibrarySourceTab> LibrarySourceTabs { get; } = [];
+
+    /// <summary>The tabs only make sense when there is more than one source to choose between.</summary>
+    public bool ShowLibrarySourceTabs => LibrarySourceTabs.Count > 0;
+
+    void SelectLibrarySource(string id)
+    {
+        if (State.Features.LibrarySource == id) return;
+        State.Features.LibrarySource = id;
+        ScheduleSave();
+        RefreshLibraryEntries();
     }
 
     string _libraryFilter = "Playlists";
@@ -808,13 +843,13 @@ public sealed class MainViewModel : ObservableObject
     public void OpenLiked()
     {
         if (Spotify.IsConnected)
-            Navigate(new TracksPage(this, "Playlist", Loc.T("library.liked_songs"), Liked, "", "", () => Spotify.LikedTracks)
+            Navigate(new TracksPage(this, "Playlist", Loc.T("library.liked_songs"), Liked, "", "", () => State.Liked.Select(Library.Get).OfType<Track>().Concat(Spotify.LikedTracks)) // files liked in Sonora first: Spotify keeps none among its own
             { IsSpecial = true, ContextUri = Spotify.LikedContextUri });
         else
             OpenLocalLiked();
     }
 
-    public void OpenLocalLiked() => Navigate(new TracksPage(this, "Playlist", Spotify.IsConnected ? Loc.T("library.local_favorites") : Loc.T("library.liked_songs"),
+    public void OpenLocalLiked() => Navigate(new TracksPage(this, "Playlist", Loc.T("library.liked_songs"),
         LocalLiked, "", "", () => State.Liked.Select(Library.Get).OfType<Track>()) { IsSpecial = true });
 
     public void OpenAllTracks() => Navigate(new TracksPage(this, "Bibliothèque", Loc.T("library.all_tracks"), AllTracks, "", "",
@@ -824,8 +859,55 @@ public sealed class MainViewModel : ObservableObject
         () => p.Paths.Select(Library.Get).OfType<Track>()) { Playlist = p }.RememberSort());
 
     public void OpenSpotifyPlaylist(SpotifyPlaylist p) => Navigate(new TracksPage(this, "Playlist", p.Name, p, "",
-        string.IsNullOrEmpty(p.Owner) ? "" : p.Owner + " • ", () => Spotify.LoadPlaylistTracksAsync(p))
+        string.IsNullOrEmpty(p.Owner) ? "" : p.Owner + " • ", async () => await ResolveLocalEntriesAsync(await Spotify.LoadPlaylistTracksAsync(p)))
     { ContextUri = p.Uri, SpotifyPlaylist = p }.RememberSort());
+
+    // ---------------- local files inside Spotify playlists ----------------
+
+    readonly Dictionary<string, Track> _linkedFiles = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Spotify lists the local files somebody added to a playlist but cannot say where they are. Each one is looked for here,
+    /// first among the files the user already pointed to, then in the library by title, artist and length. What is not found
+    /// stays a placeholder: shown greyed, skipped when playing, until the user locates the file.
+    /// </summary>
+    async Task<PlaylistContent> ResolveLocalEntriesAsync(PlaylistContent content)
+    {
+        if (!content.Tracks.Any(t => t.LocalRef != null)) return content;
+        var matcher = new LocalMatcher<Track>(Library.Tracks, t => new TrackKey(t.Title, t.Artist, t.DurationSec));
+        var resolved = new List<Track>(content.Tracks.Count);
+        foreach (var t in content.Tracks)
+            resolved.Add(t.LocalRef == null ? t : await FindLocalFileAsync(t, matcher) ?? t);
+        return content with { Tracks = resolved };
+    }
+
+    async Task<Track?> FindLocalFileAsync(Track entry, LocalMatcher<Track> matcher)
+    {
+        if (State.LocalLinks.TryGetValue(entry.LocalRef!, out var path) && File.Exists(path))
+        {
+            if (Library.Get(path) is { } known) return known;
+            if (_linkedFiles.TryGetValue(path, out var cached)) return cached;
+            try { return _linkedFiles[path] = await Library.ReadFileAsync(path); }
+            catch { /* unreadable: fall through to the library */ }
+        }
+        return matcher.Find(new TrackKey(entry.Title, entry.Artist, entry.DurationSec));
+    }
+
+    /// <summary>Asks for the file a local-file entry stands for, remembers the choice, and shows the playlist again with it playable.</summary>
+    public void LocateLocalEntry(Track entry)
+    {
+        if (entry.LocalRef == null) return;
+        var dialog = new OpenFileDialog
+        {
+            Title = Loc.T("dialog.locate_file", entry.Title),
+            Filter = Loc.T("dialog.audio_files") + " (" + LibraryService.AudioFilter + ")|" + LibraryService.AudioFilter + "|" + Loc.T("dialog.all_files") + "|*.*",
+        };
+        if (dialog.ShowDialog() != true) return;
+        State.LocalLinks[entry.LocalRef] = dialog.FileName;
+        ScheduleSave();
+        if (CurrentPage is TracksPage page) _ = page.Reload();
+        ReportError(Loc.T("playlist.file_located", entry.Title));
+    }
 
     // ---------------- discover ----------------
 
@@ -1313,7 +1395,7 @@ public sealed class MainViewModel : ObservableObject
             t.IsLiked = true;
         }
         RefreshLibraryEntries();
-        if (CurrentPage is TracksPage { IsSpecial: true, ContextUri: null } tp) _ = tp.Reload();
+        if (CurrentPage is TracksPage { IsSpecial: true } tp && (tp.ArtSource == Liked || tp.ArtSource == LocalLiked)) _ = tp.Reload();
         ScheduleSave();
     }
 
@@ -1334,16 +1416,18 @@ public sealed class MainViewModel : ObservableObject
         PlaylistChanged(p);
     }
 
-    public async Task AddToSpotifyPlaylistAsync(SpotifyPlaylist? p, IReadOnlyList<Track> tracks)
+    /// <summary>Adds Spotify tracks to a playlist of the user's, creating one (called <paramref name="newName"/>) when none is given. Null on failure.</summary>
+    public async Task<SpotifyPlaylist?> AddToSpotifyPlaylistAsync(SpotifyPlaylist? p, IReadOnlyList<Track> tracks, string? newName = null)
     {
         try
         {
-            p ??= await Spotify.CreatePlaylistAsync(Loc.T("playlist.default_name", Spotify.OwnedPlaylists.Count + 1));
+            p ??= await Spotify.CreatePlaylistAsync(newName ?? Loc.T("playlist.default_name", Spotify.OwnedPlaylists.Count + 1));
             await Spotify.AddToPlaylistAsync(p, tracks);
             ReportError(Loc.T("playlist.added_to", p.Name));
             if (CurrentPage is TracksPage { SpotifyPlaylist: { } shown } tp && shown.Id == p.Id) _ = tp.Reload();
+            return p;
         }
-        catch (Exception ex) { ReportError(ex.Message); }
+        catch (Exception ex) { ReportError(ex.Message); return null; }
     }
 
     /// <summary>Moves one track of a local playlist so it lands at <paramref name="to"/>.</summary>
@@ -1422,72 +1506,155 @@ public sealed class MainViewModel : ObservableObject
         ScheduleSave();
     }
 
-    // ---------------- import / export (local files only) ----------------
+    // ---------------- import / export ----------------
 
     /// <summary>
-    /// Writes the local tracks of a list to an .m3u8 file. Spotify tracks are left out: an M3U points at
-    /// files, and a Spotify track has none.
+    /// Writes a list to a file the user names. A Sonora playlist file (the default) keeps every track, Spotify ones included;
+    /// an M3U, for other players, can only point at files, so the Spotify tracks are left out of it.
     /// </summary>
     public void ExportPlaylist(IReadOnlyList<Track> tracks, string suggestedName)
     {
-        var local = tracks.Where(t => !t.IsSpotify).ToList();
+        if (tracks.Count == 0)
+        {
+            ReportError(Loc.T("playlist.nothing_to_export"));
+            return;
+        }
+        var ext = PlaylistFile.Extension;
+        var dialog = new SaveFileDialog
+        {
+            Title = Loc.T("dialog.export_playlist"),
+            FileName = Sanitize(suggestedName) + ext,
+            DefaultExt = ext,
+            Filter = Loc.T("dialog.sonora_playlist") + " (*" + ext + ")|*" + ext + "|" + Loc.T("dialog.m3u_playlist") + " (*.m3u8;*.m3u)|*.m3u8;*.m3u",
+        };
+        if (dialog.ShowDialog() != true) return;
+
+        try
+        {
+            if (Path.GetExtension(dialog.FileName).StartsWith(".m3u", StringComparison.OrdinalIgnoreCase))
+                ExportM3u(tracks, dialog.FileName);
+            else
+            {
+                var entries = tracks.Select(t => t.IsSpotify
+                    ? new PlaylistFileEntry(t.Title, t.Artist, t.Album, t.DurationSec, Spotify: t.Uri)
+                    : new PlaylistFileEntry(t.Title, t.Artist, t.Album, t.DurationSec, Path: t.Path.Length > 0 ? t.Path : null));
+                File.WriteAllText(dialog.FileName, PlaylistFile.Write(suggestedName, entries), new System.Text.UTF8Encoding(false));
+                ReportError(Loc.Count("count.tracks_exported", tracks.Count));
+            }
+        }
+        catch (Exception ex) { ReportError(Loc.T("m3u.export_failed", ex.Message)); }
+    }
+
+    void ExportM3u(IReadOnlyList<Track> tracks, string file)
+    {
+        var local = tracks.Where(t => !t.IsSpotify && t.Path.Length > 0).ToList();
         if (local.Count == 0)
         {
             ReportError(Loc.T("m3u.nothing_to_export"));
             return;
         }
-        var dialog = new SaveFileDialog
-        {
-            Title = Loc.T("dialog.export_playlist"),
-            FileName = Sanitize(suggestedName) + ".m3u8",
-            DefaultExt = ".m3u8",
-            Filter = Loc.T("dialog.m3u_playlist") + " (*.m3u8;*.m3u)|*.m3u8;*.m3u",
-        };
-        if (dialog.ShowDialog() != true) return;
-
-        try
-        {
-            var text = Sonora.Appearance.Features.M3u.Write(local.Select(t =>
-                new Sonora.Appearance.Features.M3uEntry(t.Path, t.Title, t.Artist, t.DurationSec)));
-            File.WriteAllText(dialog.FileName, text, new System.Text.UTF8Encoding(false));
-            var skipped = tracks.Count - local.Count;
-            ReportError(skipped > 0
-                ? Loc.Count("m3u.exported_with_skipped", local.Count, skipped)
-                : Loc.Count("count.tracks_exported", local.Count));
-        }
-        catch (Exception ex) { ReportError(Loc.T("m3u.export_failed", ex.Message)); }
+        var text = M3u.Write(local.Select(t => new M3uEntry(t.Path, t.Title, t.Artist, t.DurationSec)));
+        File.WriteAllText(file, text, new System.Text.UTF8Encoding(false));
+        var skipped = tracks.Count - local.Count;
+        ReportError(skipped > 0
+            ? Loc.Count("m3u.exported_with_skipped", local.Count, skipped)
+            : Loc.Count("count.tracks_exported", local.Count));
     }
 
-    /// <summary>Reads an .m3u/.m3u8 into a new local playlist, keeping the tracks the library knows.</summary>
-    public void ImportPlaylist()
+    /// <summary>Reads a Sonora playlist file or an M3U into a new playlist.</summary>
+    public async Task ImportPlaylistAsync()
     {
+        var all = "*" + PlaylistFile.Extension + ";*.m3u8;*.m3u";
         var dialog = new OpenFileDialog
         {
             Title = Loc.T("dialog.import_playlist"),
-            Filter = Loc.T("dialog.m3u_playlist") + " (*.m3u8;*.m3u)|*.m3u8;*.m3u|" + Loc.T("dialog.all_files") + "|*.*",
+            Filter = Loc.T("dialog.playlists") + " (" + all + ")|" + all + "|" + Loc.T("dialog.all_files") + "|*.*",
         };
         if (dialog.ShowDialog() != true) return;
 
         try
         {
-            var content = File.ReadAllText(dialog.FileName);
-            var paths = Sonora.Appearance.Features.M3u.Parse(content, Path.GetDirectoryName(dialog.FileName));
-            var found = paths.Select(Library.Get).OfType<Track>().ToList();
-            if (found.Count == 0)
-            {
-                ReportError(Loc.T("m3u.none_found"));
-                return;
-            }
-            var playlist = CreatePlaylist();
-            RenamePlaylist(playlist, Sonora.Appearance.Features.M3u.NameFromFile(dialog.FileName));
-            AddToPlaylist(playlist, found);
-            var missing = paths.Count - found.Count;
-            ReportError(missing > 0
-                ? Loc.Count("m3u.imported_with_missing", found.Count, missing)
-                : Loc.Count("count.tracks_imported", found.Count));
-            OpenPlaylist(playlist);
+            if (Path.GetExtension(dialog.FileName).Equals(PlaylistFile.Extension, StringComparison.OrdinalIgnoreCase))
+                await ImportSonoraFileAsync(dialog.FileName);
+            else
+                ImportM3u(dialog.FileName);
         }
         catch (Exception ex) { ReportError(Loc.T("m3u.import_failed", ex.Message)); }
+    }
+
+    /// <summary>
+    /// A file's local tracks go to a new local playlist (found by path, else by title, artist and length in the library),
+    /// its Spotify tracks to a new playlist in the user's account. Each of the two is only made when it has something in it.
+    /// </summary>
+    async Task ImportSonoraFileAsync(string path)
+    {
+        var file = PlaylistFile.Parse(File.ReadAllText(path));
+        var name = file.Name.Trim().Length > 0 ? file.Name.Trim() : M3u.NameFromFile(path);
+        var matcher = new LocalMatcher<Track>(Library.Tracks, t => new TrackKey(t.Title, t.Artist, t.DurationSec));
+
+        var local = new List<Track>();
+        var spotify = new List<Track>();
+        int notFound = 0;
+        foreach (var e in file.Tracks)
+        {
+            if (e.IsSpotify)
+            {
+                // The file is not trusted: only well-formed track and episode ids may reach Spotify.
+                if (PlaylistFile.IsSpotifyItemUri(e.Spotify)) spotify.Add(new Track { Uri = e.Spotify, Path = e.Spotify!, Title = e.Title, Artist = e.Artist });
+                else notFound++;
+                continue;
+            }
+            var found = (e.Path is { Length: > 0 } ? Library.Get(e.Path) : null) ?? matcher.Find(new TrackKey(e.Title, e.Artist, e.Seconds));
+            if (found != null) local.Add(found); else notFound++;
+        }
+
+        if (local.Count == 0 && spotify.Count == 0)
+        {
+            ReportError(Loc.T("m3u.none_found"));
+            return;
+        }
+
+        Playlist? created = null;
+        if (local.Count > 0)
+        {
+            created = CreatePlaylist();
+            RenamePlaylist(created, name);
+            AddToPlaylist(created, local);
+        }
+
+        SpotifyPlaylist? remote = null;
+        bool needsSpotify = spotify.Count > 0 && !Spotify.IsConnected;
+        if (spotify.Count > 0 && !needsSpotify) remote = await AddToSpotifyPlaylistAsync(null, spotify, name);
+
+        int imported = local.Count + (remote != null ? spotify.Count : 0);
+        int left = notFound + (remote == null ? spotify.Count : 0);
+        ReportError(needsSpotify
+            ? Loc.T("playlist.imported_needs_spotify", name, imported, spotify.Count)
+            : Loc.T("playlist.imported_summary", name, imported, left));
+
+        if (created != null) OpenPlaylist(created);
+        else if (remote != null) OpenSpotifyPlaylist(remote);
+    }
+
+    /// <summary>Reads an .m3u/.m3u8 into a new local playlist, keeping the tracks the library knows.</summary>
+    void ImportM3u(string file)
+    {
+        var content = File.ReadAllText(file);
+        var paths = M3u.Parse(content, Path.GetDirectoryName(file));
+        var found = paths.Select(Library.Get).OfType<Track>().ToList();
+        if (found.Count == 0)
+        {
+            ReportError(Loc.T("m3u.none_found"));
+            return;
+        }
+        var playlist = CreatePlaylist();
+        RenamePlaylist(playlist, M3u.NameFromFile(file));
+        AddToPlaylist(playlist, found);
+        var missing = paths.Count - found.Count;
+        ReportError(missing > 0
+            ? Loc.Count("m3u.imported_with_missing", found.Count, missing)
+            : Loc.Count("count.tracks_imported", found.Count));
+        OpenPlaylist(playlist);
     }
 
     /// <summary>Strips what Windows will not accept in a file name.</summary>
@@ -1528,28 +1695,23 @@ public sealed class MainViewModel : ObservableObject
         var connected = Spotify.IsConnected;
         entries.Add(new LibraryEntry
         {
+            Provider = connected ? LibrarySources.Spotify : LibrarySources.Local,
             Source = Liked, Title = Loc.T("library.liked_songs"), IsSpecial = true, Glyph = "",
-            Subtitle = Loc.T("library.subtitle_playlist", Loc.Count("count.tracks", connected ? Spotify.LikedTracks.Count : _liked.Count)),
+            Subtitle = Loc.T("library.subtitle_playlist", Loc.Count("count.tracks", connected ? Spotify.LikedTracks.Count + _liked.Count : _liked.Count)),
         });
         switch (LibraryFilter)
         {
             case "Albums":
                 foreach (var a in Spotify.SavedAlbums.Concat(Library.Albums))
-                    entries.Add(new LibraryEntry { Source = a, Title = a.Title, Subtitle = Loc.T("library.subtitle_album", a.Artist), Glyph = "" });
+                    entries.Add(new LibraryEntry { Provider = a.Uri != null ? LibrarySources.Spotify : LibrarySources.Local, Source = a, Title = a.Title, Subtitle = Loc.T("library.subtitle_album", a.Artist), Glyph = "" });
                 break;
             case "Artists":
                 foreach (var a in Spotify.Artists.Concat(Library.Artists))
-                    entries.Add(new LibraryEntry { Source = a, Title = a.Name, Subtitle = Loc.T("kind.artist"), Glyph = "", IsRound = true });
+                    entries.Add(new LibraryEntry { Provider = a.Uri != null ? LibrarySources.Spotify : LibrarySources.Local, Source = a, Title = a.Name, Subtitle = Loc.T("kind.artist"), Glyph = "", IsRound = true });
                 break;
             default:
-                if (connected && _liked.Count > 0)
-                    entries.Add(new LibraryEntry
-                    {
-                        Source = LocalLiked, Title = Loc.T("library.local_favorites"), IsSpecial = true, Glyph = "",
-                        Subtitle = Loc.T("library.subtitle_local_files", Loc.Count("count.tracks", _liked.Count)),
-                    });
                 foreach (var p in Spotify.Playlists)
-                    entries.Add(new LibraryEntry { Source = p, Title = p.Name, Subtitle = p.Subtitle, Glyph = "" });
+                    entries.Add(new LibraryEntry { Provider = LibrarySources.Spotify, Source = p, Title = p.Name, Subtitle = p.Subtitle, Glyph = "" });
                 if (Library.Tracks.Count > 0)
                     entries.Add(new LibraryEntry
                     {
@@ -1561,10 +1723,12 @@ public sealed class MainViewModel : ObservableObject
                 break;
         }
     
-        // Search, then pins, then the chosen order. OrderBy is stable, so "recent" keeps the order built above.
+        // The source tab first, then search, pins, and the chosen order. OrderBy is stable, so "recent" keeps the order built above.
+        var selectedSource = RefreshLibrarySourceTabs(connected);
         var tokens = Sonora.Appearance.Features.ListQuery.Fold(_librarySearch)
             .Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        IEnumerable<LibraryEntry> shown = entries;
+        // "Liked songs" holds files and Spotify tracks together, so it stays on every tab.
+        IEnumerable<LibraryEntry> shown = entries.Where(e => e.Source is LikedSource || LibrarySources.Shows(selectedSource, e.Provider));
         if (tokens.Length > 0)
             shown = shown.Where(e =>
             {
@@ -1583,6 +1747,30 @@ public sealed class MainViewModel : ObservableObject
         LibraryEntries.Clear();
         foreach (var e in ordered) LibraryEntries.Add(e);
         UpdatePlayingContext();
+    }
+
+    /// <summary>
+    /// Offers a tab for each source that is available (and "all" in front) when there is more than one, and returns the one
+    /// selected. A source that went away (Spotify signed out) drops its tab and the panel falls back to "all".
+    /// </summary>
+    string RefreshLibrarySourceTabs(bool spotifyConnected)
+    {
+        var available = new List<(string Id, string Title)> { (LibrarySources.Local, Loc.T("library.source_local")) };
+        if (spotifyConnected) available.Add((LibrarySources.Spotify, "Spotify"));
+
+        var selected = LibrarySources.Resolve(State.Features.LibrarySource, available.Select(a => a.Id));
+        var tabs = available.Count < 2
+            ? []
+            : new List<LibrarySourceTab> { new(LibrarySources.All, Loc.T("library.source_all"), selected == LibrarySources.All, SelectLibrarySource) }
+                .Concat(available.Select(a => new LibrarySourceTab(a.Id, a.Title, selected == a.Id, SelectLibrarySource))).ToList();
+
+        if (!tabs.SequenceEqual(LibrarySourceTabs))
+        {
+            LibrarySourceTabs.Clear();
+            foreach (var t in tabs) LibrarySourceTabs.Add(t);
+            OnPropertyChanged(nameof(ShowLibrarySourceTabs));
+        }
+        return selected;
     }
 
     /// <summary>Marks the library entry the current track is played from, so it stands out wherever the library is shown.</summary>

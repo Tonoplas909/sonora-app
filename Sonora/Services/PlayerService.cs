@@ -46,6 +46,14 @@ public sealed class PlayerService : ObservableObject, IDisposable
     bool _spotifyMode;
     string? _spotifyContextUri;
 
+    /// <summary>
+    /// A list that holds both local files and Spotify tracks (a Spotify playlist with local files in it). Spotify cannot
+    /// play a local file and the local engine cannot play Spotify, so here Sonora owns the order and plays the entries one
+    /// at a time, each on the engine it belongs to. <see cref="_spotifyMode"/> then only says what the current track plays on.
+    /// </summary>
+    bool _mixed;
+    int _endedToken = -1; // the load whose end has already been acted on, so one end advances once
+
     /// <summary>The Spotify URI of what is playing from (album, playlist, artist), or null for a list of tracks.</summary>
     public string? ContextUri => _spotifyContextUri;
 
@@ -341,7 +349,7 @@ public sealed class PlayerService : ObservableObject, IDisposable
         set
         {
             if (!Set(ref _shuffle, value)) return;
-            if (_spotifyMode && _spotify != null) { _ = Run(ChangeAndRefreshQueueAsync(_spotify.SetShuffleAsync(value))); return; }
+            if (_spotifyMode && !_mixed && _spotify != null) { _ = Run(ChangeAndRefreshQueueAsync(_spotify.SetShuffleAsync(value))); return; }
             if (_pos >= 0 && _pos < _order.Count) BuildOrder(_order[_pos]);
             RefreshUpcoming();
         }
@@ -356,7 +364,7 @@ public sealed class PlayerService : ObservableObject, IDisposable
             if (!Set(ref _repeat, value)) return;
             OnPropertyChanged(nameof(RepeatGlyph));
             OnPropertyChanged(nameof(RepeatActive));
-            if (_spotifyMode && _spotify != null) _ = Run(ChangeAndRefreshQueueAsync(_spotify.SetRepeatAsync(value)));
+            if (_spotifyMode && !_mixed && _spotify != null) _ = Run(ChangeAndRefreshQueueAsync(_spotify.SetRepeatAsync(value)));
         }
     }
 
@@ -390,6 +398,40 @@ public sealed class PlayerService : ObservableObject, IDisposable
         if (start < 0) start = _shuffle ? Random.Shared.Next(tracks.Count) : 0;
         start = Math.Clamp(start, 0, tracks.Count - 1);
 
+        // Local-file entries that have not been located are listed but cannot play: carry on with the next one that can.
+        if (tracks.Any(t => t.IsMissing))
+        {
+            var playable = tracks.Where(t => !t.IsMissing).ToList();
+            var first = tracks.Skip(start).FirstOrDefault(t => !t.IsMissing) ?? playable.FirstOrDefault();
+            if (first == null) return;
+            start = playable.IndexOf(first);
+            tracks = playable;
+        }
+
+        bool mixed = tracks.Any(t => t.IsSpotify) && tracks.Any(t => !t.IsSpotify);
+        if (mixed && _spotify == null)
+        {
+            // No Spotify account here: play the files of the list.
+            var startTrack = tracks[start];
+            var files = tracks.Where(t => !t.IsSpotify).ToList();
+            start = Math.Max(0, files.IndexOf(startTrack));
+            tracks = files;
+            mixed = false;
+        }
+        _mixed = mixed;
+
+        if (mixed)
+        {
+            _resume = null;
+            _context = tracks.ToList();
+            SetContextUri(contextUri); // only so the library shows where this comes from; Spotify is never asked to play it
+            ContextName = name;
+            BuildOrder(start);
+            _ = Run(SpotifyPlainPlaybackAsync());
+            _ = LoadAsync(_context[_order[_pos]], autoplay, startAt);
+            return;
+        }
+
         if (tracks[start].IsSpotify)
         {
             if (_spotify == null) { Error?.Invoke(Loc.T("player.connect_spotify")); return; }
@@ -420,6 +462,7 @@ public sealed class PlayerService : ObservableObject, IDisposable
     public bool RestoreSpotify(Track t, string? contextUri, string contextName, double positionSec)
     {
         if (_spotify == null || t.Uri == null || Current != null) return false;
+        _mixed = false;
         EnterSpotifyMode();
         _context = [t];
         SetContextUri(contextUri);
@@ -441,12 +484,24 @@ public sealed class PlayerService : ObservableObject, IDisposable
     public void PlaySpotifyContext(string contextUri, string name)
     {
         if (_spotify == null) { Error?.Invoke(Loc.T("player.connect_spotify")); return; }
+        _mixed = false;
         EnterSpotifyMode();
         _resume = null;
         _context = [];
         SetContextUri(contextUri);
         ContextName = name;
         _ = Run(PlaySpotifyAsync(contextUri, [], -1));
+    }
+
+    /// <summary>Before a mixed list starts: Spotify must neither shuffle nor repeat the one track it is given, Sonora does that.</summary>
+    async Task SpotifyPlainPlaybackAsync()
+    {
+        try
+        {
+            await _spotify!.SetShuffleAsync(false);
+            await _spotify.SetRepeatAsync(RepeatMode.Off);
+        }
+        catch { /* best effort: no device yet is fine, the next play sets it up */ }
     }
 
     async Task PlaySpotifyAsync(string? contextUri, IReadOnlyList<string> uris, int index)
@@ -481,13 +536,13 @@ public sealed class PlayerService : ObservableObject, IDisposable
 
     public void Next()
     {
-        if (_spotifyMode && _spotify != null) { _ = Run(SpotifyStepAsync(next: true)); return; }
+        if (_spotifyMode && !_mixed && _spotify != null) { _ = Run(SpotifyStepAsync(next: true)); return; }
         Advance(auto: false);
     }
 
     public void Previous()
     {
-        if (_spotifyMode && _spotify != null) { _ = Run(SpotifyStepAsync(next: false)); return; }
+        if (_spotifyMode && !_mixed && _spotify != null) { _ = Run(SpotifyStepAsync(next: false)); return; }
         if (_position > 3 || _context.Count == 0) { Seek(0); return; }
         if (_pos > 0) _pos--;
         else if (_repeat == RepeatMode.All) _pos = _order.Count - 1;
@@ -543,7 +598,7 @@ public sealed class PlayerService : ObservableObject, IDisposable
 
     public void Enqueue(Track t)
     {
-        if (t.IsSpotify)
+        if (t.IsSpotify && !_mixed)
         {
             if (_spotify == null) return;
             _ = Run(EnqueueSpotifyAsync(t));
@@ -561,7 +616,7 @@ public sealed class PlayerService : ObservableObject, IDisposable
 
     public void PlayNext(Track t)
     {
-        if (t.IsSpotify) { Enqueue(t); return; } // the Web API only appends to Spotify's queue
+        if (t.IsSpotify && !_mixed) { Enqueue(t); return; } // the Web API only appends to Spotify's queue
         _userQueue.Insert(0, t);
         RefreshUpcoming();
     }
@@ -569,7 +624,7 @@ public sealed class PlayerService : ObservableObject, IDisposable
     /// <summary>Jump to a row of the "Next up" list.</summary>
     public void JumpTo(TrackRow row)
     {
-        if (_spotifyMode)
+        if (_spotifyMode && !_mixed)
         {
             var idx = _context.IndexOf(row.Track);
             if (idx >= 0) PlayContext(_context, idx, ContextName, true, _spotifyContextUri);
@@ -639,9 +694,14 @@ public sealed class PlayerService : ObservableObject, IDisposable
         if (!_spotifyMode)
         {
             // Playback started elsewhere (phone, official app) while Sonora plays nothing: follow it.
-            if (!s.IsPlaying || (IsPlaying && !_spotifyMode)) return;
+            if (_mixed || !s.IsPlaying || (IsPlaying && !_spotifyMode)) return;
             EnterSpotifyMode();
         }
+
+        // A mixed list moves from one engine to the other: a late report about a track that is no longer current is stale.
+        if (_mixed && s.Track != null && s.Track.Uri != _current?.Uri) return;
+        // Spotify said it stopped at the start of a track that was nearly over: that track ended, so the next entry is due.
+        bool ended = _mixed && IsPlaying && !s.IsPlaying && _duration > 0 && s.PositionSec < 0.5 && _position >= _duration - 3;
 
         _resume = null; // Spotify has said what is playing: that is the truth now
         RemoteDeviceName = s.IsSonoraDevice ? "" : s.DeviceName;
@@ -653,6 +713,13 @@ public sealed class PlayerService : ObservableObject, IDisposable
         _posAtUtc = s.AtUtc;
         if (!IsSeeking) { _position = s.PositionSec; NotifyPosition(); }
         IsPlaying = s.IsPlaying;
+
+        if (_mixed)
+        {
+            // Sonora owns shuffle, repeat and the queue of a mixed list: Spotify's own flags describe a single track.
+            if (ended && _endedToken != _loadToken) { _endedToken = _loadToken; Advance(auto: true); }
+            return;
+        }
 
         bool shuffleChanged = _shuffle != s.Shuffle;
         if (shuffleChanged) { _shuffle = s.Shuffle; OnPropertyChanged(nameof(Shuffle)); }
@@ -678,7 +745,7 @@ public sealed class PlayerService : ObservableObject, IDisposable
 
     async Task RefreshSpotifyQueueAsync()
     {
-        if (_spotify == null || _queueBusy) return;
+        if (_spotify == null || _queueBusy || _mixed) return;
         _queueBusy = true;
         try
         {
@@ -720,6 +787,7 @@ public sealed class PlayerService : ObservableObject, IDisposable
     {
         if (auto && _repeat == RepeatMode.One && _current != null)
         {
+            if (_mixed && _current.IsSpotify) { _ = LoadAsync(_current, true); return; }
             Seek(0);
             _mp.Play();
             return;
@@ -768,6 +836,13 @@ public sealed class PlayerService : ObservableObject, IDisposable
         RefreshUpcoming();
         TrackStarted?.Invoke(t);
 
+        if (t.IsSpotify)
+        {
+            await LoadSpotifyEntryAsync(t, play, startAt, token);
+            return;
+        }
+        if (_spotifyMode) LeaveSpotifyMode(); // a local file of a mixed list follows a Spotify track
+
         try
         {
             var file = await StorageFile.GetFileFromPathAsync(t.Path);
@@ -784,6 +859,27 @@ public sealed class PlayerService : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>A Spotify track of a mixed list: played alone, on Spotify, while the local engine stays quiet.</summary>
+    async Task LoadSpotifyEntryAsync(Track t, bool play, double startAt, int token)
+    {
+        if (_spotify == null) { Error?.Invoke(Loc.T("player.connect_spotify")); return; }
+        if (!_spotifyMode)
+        {
+            // Not EnterSpotifyMode: that would drop the user's queue and hand the order to Spotify.
+            _spotifyMode = true;
+            _wantPlay = false;
+            _mp.Pause();
+        }
+        if (!play)
+        {
+            _resume = new SpotifyResume(null, t.Uri!, startAt); // shown, and started by the play button
+            return;
+        }
+        _resume = null;
+        try { await _spotify.PlayAsync(null, [t.Uri!], 0, (long)(startAt * 1000)); }
+        catch (Exception ex) { if (token == _loadToken) Error?.Invoke(ex.Message); }
+    }
+
     void Tick()
     {
         if (_current == null) return;
@@ -791,6 +887,14 @@ public sealed class PlayerService : ObservableObject, IDisposable
         if (_spotifyMode)
         {
             p = IsPlaying ? _posBase + (DateTime.UtcNow - _posAtUtc).TotalSeconds : _posBase;
+            // Safety net for a mixed list: Spotify normally reports the end of a track, but if that report never came the
+            // track has been "playing" for two seconds past its length, and the list moves on.
+            if (_mixed && IsPlaying && _duration > 0 && p >= _duration + 2 && _endedToken != _loadToken)
+            {
+                _endedToken = _loadToken;
+                Advance(auto: true);
+                return;
+            }
             if (_duration > 0) p = Math.Min(p, _duration);
         }
         else p = _mp.PlaybackSession.Position.TotalSeconds;
@@ -809,7 +913,7 @@ public sealed class PlayerService : ObservableObject, IDisposable
 
     void RefreshUpcoming()
     {
-        if (_spotifyMode) return;
+        if (_spotifyMode && !_mixed) return;
         Upcoming.Clear();
         int n = 1;
         foreach (var t in _userQueue) Upcoming.Add(new TrackRow(n++, t));

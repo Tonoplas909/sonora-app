@@ -73,6 +73,12 @@ public sealed class LibraryService
         return list;
     }
 
+    /// <summary>The "Audio files" filter of a file dialog, from the extensions the library scans.</summary>
+    public static string AudioFilter => string.Join(";", Extensions.Select(e => "*" + e));
+
+    /// <summary>Reads one file the user pointed to, which may lie outside the library's folders.</summary>
+    public Task<Track> ReadFileAsync(string path) => ReadAsync(new FileInfo(path));
+
     static async Task<Track> ReadAsync(FileInfo fi)
     {
         var t = new Track
