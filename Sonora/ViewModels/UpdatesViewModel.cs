@@ -31,11 +31,13 @@ public sealed class UpdatesViewModel : ObservableObject
         CheckCommand = new RelayCommand(() => _ = CheckAsync(manual: true), () => !IsBusy);
         InstallCommand = new RelayCommand(() => _ = InstallAsync(), () => HasUpdate && !IsBusy);
         OpenReleasesCommand = new RelayCommand(() => Process.Start(new ProcessStartInfo(ReleasesUrl) { UseShellExecute = true }));
+        DismissPromptCommand = new RelayCommand(() => { _promptDismissed = true; OnPropertyChanged(nameof(ShowPrompt)); });
     }
 
     public ICommand CheckCommand { get; }
     public ICommand InstallCommand { get; }
     public ICommand OpenReleasesCommand { get; }
+    public ICommand DismissPromptCommand { get; }
 
     /// <summary>True when Sonora was installed by its installer, the only case where it can replace itself.</summary>
     public bool IsInstalled => _manager.IsInstalled;
@@ -63,6 +65,7 @@ public sealed class UpdatesViewModel : ObservableObject
         _statusArgs = args;
         OnPropertyChanged(nameof(Status));
         OnPropertyChanged(nameof(HasStatus));
+        OnPropertyChanged(nameof(PromptText));
     }
 
     /// <summary>Called when the language changes: what is shown is written again.</summary>
@@ -70,16 +73,58 @@ public sealed class UpdatesViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(Status));
         OnPropertyChanged(nameof(InstallLabel));
+        OnPropertyChanged(nameof(PromptText));
     }
 
     bool _isBusy;
-    public bool IsBusy { get => _isBusy; private set { if (Set(ref _isBusy, value)) CommandManager.InvalidateRequerySuggested(); } }
+    public bool IsBusy
+    {
+        get => _isBusy;
+        private set
+        {
+            if (!Set(ref _isBusy, value)) return;
+            OnPropertyChanged(nameof(IsPromptIdle));
+            CommandManager.InvalidateRequerySuggested();
+        }
+    }
 
     bool _hasUpdate;
-    public bool HasUpdate { get => _hasUpdate; private set { if (Set(ref _hasUpdate, value)) CommandManager.InvalidateRequerySuggested(); } }
+    public bool HasUpdate
+    {
+        get => _hasUpdate;
+        private set
+        {
+            if (!Set(ref _hasUpdate, value)) return;
+            OnPropertyChanged(nameof(ShowPrompt));
+            CommandManager.InvalidateRequerySuggested();
+        }
+    }
+
+    // ---------------- the offer shown over the window ----------------
+
+    bool _promptDismissed;
+    bool _installStarted;
+
+    /// <summary>A new version is known: a card offers to install it, wherever the user is. "Later" hides it until Sonora is opened again.</summary>
+    public bool ShowPrompt => HasUpdate && !_promptDismissed;
+
+    /// <summary>The card's buttons are shown unless the update is being downloaded or installed.</summary>
+    public bool IsPromptIdle => !IsBusy;
+
+    /// <summary>"Sonora 1.2.0 is available", then what the install is doing (or why it failed).</summary>
+    public string PromptText => _installStarted ? Status : Loc.T("update.prompt", UpdateVersion);
 
     string _updateVersion = "";
-    public string UpdateVersion { get => _updateVersion; private set { if (Set(ref _updateVersion, value)) OnPropertyChanged(nameof(InstallLabel)); } }
+    public string UpdateVersion
+    {
+        get => _updateVersion;
+        private set
+        {
+            if (!Set(ref _updateVersion, value)) return;
+            OnPropertyChanged(nameof(InstallLabel));
+            OnPropertyChanged(nameof(PromptText));
+        }
+    }
 
     public string InstallLabel => Loc.T("update.install_version", UpdateVersion);
 
@@ -130,9 +175,6 @@ public sealed class UpdatesViewModel : ObservableObject
             UpdateVersion = info.TargetFullRelease.Version.ToString();
             HasUpdate = true;
             SetStatus("update.available", UpdateVersion);
-            // On opening, a card says so once; the install itself is always a deliberate click in the settings.
-            if (!manual)
-                _main.ReportError(Loc.T("update.available_notice", UpdateVersion));
         }
         catch (Exception ex)
         {
@@ -151,6 +193,7 @@ public sealed class UpdatesViewModel : ObservableObject
     {
         if (_pending == null || IsBusy) return;
         IsBusy = true;
+        _installStarted = true; // the card now reports the install instead of the offer
         try
         {
             IsDownloading = true;
