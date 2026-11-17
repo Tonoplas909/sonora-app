@@ -133,7 +133,23 @@ public sealed class PriorityRow : Panel
         }
 
         double crossSize = _shown.Max(k => Horizontal ? k.DesiredSize.Height : k.DesiredSize.Width);
+
+        // A stretching child is measured at the size it will be arranged at, here and not in ArrangeOverride: a
+        // child whose desired size changes during its parent's arrange invalidates the parent's measure, and a text
+        // that trims itself to its slot did so on every pass, which kept the layout running at full speed.
+        foreach (var k in _shown)
+            if (Adaptive.GetWeight(k) > 0) k.Measure(SlotOf(k, room, crossSize));
+
         return Horizontal ? new Size(_used, crossSize) : new Size(crossSize, _used);
+    }
+
+    /// <summary>The size a stretching child is given when the row has <paramref name="room"/> along its line.</summary>
+    Size SlotOf(UIElement child, double room, double cross)
+    {
+        double leftover = double.IsInfinity(room) ? 0 : Math.Max(0, room - _used);
+        double weights = _shown.Sum(Adaptive.GetWeight);
+        double size = _sizes[child] + (weights > 0 ? leftover * Adaptive.GetWeight(child) / weights : 0);
+        return Horizontal ? new Size(size, cross) : new Size(cross, size);
     }
 
     protected override Size ArrangeOverride(Size final)
@@ -151,9 +167,10 @@ public sealed class PriorityRow : Panel
         {
             if (!_shown.Contains(k)) { Adaptive.Hide(k); continue; }
             double size = _sizes[k] + (weights > 0 ? leftover * Adaptive.GetWeight(k) / weights : 0);
-            // A stretching child was measured at its minimum; give it the size it now gets.
+            // Normally a no-op: MeasureOverride already measured it at this size. It only measures again when the
+            // row was given a different size than it asked for.
             if (Adaptive.GetWeight(k) > 0)
-                k.Measure(Horizontal ? new Size(size, final.Height) : new Size(final.Width, size));
+                k.Measure(SlotOf(k, room, Horizontal ? final.Height : final.Width));
             var slot = Horizontal
                 ? new Rect(at, 0, size, final.Height)
                 : new Rect(0, at, final.Width, size);
