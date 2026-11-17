@@ -116,6 +116,23 @@
                             </StackPanel>
                         </Grid>
                         <ContentControl x:Name="PageHost" Grid.Row="1" Content="{Binding CurrentPage}" Focusable="False" />
+
+                        <!-- A new version is known: offered here, over whatever page is open, not only in the settings. -->
+                        <Border Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,20,20" Padding="16,12" MaxWidth="440"
+                                Background="{DynamicResource Brush.SurfaceAlt}" BorderBrush="{DynamicResource Brush.Accent}" BorderThickness="1"
+                                CornerRadius="{DynamicResource Radius.Control}"
+                                Visibility="{Binding Updates.ShowPrompt, Converter={StaticResource BoolToVis}}">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Updates.PromptText}" TextWrapping="Wrap" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                <ProgressBar Minimum="0" Maximum="100" Height="4" Margin="0,10,0,0" Foreground="{DynamicResource Brush.Accent}"
+                                             Value="{Binding Updates.Progress, Mode=OneWay}"
+                                             Visibility="{Binding Updates.IsDownloading, Converter={StaticResource BoolToVis}}" />
+                                <StackPanel Orientation="Horizontal" Margin="0,12,0,0" Visibility="{Binding Updates.IsPromptIdle, Converter={StaticResource BoolToVis}}">
+                                    <Button Style="{DynamicResource AccentPill}" Content="{Binding Updates.InstallLabel}" Command="{Binding Updates.InstallCommand}" />
+                                    <Button Style="{DynamicResource PillOutline}" Content="{loc:T update.later}" Command="{Binding Updates.DismissPromptCommand}" Margin="8,0,0,0" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
                     </Grid>
                 </Border>
             </d:DockHost.Center>
