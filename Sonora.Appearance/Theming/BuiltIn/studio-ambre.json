@@ -1,0 +1,38 @@
+{
+  "id": "studio-ambre",
+  "name": "Ambre",
+  "builtIn": true,
+  "style": "terminal",
+  "colors": {
+    "window": "#0B0905",
+    "surface": "#110E08",
+    "surfaceAlt": "#17130B",
+    "hover": "#211B10",
+    "selected": "#2B2315",
+    "border": "#3A2F1A",
+    "textPrimary": "#F2E6CF",
+    "textSecondary": "#B39B72",
+    "textMuted": "#7A6A4E",
+    "accent": "#FFB000",
+    "onAccent": "#140C00",
+    "rail": "#4A3C22"
+  },
+  "fonts": {
+    "ui": "Cascadia Mono",
+    "display": "Cascadia Mono",
+    "numbers": "Cascadia Mono"
+  },
+  "fontScale": 0.95,
+  "cornerRadius": 2,
+  "density": "compact",
+  "panelGap": 1,
+  "background": {
+    "mode": "solid",
+    "colors": [
+      "#0B0905"
+    ],
+    "artworkStrength": 0.0
+  },
+  "accentFromArtwork": false,
+  "animations": true
+}

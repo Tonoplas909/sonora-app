@@ -1,0 +1,46 @@
+# Build outputs (any project, any configuration)
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vscode/
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# Test results
+[Tt]est[Rr]esults/
+*.coverage
+*.coveragexml
+*.trx
+
+# NuGet
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+
+# Publish / packaging output
+publish/
+*.pubxml.user
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Local tooling state
+.superpowers/
+.claude/
+
+# Local demo profiles and screenshot scratch
+sonora-demo/
+sonora-shots/

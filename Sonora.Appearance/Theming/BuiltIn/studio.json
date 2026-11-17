@@ -1,0 +1,38 @@
+{
+  "id": "studio",
+  "name": "Vert",
+  "builtIn": true,
+  "colors": {
+    "window": "#0A0A0A",
+    "surface": "#111111",
+    "surfaceAlt": "#161616",
+    "hover": "#1E1E1E",
+    "selected": "#262626",
+    "border": "#2A2A2A",
+    "textPrimary": "#EDEDED",
+    "textSecondary": "#9A9A9A",
+    "textMuted": "#5E5E5E",
+    "accent": "#C6F135",
+    "onAccent": "#0A0A0A",
+    "rail": "#333333"
+  },
+  "fonts": {
+    "ui": "Cascadia Mono",
+    "display": "Cascadia Mono",
+    "numbers": "Cascadia Mono"
+  },
+  "fontScale": 0.95,
+  "cornerRadius": 2,
+  "density": "compact",
+  "panelGap": 1,
+  "background": {
+    "mode": "solid",
+    "colors": [
+      "#0A0A0A"
+    ],
+    "artworkStrength": 0.0
+  },
+  "accentFromArtwork": false,
+  "animations": true,
+  "style": "terminal"
+}

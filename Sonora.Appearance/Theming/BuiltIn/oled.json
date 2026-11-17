@@ -1,0 +1,38 @@
+{
+  "id": "oled",
+  "name": "OLED",
+  "builtIn": true,
+  "colors": {
+    "window": "#000000",
+    "surface": "#0A0A0A",
+    "surfaceAlt": "#101010",
+    "hover": "#1A1A1A",
+    "selected": "#242424",
+    "border": "#1C1C1C",
+    "textPrimary": "#FFFFFF",
+    "textSecondary": "#A0A0A0",
+    "textMuted": "#666666",
+    "accent": "#4FD1C5",
+    "onAccent": "#00110F",
+    "rail": "#2A2A2A"
+  },
+  "fonts": {
+    "ui": "Segoe UI Variable Text",
+    "display": "Segoe UI Variable Display",
+    "numbers": "Segoe UI Variable Text"
+  },
+  "fontScale": 1.0,
+  "cornerRadius": 8,
+  "density": "normal",
+  "panelGap": 6,
+  "background": {
+    "mode": "solid",
+    "colors": [
+      "#000000"
+    ],
+    "artworkStrength": 0.0
+  },
+  "accentFromArtwork": true,
+  "animations": true,
+  "style": "standard"
+}

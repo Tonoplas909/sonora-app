@@ -1,0 +1,45 @@
+{
+  "id": "encre",
+  "name": "Clair",
+  "builtIn": true,
+  "style": "encre",
+  "colors": {
+    "window": "#E8EEF3",
+    "surface": "#FFFFFF",
+    "surfaceAlt": "#E8EEF3",
+    "hover": "#F4F7FA",
+    "selected": "#E9EBEE",
+    "border": "#290E1A2B",
+    "textPrimary": "#0E1A2B",
+    "textSecondary": "#4A5B70",
+    "textMuted": "#66788C",
+    "accent": "#1E3350",
+    "onAccent": "#E8EEF3",
+    "rail": "#D3DDE6"
+  },
+  "frame": {
+    "background": "#0E1A2B",
+    "text": "#FFFFFF",
+    "textSecondary": "#B3C1CE",
+    "accent": "#3BB5CB",
+    "onAccent": "#0E1A2B"
+  },
+  "fonts": {
+    "ui": "Figtree",
+    "display": "Barlow Condensed",
+    "numbers": "Figtree"
+  },
+  "fontScale": 1.0,
+  "cornerRadius": 24,
+  "density": "normal",
+  "panelGap": 8,
+  "background": {
+    "mode": "solid",
+    "colors": [
+      "#E8EEF3"
+    ],
+    "artworkStrength": 0.0
+  },
+  "accentFromArtwork": false,
+  "animations": false
+}

@@ -1,0 +1,78 @@
+<p:PanelView x:Class="Sonora.Views.Panels.LyricsPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:p="clr-namespace:Sonora.Views.Panels">
+    <Grid Margin="12,8,4,12">
+        <TextBlock Text="Rien en cours de lecture" Foreground="{DynamicResource Brush.TextSecondary}"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   Visibility="{Binding Player.HasTrack, Converter={StaticResource InvBoolToVis}}" />
+
+        <TextBlock Text="Recherche des paroles…" Foreground="{DynamicResource Brush.TextSecondary}"
+                   HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" MaxWidth="220"
+                   Visibility="{Binding Lyrics.IsLoading, Converter={StaticResource BoolToVis}}" />
+
+        <TextBlock Text="Titre instrumental : pas de paroles" Foreground="{DynamicResource Brush.TextSecondary}"
+                   HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" MaxWidth="220"
+                   Visibility="{Binding Lyrics.Instrumental, Converter={StaticResource BoolToVis}}" />
+
+        <TextBlock Text="Paroles indisponibles pour ce titre" Foreground="{DynamicResource Brush.TextSecondary}"
+                   HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" MaxWidth="220"
+                   Visibility="{Binding Lyrics.NotFound, Converter={StaticResource BoolToVis}}" />
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                      Visibility="{Binding Lyrics.ShowPlainOnly, Converter={StaticResource BoolToVis}}">
+            <TextBlock Text="{Binding Lyrics.Plain}" TextWrapping="Wrap" Margin="4,0,12,0"
+                       FontFamily="{DynamicResource Font.Display}" FontSize="15" LineHeight="26"
+                       Foreground="{DynamicResource Brush.TextPrimary}"
+                       TextAlignment="{Binding State.Features.LyricsAlign, Converter={StaticResource LyricsAlign}}">
+                <TextBlock.LayoutTransform>
+                    <ScaleTransform ScaleX="{Binding State.Features.LyricsScale}" ScaleY="{Binding State.Features.LyricsScale}" />
+                </TextBlock.LayoutTransform>
+            </TextBlock>
+        </ScrollViewer>
+
+        <ListBox x:Name="LinesList" Background="Transparent" BorderThickness="0" Focusable="False"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" VirtualizingPanel.IsVirtualizing="False"
+                 ScrollViewer.CanContentScroll="False" PreviewMouseWheel="LinesList_PreviewMouseWheel"
+                 TextBlock.TextAlignment="{Binding State.Features.LyricsAlign, Converter={StaticResource LyricsAlign}}"
+                 ItemsSource="{Binding Lyrics.Lines}"
+                 Visibility="{Binding Lyrics.HasSynced, Converter={StaticResource BoolToVis}}">
+            <ListBox.LayoutTransform>
+                <ScaleTransform ScaleX="{Binding State.Features.LyricsScale}" ScaleY="{Binding State.Features.LyricsScale}" />
+            </ListBox.LayoutTransform>
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Padding" Value="4,2" />
+                    <Setter Property="Focusable" Value="False" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <ContentPresenter />
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Text}" TextWrapping="Wrap" Margin="4,6" Cursor="Hand" MouseLeftButtonUp="Line_Click">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontSize" Value="15" />
+                                <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                        <Setter Property="FontSize" Value="19" />
+                                        <Setter Property="FontWeight" Value="Bold" />
+                                        <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+</p:PanelView>

@@ -1,0 +1,45 @@
+{
+  "id": "affiche-tomate",
+  "name": "Tomate",
+  "builtIn": true,
+  "style": "affiche",
+  "colors": {
+    "window": "#120A08",
+    "surface": "#16120F",
+    "surfaceAlt": "#201A16",
+    "hover": "#241E1A",
+    "selected": "#322A24",
+    "border": "#26F4EFE6",
+    "textPrimary": "#F4EFE6",
+    "textSecondary": "#BDB4A8",
+    "textMuted": "#857C71",
+    "accent": "#FFC21A",
+    "onAccent": "#14110F",
+    "rail": "#3A342E"
+  },
+  "frame": {
+    "background": "#EE4B2B",
+    "text": "#120A08",
+    "textSecondary": "#2E0E08",
+    "accent": "#120A08",
+    "onAccent": "#FFF1DC"
+  },
+  "fonts": {
+    "ui": "Figtree",
+    "display": "Syne",
+    "numbers": "Figtree"
+  },
+  "fontScale": 1.0,
+  "cornerRadius": 0,
+  "density": "normal",
+  "panelGap": 6,
+  "background": {
+    "mode": "solid",
+    "colors": [
+      "#120A08"
+    ],
+    "artworkStrength": 0.0
+  },
+  "accentFromArtwork": false,
+  "animations": false
+}

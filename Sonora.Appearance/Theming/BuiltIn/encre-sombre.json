@@ -1,0 +1,45 @@
+{
+  "id": "encre-sombre",
+  "name": "Sombre",
+  "builtIn": true,
+  "style": "encre",
+  "colors": {
+    "window": "#0B1522",
+    "surface": "#15243A",
+    "surfaceAlt": "#0B1522",
+    "hover": "#1A2A40",
+    "selected": "#24364F",
+    "border": "#29E8EEF3",
+    "textPrimary": "#E8EEF3",
+    "textSecondary": "#A9B8C8",
+    "textMuted": "#6B7F96",
+    "accent": "#B9C6D6",
+    "onAccent": "#0B1522",
+    "rail": "#24364F"
+  },
+  "frame": {
+    "background": "#060D17",
+    "text": "#FFFFFF",
+    "textSecondary": "#B3C1CE",
+    "accent": "#3BB5CB",
+    "onAccent": "#060D17"
+  },
+  "fonts": {
+    "ui": "Figtree",
+    "display": "Barlow Condensed",
+    "numbers": "Figtree"
+  },
+  "fontScale": 1.0,
+  "cornerRadius": 24,
+  "density": "normal",
+  "panelGap": 8,
+  "background": {
+    "mode": "solid",
+    "colors": [
+      "#0B1522"
+    ],
+    "artworkStrength": 0.0
+  },
+  "accentFromArtwork": false,
+  "animations": false
+}

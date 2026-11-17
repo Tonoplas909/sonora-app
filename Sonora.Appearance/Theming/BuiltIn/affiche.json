@@ -1,0 +1,45 @@
+{
+  "id": "affiche",
+  "name": "Cobalt",
+  "builtIn": true,
+  "style": "affiche",
+  "colors": {
+    "window": "#0B0B10",
+    "surface": "#ECEBE6",
+    "surfaceAlt": "#E0DFD8",
+    "hover": "#DCDBD3",
+    "selected": "#D0CFC6",
+    "border": "#1F0B0B10",
+    "textPrimary": "#0B0B10",
+    "textSecondary": "#4B4B55",
+    "textMuted": "#767680",
+    "accent": "#2036FF",
+    "onAccent": "#FFFFFF",
+    "rail": "#BDBCB3"
+  },
+  "frame": {
+    "background": "#2036FF",
+    "text": "#FFFFFF",
+    "textSecondary": "#C7CEFF",
+    "accent": "#FFE100",
+    "onAccent": "#0B0B10"
+  },
+  "fonts": {
+    "ui": "Figtree",
+    "display": "Syne",
+    "numbers": "Figtree"
+  },
+  "fontScale": 1.0,
+  "cornerRadius": 0,
+  "density": "normal",
+  "panelGap": 6,
+  "background": {
+    "mode": "solid",
+    "colors": [
+      "#0B0B10"
+    ],
+    "artworkStrength": 0.0
+  },
+  "accentFromArtwork": false,
+  "animations": false
+}

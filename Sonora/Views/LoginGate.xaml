@@ -1,0 +1,53 @@
+<UserControl x:Class="Sonora.Views.LoginGate"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{DynamicResource Brush.Background}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Border Width="520" Margin="24,48" VerticalAlignment="Center" HorizontalAlignment="Center"
+                Background="{DynamicResource Brush.Surface}" CornerRadius="{DynamicResource Radius.Panel}" Padding="40,36"
+                TextElement.Foreground="{DynamicResource Brush.TextPrimary}">
+            <StackPanel>
+                <Image Source="/Assets/Sonora.png" Width="72" Height="72" HorizontalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality" />
+                <TextBlock Text="Bienvenue dans Sonora" FontSize="{DynamicResource Size.Text.Title}" FontFamily="{DynamicResource Font.Display}" FontWeight="Bold"
+                           HorizontalAlignment="Center" Margin="0,18,0,6" />
+                <TextBlock Text="Connectez votre compte Spotify Premium pour commencer." Foreground="{DynamicResource Brush.TextSecondary}"
+                           HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
+
+                <TextBlock Text="Client ID de votre application Spotify" FontWeight="SemiBold" Margin="0,28,0,6" />
+                <TextBox Text="{Binding SpotifyClientId, UpdateSourceTrigger=PropertyChanged}" />
+
+                <Button Margin="0,20,0,0" Padding="20,12" Command="{Binding SpotifyLoginCommand}">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource AccentPill}">
+                            <Setter Property="Content" Value="Se connecter avec Spotify" />
+                            <Setter Property="HorizontalAlignment" Value="Stretch" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Spotify.IsBusy}" Value="True">
+                                    <Setter Property="Content" Value="Connexion dans votre navigateur…" />
+                                    <Setter Property="Opacity" Value="0.6" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <TextBlock Text="{Binding Spotify.Status}" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="{DynamicResource Size.Text.Small}"
+                           TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" Margin="0,12,0,0" />
+
+                <Border BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,1,0,0" Margin="0,24,0,0" Padding="0,16,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Première fois ?" FontWeight="SemiBold" Margin="0,0,0,6" />
+                        <TextBlock Foreground="{DynamicResource Brush.TextSecondary}" FontSize="{DynamicResource Size.Text.Small}" TextWrapping="Wrap"
+                                   Text="Créez une application sur le tableau de bord développeur Spotify (Web API + Web Playback SDK), ajoutez l'adresse de redirection ci-dessous, puis collez son Client ID ci-dessus." />
+                        <DockPanel Margin="0,10,0,0">
+                            <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE8C8;" ToolTip="Copier" Command="{Binding CopyRedirectUriCommand}" />
+                            <TextBox Text="{Binding RedirectUri, Mode=OneWay}" IsReadOnly="True" />
+                        </DockPanel>
+                        <Button Style="{StaticResource LinkText}" Content="Ouvrir le tableau de bord développeur" Foreground="{DynamicResource Brush.Accent}"
+                                Margin="0,10,0,0" Command="{Binding OpenDeveloperDashboardCommand}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Border>
+    </ScrollViewer>
+</UserControl>

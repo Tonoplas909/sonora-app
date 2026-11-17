@@ -1,0 +1,38 @@
+{
+  "id": "fonction-nuit",
+  "name": "Nuit",
+  "builtIn": true,
+  "style": "fonction",
+  "colors": {
+    "window": "#0E0E0D",
+    "surface": "#1C1C1A",
+    "surfaceAlt": "#242422",
+    "hover": "#262624",
+    "selected": "#30302D",
+    "border": "#33FFFFFF",
+    "textPrimary": "#ECEBE6",
+    "textSecondary": "#A5A59E",
+    "textMuted": "#77776F",
+    "accent": "#FF7A2B",
+    "onAccent": "#1A0F08",
+    "rail": "#3A3A36"
+  },
+  "fonts": {
+    "ui": "Bahnschrift",
+    "display": "Bahnschrift",
+    "numbers": "Bahnschrift"
+  },
+  "fontScale": 0.95,
+  "cornerRadius": 4,
+  "density": "compact",
+  "panelGap": 2,
+  "background": {
+    "mode": "solid",
+    "colors": [
+      "#0E0E0D"
+    ],
+    "artworkStrength": 0.0
+  },
+  "accentFromArtwork": false,
+  "animations": false
+}

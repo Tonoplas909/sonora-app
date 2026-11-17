@@ -1,0 +1,38 @@
+{
+  "id": "soul-lagune",
+  "name": "Lagune",
+  "builtIn": true,
+  "style": "soul",
+  "colors": {
+    "window": "#0A2624",
+    "surface": "#11413D",
+    "surfaceAlt": "#1A524D",
+    "hover": "#22615B",
+    "selected": "#2B6F68",
+    "border": "#33F2E6C9",
+    "textPrimary": "#F6EBD3",
+    "textSecondary": "#CBD8C6",
+    "textMuted": "#8FB0A4",
+    "accent": "#FF8A6B",
+    "onAccent": "#2A0F08",
+    "rail": "#2F6A63"
+  },
+  "fonts": {
+    "ui": "Figtree",
+    "display": "Fraunces",
+    "numbers": "Figtree"
+  },
+  "fontScale": 1.0,
+  "cornerRadius": 28,
+  "density": "confort",
+  "panelGap": 10,
+  "background": {
+    "mode": "solid",
+    "colors": [
+      "#0A2624"
+    ],
+    "artworkStrength": 0.0
+  },
+  "accentFromArtwork": false,
+  "animations": true
+}

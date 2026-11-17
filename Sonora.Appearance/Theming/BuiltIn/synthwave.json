@@ -1,0 +1,39 @@
+{
+  "id": "synthwave",
+  "name": "Synthwave",
+  "builtIn": true,
+  "colors": {
+    "window": "#0D0221",
+    "surface": "#160B33",
+    "surfaceAlt": "#1E1145",
+    "hover": "#2A1A5E",
+    "selected": "#36226F",
+    "border": "#3B2577",
+    "textPrimary": "#F8F1FF",
+    "textSecondary": "#5CE1E6",
+    "textMuted": "#8D7BB8",
+    "accent": "#FF3EA5",
+    "onAccent": "#1A0012",
+    "rail": "#4A3290"
+  },
+  "fonts": {
+    "ui": "Segoe UI Variable Text",
+    "display": "Segoe UI Variable Display",
+    "numbers": "Segoe UI Variable Text"
+  },
+  "fontScale": 1.0,
+  "cornerRadius": 14,
+  "density": "normal",
+  "panelGap": 8,
+  "background": {
+    "mode": "gradient",
+    "colors": [
+      "#2B0F54",
+      "#0D0221"
+    ],
+    "artworkStrength": 0.0
+  },
+  "accentFromArtwork": false,
+  "animations": true,
+  "style": "standard"
+}

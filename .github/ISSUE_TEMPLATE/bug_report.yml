@@ -1,0 +1,63 @@
+name: Bug report
+description: Something does not work the way it should
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. **Please never paste a Spotify Client ID, a token or the contents of `state.json`.**
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, what happened instead? Screenshots help.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Click ...
+    validations:
+      required: false
+  - type: dropdown
+    id: source
+    attributes:
+      label: Does it involve
+      options:
+        - Local files
+        - Spotify
+        - Both / not sure
+        - Neither (appearance, layout, settings...)
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Sonora version
+      description: A release number, or the commit if you built it yourself.
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: Windows 11 23H2, 64-bit
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Theme, number of monitors, the message shown in the notification card...
+    validations:
+      required: false
+  - type: checkboxes
+    id: secrets
+    attributes:
+      label: Privacy check
+      options:
+        - label: I removed any Client ID, token or personal data from this report.
+          required: true
