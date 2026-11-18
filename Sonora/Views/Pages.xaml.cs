@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using Sonora.Appearance.Features;
 using Sonora.ViewModels;
 
 namespace Sonora.Views;
@@ -59,9 +60,13 @@ public partial class Pages : ResourceDictionary
         if (root.FindName("CompactScale") is not ScaleTransform compactScale) return;
 
         bool collapsed = false;
+        double headerHeight = 0; // the tallest the header rows have been: what collapsing gives back to the list
         list.AddHandler(ScrollViewer.ScrollChangedEvent, new ScrollChangedEventHandler((_, args) =>
         {
-            bool shouldCollapse = args.VerticalOffset > 24;
+            if (root is Grid grid)
+                headerHeight = Math.Max(headerHeight, grid.RowDefinitions.Take(3).Sum(r => r.ActualHeight));
+
+            bool shouldCollapse = HeaderCollapse.ShouldCollapse(collapsed, args.VerticalOffset, args.ExtentHeight, args.ViewportHeight, headerHeight);
             if (shouldCollapse == collapsed) return;
             collapsed = shouldCollapse;
 
