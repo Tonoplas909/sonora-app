@@ -157,6 +157,7 @@ public sealed class SpotifyAccount : ObservableObject, IDisposable
     public void Logout()
     {
         Auth.SignOut();
+        Api.ClearBlocks();
         IsConnected = false;
         UserName = "";
         UserId = "";
@@ -227,6 +228,26 @@ public sealed class SpotifyAccount : ObservableObject, IDisposable
         LibraryChanged?.Invoke();
         Services.SpotifyCacheStore.Save(BuildCache());
         _ = LoadNewReleasesAsync(); // many small requests: done after the library is shown
+        if (!complete) ResumeWhenAllowed();
+    }
+
+    bool _resumeScheduled;
+
+    /// <summary>
+    /// When Spotify has put endpoints out of reach, the library stays as saved; once the last block is over (the time
+    /// is the one Spotify gave, kept across restarts) it is read again, and not before.
+    /// </summary>
+    async void ResumeWhenAllowed()
+    {
+        if (_resumeScheduled || Api.LastOpening is not { } opening) return;
+        _resumeScheduled = true;
+        try
+        {
+            await Task.Delay(opening - DateTime.UtcNow + TimeSpan.FromSeconds(5)); // back on the UI thread, like the caller
+            _resumeScheduled = false; // a reload that is refused again schedules the next one
+            if (Auth.IsSignedIn) await LoadLibraryAsync();
+        }
+        catch { _resumeScheduled = false; /* the refresh button, or the next start, will try again */ }
     }
 
     /// <summary>The list, or null when it could not be read.</summary>
