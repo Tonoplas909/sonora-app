@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Sonora.Models;
+using Sonora.Appearance.Features;
 using Sonora.Appearance.Localization;
 
 namespace Sonora.Spotify;
@@ -27,14 +28,20 @@ public sealed class SpotifyApi(HttpClient http, SpotifyAuth auth)
     /// Endpoints Spotify has told us to stay away from for a long time, with the moment they open again. A development
     /// app that goes over its quota can be turned away for hours (a Retry-After of 16000 s was seen on /me): asking
     /// again meanwhile only renews the sentence, so nothing is sent until then and the caller gets the answer at once.
+    /// The reset times are kept in a file, so closing and reopening the app does not ask again before they are over.
     /// </summary>
-    readonly System.Collections.Concurrent.ConcurrentDictionary<string, DateTime> _blockedUntil = new();
+    readonly RateLimitLedger _blocks = new(System.IO.Path.Combine(Services.StateStore.Dir, "spotify-rate-limit.json"));
 
     static string Key(string path) => (path.StartsWith(Base, StringComparison.Ordinal) ? path[Base.Length..] : path).Split('?')[0];
 
     /// <summary>When this endpoint will answer again, or null when it is not blocked.</summary>
-    public DateTime? BlockedUntil(string path) =>
-        _blockedUntil.TryGetValue(Key(path), out var until) && until > DateTime.UtcNow ? until : null;
+    public DateTime? BlockedUntil(string path) => _blocks.BlockedUntil(Key(path));
+
+    /// <summary>When the last of the blocked endpoints answers again, or null when none is blocked.</summary>
+    public DateTime? LastOpening => _blocks.LastOpening();
+
+    /// <summary>Forgets every block (signing out: the next account, or the next Client ID, has its own quota).</summary>
+    public void ClearBlocks() => _blocks.Clear();
 
     static SpotifyException Limited(DateTime untilUtc) =>
         new(429, Loc.T("spotify.rate_limited_until", untilUtc.ToLocalTime().ToString("HH:mm")));
@@ -45,7 +52,7 @@ public sealed class SpotifyApi(HttpClient http, SpotifyAuth auth)
         var wait = res.Headers.RetryAfter?.Delta ?? TimeSpan.FromSeconds(2);
         if (wait <= LongWait) return wait;
         var until = DateTime.UtcNow + wait;
-        _blockedUntil[Key(path)] = until;
+        _blocks.Block(Key(path), until);
         throw Limited(until);
     }
 
