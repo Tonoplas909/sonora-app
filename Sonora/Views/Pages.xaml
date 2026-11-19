@@ -384,7 +384,16 @@
                 <ItemsControl ItemsSource="{Binding Tiles}" ItemsPanel="{DynamicResource WrapPanelTemplate}" Margin="-12,0,0,0">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Button Style="{StaticResource CardButton}" Command="{Binding Open}" Margin="12,0,0,16">
+                            <Button Command="{Binding Open}" Margin="12,0,0,16">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource CardButton}">
+                                        <Style.Triggers>
+                                            <Trigger Property="IsEnabled" Value="False">
+                                                <Setter Property="Opacity" Value="0.4" />
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
                                 <Border Width="240" CornerRadius="{DynamicResource Radius.Panel}" Background="{DynamicResource Brush.SurfaceAlt}" Padding="20,18">
                                     <StackPanel>
                                         <TextBlock Text="{Binding Glyph}" FontFamily="{StaticResource Icons}" FontSize="26"

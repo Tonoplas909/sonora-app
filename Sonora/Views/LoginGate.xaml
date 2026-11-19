@@ -19,11 +19,11 @@
                 <Button Margin="0,20,0,0" Padding="20,12" Command="{Binding SpotifyLoginCommand}">
                     <Button.Style>
                         <Style TargetType="Button" BasedOn="{StaticResource AccentPill}">
-                            <Setter Property="Content" Value="Se connecter avec Spotify" />
+                            <Setter Property="Content" Value="{loc:T pages.sign_in_with_spotify}" />
                             <Setter Property="HorizontalAlignment" Value="Stretch" />
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding Spotify.IsBusy}" Value="True">
-                                    <Setter Property="Content" Value="Connexion dans votre navigateur…" />
+                                    <Setter Property="Content" Value="{loc:T login.connecting_in_your_browser}" />
                                     <Setter Property="Opacity" Value="0.6" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -33,6 +33,11 @@
 
                 <TextBlock Text="{Binding Spotify.Status}" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="{DynamicResource Size.Text.Small}"
                            TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" Margin="0,12,0,0" />
+
+                <Button Style="{DynamicResource PillOutline}" Content="{loc:T login.use_local_files_only}" HorizontalAlignment="Stretch" Padding="20,12"
+                        Margin="0,12,0,0" Command="{Binding UseLocalFilesOnlyCommand}" />
+                <TextBlock Text="{loc:T login.local_files_hint}" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="{DynamicResource Size.Text.Small}"
+                           TextWrapping="Wrap" TextAlignment="Center" Margin="0,8,0,0" />
 
                 <Border BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,1,0,0" Margin="0,24,0,0" Padding="0,16,0,0">
                     <StackPanel>

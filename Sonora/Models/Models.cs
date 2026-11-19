@@ -178,6 +178,8 @@ public sealed class AppState
     /// <summary>Where each podcast episode was left, in seconds, so it can be resumed.</summary>
     public Dictionary<string, double> EpisodePositions { get; set; } = [];
     public string SpotifyClientId { get; set; } = "";
+    /// <summary>The user chose to use Sonora without a Spotify account: the sign-in screen stays away until they sign in or out again.</summary>
+    public bool LocalOnly { get; set; }
     /// <summary>ListenBrainz user token. Empty means nothing is ever sent there.</summary>
     public string ListenBrainzToken { get; set; } = "";
     /// <summary>Order last chosen on a playlist screen (a key of <c>ListQuery.SortKeys</c>), applied to every playlist opened next.</summary>

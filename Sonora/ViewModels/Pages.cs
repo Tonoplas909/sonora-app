@@ -578,23 +578,24 @@ public sealed class DiscoverPage : PageViewModel
     public DiscoverPage(MainViewModel main) : base(main)
     {
         var f = main.State.Features;
+        Func<bool> spotify = () => main.Spotify.IsConnected; // these tiles need the account: they are greyed out without it
         Tiles = [];
         if (f.Tops)
             Tiles.Add(new DiscoverTile(Loc.T("pages.your_tops"), Loc.T("discover.tops_desc"), "",
-                new RelayCommand(main.OpenTops)));
+                new RelayCommand(main.OpenTops, spotify)));
         if (f.History)
             Tiles.Add(new DiscoverTile(Loc.T("discover.history"), Loc.T("discover.history_desc"), "",
-                new RelayCommand(main.OpenHistory)));
+                new RelayCommand(main.OpenHistory, spotify)));
         if (f.NewReleases)
             Tiles.Add(new DiscoverTile(Loc.T("discover.new_releases"), Loc.T("discover.new_releases_desc"), "",
-                new RelayCommand(main.OpenNewReleases)));
+                new RelayCommand(main.OpenNewReleases, spotify)));
         if (f.Podcasts)
             Tiles.Add(new DiscoverTile(Loc.T("pages.podcasts"), Loc.T("discover.shows_desc"), "",
-                new RelayCommand(main.OpenShows)));
+                new RelayCommand(main.OpenShows, spotify)));
         if (f.Podcasts)
             Tiles.Add(new DiscoverTile(Loc.T("discover.saved_episodes"), Loc.T("discover.episodes_desc"), "",
-                new RelayCommand(main.OpenSavedEpisodes)));
-        if (f.ListeningLog)
+                new RelayCommand(main.OpenSavedEpisodes, spotify)));
+        if (f.ListeningLog) // Sonora's own log: no account needed
             Tiles.Add(new DiscoverTile(Loc.T("pages.your_statistics"), Loc.T("discover.stats_desc"), "",
                 new RelayCommand(main.OpenStats)));
         if (f.Discovery && main.Spotify.TopArtists.Count > 0)
@@ -609,7 +610,7 @@ public sealed class DiscoverPage : PageViewModel
     public List<DiscoverTile> Tiles { get; }
     public bool IsEmpty => Tiles.Count == 0;
 
-    /// <summary>Shown when Spotify is not connected: every tile needs the account.</summary>
+    /// <summary>Shown when Spotify is not connected: its tiles need the account and are greyed out.</summary>
     public bool NeedsSpotify => !Main.Spotify.IsConnected;
 }
 
