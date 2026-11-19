@@ -19,11 +19,11 @@
                 <Button Margin="0,20,0,0" Padding="20,12" Command="{Binding SpotifyLoginCommand}">
                     <Button.Style>
                         <Style TargetType="Button" BasedOn="{StaticResource AccentPill}">
-                            <Setter Property="Content" Value="Se connecter avec Spotify" />
+                            <Setter Property="Content" Value="{loc:T pages.sign_in_with_spotify}" />
                             <Setter Property="HorizontalAlignment" Value="Stretch" />
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding Spotify.IsBusy}" Value="True">
-                                    <Setter Property="Content" Value="Connexion dans votre navigateur…" />
+                                    <Setter Property="Content" Value="{loc:T login.connecting_in_your_browser}" />
                                     <Setter Property="Opacity" Value="0.6" />
                                 </DataTrigger>
                             </Style.Triggers>
