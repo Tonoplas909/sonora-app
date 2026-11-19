@@ -142,7 +142,7 @@ public sealed class MainViewModel : ObservableObject
         Loc.LanguageChanged += OnLanguageChanged;
         Spotify.LibraryChanged += () => dispatcher.InvokeAsync(OnSpotifyLibraryChanged);
         Player.AttachSpotify(Spotify.Engine);
-        _showLoginGate = !Spotify.Auth.IsSignedIn; // known synchronously: no flash of the main UI
+        _showLoginGate = !Spotify.Auth.IsSignedIn && !StateStore.LoadState().LocalOnly; // known synchronously: no flash of the main UI
 
         _saveTimer = new DispatcherTimer(DispatcherPriority.Background, dispatcher) { Interval = TimeSpan.FromSeconds(1.5) };
         _saveTimer.Tick += (_, _) => { _saveTimer.Stop(); SaveState(); };
@@ -190,6 +190,7 @@ public sealed class MainViewModel : ObservableObject
 
         SpotifyLoginCommand = new RelayCommand(() => _ = SpotifyLoginAsync(), () => !Spotify.IsBusy);
         SpotifyLogoutCommand = new RelayCommand(SpotifyLogout);
+        UseLocalFilesOnlyCommand = new RelayCommand(UseLocalFilesOnly);
         SpotifyRefreshCommand = new RelayCommand(() => _ = Guard(Spotify.LoadLibraryAsync()));
         OpenDeveloperDashboardCommand = new RelayCommand(() => OpenUrl("https://developer.spotify.com/dashboard"));
         CopyRedirectUriCommand = new RelayCommand(() =>
@@ -236,7 +237,7 @@ public sealed class MainViewModel : ObservableObject
     public ICommand RescanCommand { get; }
     public ICommand SpotifyLoginCommand { get; }
     public ICommand SpotifyLogoutCommand { get; }
-    public ICommand SpotifyRefreshCommand { get; }
+    public ICommand UseLocalFilesOnlyCommand { get; }    public ICommand SpotifyRefreshCommand { get; }
     public ICommand OpenDeveloperDashboardCommand { get; }
     public ICommand CopyRedirectUriCommand { get; }
 
@@ -363,10 +364,17 @@ public sealed class MainViewModel : ObservableObject
     }
 
     bool _showLoginGate;
-    /// <summary>Full-window sign-in screen, shown until a Spotify account is connected.</summary>
+    /// <summary>Full-window sign-in screen, shown until a Spotify account is connected or local files only are chosen.</summary>
     public bool ShowLoginGate { get => _showLoginGate; private set => Set(ref _showLoginGate, value); }
 
-    void UpdateLoginGate() => ShowLoginGate = !Spotify.Auth.IsSignedIn && !SnapshotMode;
+    void UpdateLoginGate() => ShowLoginGate = !Spotify.Auth.IsSignedIn && !State.LocalOnly && !SnapshotMode;
+
+    void UseLocalFilesOnly()
+    {
+        State.LocalOnly = true;
+        ScheduleSave();
+        UpdateLoginGate();
+    }
 
     /// <summary>Arrangement of the dockable panels.</summary>
     public LayoutViewModel Layout { get; }
@@ -724,6 +732,7 @@ public sealed class MainViewModel : ObservableObject
         try
         {
             await Spotify.LoginAsync(SpotifyClientId);
+            State.LocalOnly = false; // signing out later brings the sign-in screen back, as before
             ScheduleSave();
             UpdateLoginGate();
             await ConnectSpotifyAsync();
