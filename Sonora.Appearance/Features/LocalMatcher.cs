@@ -5,8 +5,9 @@ public readonly record struct TrackKey(string Title, string Artist, double Secon
 
 /// <summary>
 /// Finds, among the files a person has, the one a playlist entry from somewhere else stands for (a local file listed in a
-/// Spotify playlist, a track of an imported playlist). Matching is by title, artist and length, and only a title that
-/// agrees exactly (ignoring case and accents) counts: a wrong file playing is worse than a "locate" prompt.
+/// Spotify playlist, a track of an imported playlist), or the lyrics entry that belongs to a track. Matching is by title,
+/// artist and length, and only a title that agrees exactly (ignoring case and accents) counts: a wrong file playing is
+/// worse than a "locate" prompt, and wrong lyrics are worse than none.
 /// </summary>
 public sealed class LocalMatcher<T>
 {

@@ -38,6 +38,21 @@ public class LocalMatcherTests
         Assert.Equal("a.mp3", m.Find(new TrackKey("FREESTYLE SKYRÓCK", "beendo z", 86))?.Path);
     }
 
+    /// <summary>
+    /// Issue #11: the lyrics search fallback took the closest length among LRCLIB's results however far off it was,
+    /// so a 4:07 mashup named "4 Raws" got the 2:27 song's timed lyrics. These are LRCLIB's real entries for it.
+    /// </summary>
+    [Fact]
+    public void Find_LyricsCandidates_RefusesAnotherRecordingAndPicksTheSameOne()
+    {
+        var m = Matcher(new Song("4 Raws", "EsDeeKid", 155, "155"), new Song("4 Raws", "EsDeeKid", 180, "180"),
+                        new Song("4 Raws", "EsDeeKid", 220, "220"), new Song("4 Raws", "EsDeeKid", 146.666, "146.666"),
+                        new Song("4 Raws", "Esdeekid", 147, "147"));
+        Assert.Null(m.Find(new TrackKey("4 Raws", "EsDeeKid", 246.9)));                // a mashup: no lyrics beats wrong ones
+        Assert.Null(m.Find(new TrackKey("4 Raws x Monëy so big", "EsDeeKid", 147)));   // another title
+        Assert.Equal("146.666", m.Find(new TrackKey("4 Raws", "EsDeeKid", 146.6))?.Path); // the closest of those that agree
+    }
+
     [Fact]
     public void Find_RefusesALengthThatIsTooFarOff()
     {

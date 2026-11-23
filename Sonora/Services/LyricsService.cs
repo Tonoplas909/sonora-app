@@ -11,8 +11,8 @@ public sealed record LyricsResult(List<LyricLine> Synced, string? Plain, bool In
 
 /// <summary>
 /// Looks up lyrics on LRCLIB (lrclib.net), a free, community-run, open lyrics database (no API key, no account).
-/// Tries an exact match first (title, artist, album, duration), then falls back to a fuzzy search picking the
-/// closest duration. Results are cached in memory only, for the lifetime of the app — nothing touches disk.
+/// Tries an exact match first (title, artist, album, duration), then falls back to a search, keeping only an entry for
+/// the same recording (see <see cref="LocalMatcher{T}"/>). Results are cached in memory only, for the lifetime of the app — nothing touches disk.
 /// </summary>
 public sealed class LyricsService
 {
@@ -40,18 +40,15 @@ public sealed class LyricsService
             if (exact.HasValue && exact.Value.ValueKind == JsonValueKind.Object) return Map(exact.Value);
 
             var found = await GetJsonAsync("search?" + Query(track, artist, exact: false), ct);
-            if (!found.HasValue || found.Value.ValueKind != JsonValueKind.Array || found.Value.GetArrayLength() == 0) return null;
+            if (!found.HasValue || found.Value.ValueKind != JsonValueKind.Array) return null;
 
-            JsonElement best = default;
-            double bestDiff = double.MaxValue;
-            bool have = false;
-            foreach (var item in found.Value.EnumerateArray())
-            {
-                var duration = Num(item, "duration");
-                var diff = track.DurationSec > 0 && duration > 0 ? Math.Abs(duration - track.DurationSec) : 0;
-                if (!have || diff < bestDiff) { best = item; bestDiff = diff; have = true; }
-            }
-            return have ? Map(best) : null;
+            // The search is loose: keep only an entry for the same recording (same title, overlapping artist, length
+            // within a few seconds). A remix, a live take or a mashup sharing the title would show lyrics that do not
+            // follow the music, and no lyrics beats wrong ones (issue #11).
+            var matcher = new LocalMatcher<JsonElement>(found.Value.EnumerateArray(),
+                e => new TrackKey(Str(e, "trackName") ?? "", Str(e, "artistName") ?? "", Num(e, "duration")));
+            var best = matcher.Find(new TrackKey(track.Title, artist, track.DurationSec));
+            return best.ValueKind == JsonValueKind.Object ? Map(best) : null;
         }
         catch (OperationCanceledException) { throw; }
         catch { return null; } // best effort: a failed lookup just means "no lyrics", never a crash
