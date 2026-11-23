@@ -151,6 +151,7 @@
     <!-- ===== Cards: leaf-cut tiles, titles in the serif ===== -->
 
     <Style x:Key="CardButton" TargetType="Button">
+        <Setter Property="v:Motion.HoverLift" Value="True" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Focusable" Value="False" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}" />

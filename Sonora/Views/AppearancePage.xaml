@@ -44,8 +44,8 @@
                             <Trigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="KnobShift" Storyboard.TargetProperty="X" To="18" Duration="0:0:0.14">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="KnobShift" Storyboard.TargetProperty="X" To="18" Duration="0:0:0.26">
+                                            <DoubleAnimation.EasingFunction><QuinticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
                                     </Storyboard>
                                 </BeginStoryboard>
@@ -53,8 +53,8 @@
                             <Trigger.ExitActions>
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="KnobShift" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.14">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        <DoubleAnimation Storyboard.TargetName="KnobShift" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.26">
+                                            <DoubleAnimation.EasingFunction><QuinticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
                                     </Storyboard>
                                 </BeginStoryboard>
@@ -88,7 +88,7 @@
 
     <!-- Theme card: a mini window drawn with the theme's first sub-theme, its shapes and a description -->
     <DataTemplate x:Key="StyleTileTemplate" DataType="{x:Type vm:StyleTile}">
-        <Button Cursor="Hand" Focusable="False" Margin="0,0,14,14"
+        <Button Cursor="Hand" Focusable="False" Margin="0,0,14,14" v:Motion.HoverLift="True"
                 Command="{Binding DataContext.Settings.SelectStyleCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}">
             <Button.Template>
                 <ControlTemplate TargetType="Button">
@@ -140,7 +140,7 @@
 
     <!-- Theme thumbnail drawn with the theme's own colours -->
     <DataTemplate x:Key="ThemeTileTemplate" DataType="{x:Type vm:ThemeTile}">
-        <Button Cursor="Hand" Focusable="False" Margin="0,0,14,14"
+        <Button Cursor="Hand" Focusable="False" Margin="0,0,14,14" v:Motion.HoverLift="True"
                 Command="{Binding DataContext.Settings.ApplyThemeCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}">
             <Button.Template>
                 <ControlTemplate TargetType="Button">

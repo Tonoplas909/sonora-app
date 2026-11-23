@@ -28,6 +28,7 @@ public partial class MainWindow : Window
         App.Themes.ApplyIconTo(this); // the icon follows the theme: set here, not in the XAML
         var args = Environment.GetCommandLineArgs();
         bool snapshot = args.Contains("--snapshot");
+        if (!snapshot) Views.Motion.FadeInWindow(this); // the window opens with a fade, not a pop
 
         // Diagnostics options: --theme <id>, --layout <file.json>, --log-dir <folder>
         if (Option(args, "--theme") is { } themeId) App.Themes.Apply(App.Catalog.Get(themeId));

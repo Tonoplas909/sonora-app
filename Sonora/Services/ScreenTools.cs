@@ -65,6 +65,57 @@ public static class ScreenTools
     static Display ToMonitor(MONITORINFO info) =>
         new(info.Monitor.Left, info.Monitor.Top, info.Monitor.Right, info.Monitor.Bottom, (info.Flags & 1) != 0);
 
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    struct DISPLAY_DEVICE
+    {
+        public int Size;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public string DeviceName;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)] public string DeviceString;
+        public int StateFlags;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)] public string DeviceID;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)] public string DeviceKey;
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    struct DEVMODE
+    {
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public string DeviceName;
+        public short SpecVersion, DriverVersion, Size, DriverExtra;
+        public int Fields, PositionX, PositionY, DisplayOrientation, DisplayFixedOutput;
+        public short Color, Duplex, YResolution, TTOption, Collate;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)] public string FormName;
+        public short LogPixels;
+        public int BitsPerPel, PelsWidth, PelsHeight, DisplayFlags, DisplayFrequency;
+        public int ICMMethod, ICMIntent, MediaType, DitherType, Reserved1, Reserved2, PanningWidth, PanningHeight;
+    }
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern bool EnumDisplayDevices(string? device, int index, ref DISPLAY_DEVICE info, int flags);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern bool EnumDisplaySettings(string device, int mode, ref DEVMODE info);
+
+    /// <summary>
+    /// The highest refresh rate among the screens on the desktop (60 when it cannot be read): how many frames a
+    /// second the window can actually show, wherever it is moved.
+    /// </summary>
+    public static int HighestRefreshRate()
+    {
+        const int AttachedToDesktop = 1, CurrentSettings = -1;
+        int best = 0;
+        try
+        {
+            var device = new DISPLAY_DEVICE { Size = Marshal.SizeOf<DISPLAY_DEVICE>() };
+            for (int i = 0; EnumDisplayDevices(null, i, ref device, 0); i++, device.Size = Marshal.SizeOf<DISPLAY_DEVICE>())
+            {
+                if ((device.StateFlags & AttachedToDesktop) == 0) continue;
+                var mode = new DEVMODE { Size = (short)Marshal.SizeOf<DEVMODE>() };
+                // 0 and 1 mean "the hardware default": no usable figure.
+                if (EnumDisplaySettings(device.DeviceName, CurrentSettings, ref mode) && mode.DisplayFrequency > 1)
+                    best = Math.Max(best, mode.DisplayFrequency);
+            }
+        }
+        catch { /* a driver without these answers: keep the default */ }
+        return best > 0 ? best : 60;
+    }
+
     /// <summary>All connected displays, left to right, so "next screen" reads naturally.</summary>
     public static List<Display> Monitors()
     {

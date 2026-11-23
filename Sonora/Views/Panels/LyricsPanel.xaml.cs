@@ -3,7 +3,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Threading;
 using Sonora.ViewModels;
 
 namespace Sonora.Views.Panels;
@@ -11,7 +10,7 @@ namespace Sonora.Views.Panels;
 public partial class LyricsPanel : PanelView
 {
     ScrollViewer? _scroll;
-    DispatcherTimer? _scrollAnim;
+    EventHandler? _scrollAnim;
     DateTime _manualUntil = DateTime.MinValue;
 
     /// <summary>How long the list leaves the reader alone after they scroll it by hand.</summary>
@@ -62,29 +61,37 @@ public partial class LyricsPanel : PanelView
     void LinesList_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
     {
         _manualUntil = DateTime.UtcNow + ManualScrollPause;
-        _scrollAnim?.Stop(); // a running follow-animation would drag the list back under the pointer
+        StopScrollAnim(); // a running follow-animation would drag the list back under the pointer
     }
 
     void AnimateScrollTo(double target)
     {
-        _scrollAnim?.Stop();
+        StopScrollAnim();
         var scroll = _scroll!;
         var start = scroll.VerticalOffset;
         var distance = target - start;
         if (Math.Abs(distance) < 1) return;
 
+        // Driven by the render loop, so each step lands on a drawn frame: no judder from a timer drifting against it.
         var startTime = DateTime.UtcNow;
-        var duration = TimeSpan.FromMilliseconds(400);
-        var timer = new DispatcherTimer(DispatcherPriority.Render) { Interval = TimeSpan.FromMilliseconds(16) };
-        timer.Tick += (_, _) =>
+        const double durationMs = 650;
+        EventHandler? frame = null;
+        frame = (_, _) =>
         {
-            var t = (DateTime.UtcNow - startTime).TotalMilliseconds / duration.TotalMilliseconds;
-            if (t >= 1) { scroll.ScrollToVerticalOffset(target); timer.Stop(); return; }
-            var eased = 1 - Math.Pow(1 - t, 3); // ease-out cubic
+            var t = (DateTime.UtcNow - startTime).TotalMilliseconds / durationMs;
+            if (t >= 1) { scroll.ScrollToVerticalOffset(target); StopScrollAnim(); return; }
+            var eased = 1 - Math.Pow(1 - t, 5); // ease-out quintic: a long, soft landing on the line
             scroll.ScrollToVerticalOffset(start + distance * eased);
         };
-        _scrollAnim = timer;
-        timer.Start();
+        _scrollAnim = frame;
+        CompositionTarget.Rendering += frame;
+    }
+
+    void StopScrollAnim()
+    {
+        if (_scrollAnim == null) return;
+        CompositionTarget.Rendering -= _scrollAnim;
+        _scrollAnim = null;
     }
 
     static ScrollViewer? FindScrollViewer(DependencyObject root)

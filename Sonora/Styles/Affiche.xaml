@@ -364,6 +364,7 @@
     <!-- ===== Cards: a square cover and a title in display type; the whole card inverts under the pointer ===== -->
 
     <Style x:Key="PosterCard" TargetType="Button">
+        <Setter Property="v:Motion.HoverLift" Value="True" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Focusable" Value="False" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}" />

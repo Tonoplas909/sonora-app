@@ -57,6 +57,7 @@
         <Setter Property="Focusable" Value="False" />
         <Setter Property="Content" Value="&#xE768;" />
         <Setter Property="ToolTip" Value="Lire" />
+        <Setter Property="v:Motion.FadeOnShow" Value="True" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -115,7 +116,7 @@
             <TextBlock x:Name="Num" Text="{Binding Number}" Foreground="{DynamicResource Brush.TextSecondary}" FontFamily="{DynamicResource Font.Numbers}"
                        FontSize="{DynamicResource Size.Text.Body}" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,14,0" />
             <TextBlock x:Name="Eq" Style="{StaticResource GlyphText}" Text="&#xE995;" Foreground="{DynamicResource Brush.Accent}"
-                       HorizontalAlignment="Right" Margin="0,0,12,0" Visibility="Collapsed" />
+                       HorizontalAlignment="Right" Margin="0,0,12,0" Visibility="Collapsed" v:Motion.FadeOnShow="True" />
             <ContentControl Grid.Column="1" Width="40" Height="40" HorizontalAlignment="Left" ContentTemplate="{DynamicResource TrackCover}" Content="{Binding}" Focusable="False" />
             <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="12,0,12,0">
                 <TextBlock x:Name="TitleText" Text="{Binding Track.Title}" FontSize="{DynamicResource Size.Text.Large}" FontFamily="{DynamicResource Font.UI}"
