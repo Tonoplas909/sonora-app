@@ -1,6 +1,7 @@
 <Window x:Class="Sonora.Views.MiniPlayerWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:loc="clr-namespace:Sonora.Localization"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:v="clr-namespace:Sonora.Views"
         Title="Sonora" WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ShowInTaskbar="True" ResizeMode="NoResize" SizeToContent="Height" Width="340"
         FontFamily="{DynamicResource Font.UI}" FontSize="{DynamicResource Size.Text.Body}"
@@ -10,6 +11,7 @@
             <Setter Property="Content" Value="&#xE768;" />
             <Setter Property="ToolTip" Value="Lecture" />
             <Setter Property="Command" Value="{Binding TogglePlayCommand}" />
+            <Setter Property="v:Motion.PulseOnChange" Value="{Binding Player.IsPlaying}" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Player.IsPlaying}" Value="True">
                     <Setter Property="Content" Value="&#xE769;" />

@@ -70,8 +70,8 @@ public partial class Pages : ResourceDictionary
             if (shouldCollapse == collapsed) return;
             collapsed = shouldCollapse;
 
-            var duration = TimeSpan.FromMilliseconds(180);
-            var ease = new QuadraticEase();
+            var duration = TimeSpan.FromMilliseconds(300);
+            var ease = new QuinticEase { EasingMode = EasingMode.EaseOut };
             SetVisible(headerBand, headerScale, !collapsed, duration, ease);
             SetVisible(buttonsRow, buttonsScale, !collapsed, duration, ease);
             SetVisible(compactBar, compactScale, collapsed, duration, ease);

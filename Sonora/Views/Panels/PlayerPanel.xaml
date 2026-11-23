@@ -10,6 +10,7 @@
             <Setter Property="Content" Value="&#xE8B1;" />
             <Setter Property="ToolTip" Value="Lecture aléatoire (Ctrl+S)" />
             <Setter Property="Command" Value="{Binding ToggleShuffleCommand}" />
+            <Setter Property="v:Motion.PulseOnChange" Value="{Binding Player.Shuffle}" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Player.Shuffle}" Value="True">
                     <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
@@ -20,6 +21,7 @@
             <Setter Property="Content" Value="{Binding Player.RepeatGlyph}" />
             <Setter Property="ToolTip" Value="Répéter (Ctrl+R)" />
             <Setter Property="Command" Value="{Binding CycleRepeatCommand}" />
+            <Setter Property="v:Motion.PulseOnChange" Value="{Binding Player.RepeatGlyph}" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Player.RepeatActive}" Value="True">
                     <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
@@ -30,6 +32,7 @@
             <Setter Property="Content" Value="&#xE768;" />
             <Setter Property="ToolTip" Value="Lecture" />
             <Setter Property="Command" Value="{Binding TogglePlayCommand}" />
+            <Setter Property="v:Motion.PulseOnChange" Value="{Binding Player.IsPlaying}" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Player.IsPlaying}" Value="True">
                     <Setter Property="Content" Value="&#xE769;" />

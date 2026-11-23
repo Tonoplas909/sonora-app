@@ -27,6 +27,7 @@ public partial class App : Application
         // Scale every ScrollViewer's wheel scroll to a fixed, modest distance per event instead.
         EventManager.RegisterClassHandler(typeof(ScrollViewer), UIElement.PreviewMouseWheelEvent,
             new MouseWheelEventHandler(OnScrollViewerMouseWheel));
+        Sonora.Views.Motion.Install(); // press, menu and tooltip motion for every control
 
         var state = StateStore.LoadState();
         Loc.SetLanguage(LanguageResolver.Resolve(state.Language, WindowsLanguages())); // before any window, so it opens in the right language

@@ -17,10 +17,12 @@
         </DockPanel>
     </DataTemplate>
 
+    <!-- Shelves clip their overflowing cards on the right; the clip starts 6 px higher than the cards (padding offset by
+         a negative margin, so nothing moves) so a card lifted by the pointer is not cut at the top. -->
     <DataTemplate x:Key="AlbumShelf" DataType="{x:Type v:HomeSectionView}">
         <StackPanel>
             <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource ShelfHeader}" />
-            <Border ClipToBounds="True" Margin="-12,0,0,0" v:LazyShelf.Enabled="True">
+            <Border ClipToBounds="True" Margin="-12,-6,0,0" Padding="0,6,0,0" v:LazyShelf.Enabled="True">
                 <ItemsControl ItemTemplate="{DynamicResource AlbumCard}" ItemsPanel="{DynamicResource ShelfPanelTemplate}" />
             </Border>
         </StackPanel>
@@ -28,7 +30,7 @@
     <DataTemplate x:Key="ArtistShelf" DataType="{x:Type v:HomeSectionView}">
         <StackPanel>
             <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource ShelfHeader}" />
-            <Border ClipToBounds="True" Margin="-12,0,0,0" v:LazyShelf.Enabled="True">
+            <Border ClipToBounds="True" Margin="-12,-6,0,0" Padding="0,6,0,0" v:LazyShelf.Enabled="True">
                 <ItemsControl ItemTemplate="{DynamicResource ArtistCard}" ItemsPanel="{DynamicResource ShelfPanelTemplate}" />
             </Border>
         </StackPanel>
@@ -36,7 +38,7 @@
     <DataTemplate x:Key="PlaylistShelf" DataType="{x:Type v:HomeSectionView}">
         <StackPanel>
             <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource ShelfHeader}" />
-            <Border ClipToBounds="True" Margin="-12,0,0,0" v:LazyShelf.Enabled="True">
+            <Border ClipToBounds="True" Margin="-12,-6,0,0" Padding="0,6,0,0" v:LazyShelf.Enabled="True">
                 <ItemsControl ItemTemplate="{DynamicResource PlaylistCard}" ItemsPanel="{DynamicResource ShelfPanelTemplate}" />
             </Border>
         </StackPanel>

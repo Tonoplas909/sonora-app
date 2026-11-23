@@ -121,7 +121,7 @@
                         <Border Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,20,20" Padding="16,12" MaxWidth="440"
                                 Background="{DynamicResource Brush.SurfaceAlt}" BorderBrush="{DynamicResource Brush.Accent}" BorderThickness="1"
                                 CornerRadius="{DynamicResource Radius.Control}"
-                                Visibility="{Binding Updates.ShowPrompt, Converter={StaticResource BoolToVis}}">
+                                Visibility="{Binding Updates.ShowPrompt, Converter={StaticResource BoolToVis}}" v:Motion.ArriveOnShow="True">
                             <StackPanel>
                                 <TextBlock Text="{Binding Updates.PromptText}" TextWrapping="Wrap" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
                                 <ProgressBar Minimum="0" Maximum="100" Height="4" Margin="0,10,0,0" Foreground="{DynamicResource Brush.Accent}"
@@ -138,7 +138,7 @@
             </d:DockHost.Center>
         </d:DockHost>
 
-        <v:LoginGate Panel.ZIndex="100" Visibility="{Binding ShowLoginGate, Converter={StaticResource BoolToVis}}" />
+        <v:LoginGate Panel.ZIndex="100" Visibility="{Binding ShowLoginGate, Converter={StaticResource BoolToVis}}" v:Motion.ArriveOnShow="True" />
 
         <!-- Custom title bar: replaces the native one so it can follow the theme. Stays above the login gate
              so the window can still be moved, minimized or closed while signing in. -->

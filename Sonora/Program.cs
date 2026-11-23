@@ -12,6 +12,7 @@ public static class Program
         // normal start it does nothing and returns.
         VelopackApp.Build().Run();
 
+        Views.Motion.MatchDisplayRefresh(); // before any animation is created, the app's resources included
         var app = new App();
         app.InitializeComponent();
         app.Run();

@@ -103,7 +103,7 @@
                             Command="{Binding ToggleShuffleCommand}" ToolTip="{loc:T common.shuffle}" />
                     <Button Style="{DynamicResource IconButton}" Content="&#xE892;" FontSize="22" Width="48" Height="48" Margin="12,0,0,0"
                             Command="{Binding PreviousCommand}" ToolTip="{loc:T common.previous}" />
-                    <Button Style="{DynamicResource BigPlay}" Margin="20,0" Command="{Binding TogglePlayCommand}" ToolTip="{loc:T fullscreen.play_pause}" />
+                    <Button Style="{DynamicResource BigPlay}" Margin="20,0" Command="{Binding TogglePlayCommand}" v:Motion.PulseOnChange="{Binding Player.IsPlaying}" ToolTip="{loc:T fullscreen.play_pause}" />
                     <Button Style="{DynamicResource IconButton}" Content="&#xE893;" FontSize="22" Width="48" Height="48" Margin="0,0,12,0"
                             Command="{Binding NextCommand}" ToolTip="{loc:T common.next}" />
                     <Button Style="{DynamicResource IconButton}" Content="{Binding Player.RepeatGlyph}" FontSize="20" Width="48" Height="48"

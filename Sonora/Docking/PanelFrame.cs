@@ -34,6 +34,8 @@ public sealed class PanelFrame : Border
 
         var activeId = group.Panels[Math.Clamp(group.ActiveIndex, 0, group.Panels.Count - 1)];
         var view = PanelFactory.Get(activeId);
+        // A panel that was not on screen (just opened, or picked in its tabs) glides in; one only moved or re-framed does not.
+        if (view.Parent == null && host.IsLoaded) Views.Motion.Arrive(view);
         PanelFactory.Detach(view);
         view.PanelOrientation = orientation;
 
