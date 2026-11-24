@@ -142,6 +142,7 @@ public sealed class MainViewModel : ObservableObject
         Loc.LanguageChanged += OnLanguageChanged;
         Spotify.LibraryChanged += () => dispatcher.InvokeAsync(OnSpotifyLibraryChanged);
         Player.AttachSpotify(Spotify.Engine);
+        Player.ContextNameResolver = Spotify.ContextNameAsync; // names what another device plays from
         _showLoginGate = !Spotify.Auth.IsSignedIn && !StateStore.LoadState().LocalOnly; // known synchronously: no flash of the main UI
 
         _saveTimer = new DispatcherTimer(DispatcherPriority.Background, dispatcher) { Interval = TimeSpan.FromSeconds(1.5) };

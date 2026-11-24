@@ -11,7 +11,8 @@ namespace Sonora.Spotify;
 
 public sealed record SpotifyState(
     Track? Track, bool IsPlaying, double PositionSec, double DurationSec,
-    bool Shuffle, RepeatMode Repeat, DateTime AtUtc, string DeviceName, bool IsSonoraDevice);
+    bool Shuffle, RepeatMode Repeat, DateTime AtUtc, string DeviceName, bool IsSonoraDevice,
+    string? ContextUri = null); // the playlist, album or artist playing from; null for a bare list of tracks
 
 /// <summary>
 /// Spotify playback through official channels only:
@@ -155,8 +156,12 @@ public sealed class SpotifyEngine(SpotifyApi api, SpotifyAuth auth, SpotifyCatal
             Num(st, "position") / 1000.0,
             Num(st, "duration") / 1000.0,
             st.TryGetProperty("shuffle", out var sh) && sh.GetBoolean(),
-            repeat, DateTime.UtcNow, "Sonora", true));
+            repeat, DateTime.UtcNow, "Sonora", true, ContextOf(st)));
     }
+
+    /// <summary>The URI of what is playing from: both the SDK's state and the Web API's carry it as <c>context.uri</c>.</summary>
+    static string? ContextOf(JsonElement st) =>
+        st.TryGetProperty("context", out var c) && c.ValueKind == JsonValueKind.Object && Str(c, "uri") is { Length: > 0 } uri ? uri : null;
 
     /// <summary>When another device plays, mirror its state from the Web API.</summary>
     async Task PollRemoteAsync()
@@ -179,7 +184,7 @@ public sealed class SpotifyEngine(SpotifyApi api, SpotifyAuth auth, SpotifyCatal
                 Num(st, "progress_ms") / 1000.0,
                 track?.DurationSec ?? 0,
                 st.TryGetProperty("shuffle_state", out var sh) && sh.GetBoolean(),
-                repeat, DateTime.UtcNow, TargetDeviceName, false));
+                repeat, DateTime.UtcNow, TargetDeviceName, false, ContextOf(st)));
         }
         catch
         {

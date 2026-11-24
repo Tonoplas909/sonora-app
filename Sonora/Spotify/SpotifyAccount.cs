@@ -66,6 +66,40 @@ public sealed class SpotifyAccount : ObservableObject, IDisposable
     public bool IsPremium { get; private set; }
     public string LikedContextUri => $"spotify:user:{UserId}:collection";
 
+    readonly Dictionary<string, string?> _contextNames = [];
+
+    /// <summary>
+    /// The name of what a Spotify URI stands for (liked songs, a playlist, an album, an artist): from what is already
+    /// loaded when possible, otherwise asked of the Web API once and remembered. Null when Spotify will not say
+    /// (an editorial playlist the developer app may not read, an unknown kind, no network).
+    /// </summary>
+    public async Task<string?> ContextNameAsync(string uri)
+    {
+        if (uri.EndsWith(":collection", StringComparison.Ordinal) || uri.StartsWith("spotify:collection", StringComparison.Ordinal))
+            return Loc.T("library.liked_songs");
+        if (Playlists.FirstOrDefault(p => p.Uri == uri) is { } playlist) return playlist.Name;
+        if (SavedAlbums.Concat(RecentAlbums).FirstOrDefault(a => a.Uri == uri) is { } album) return album.Title;
+        if (Artists.FirstOrDefault(a => a.Uri == uri) is { } artist) return artist.Name;
+        if (_contextNames.TryGetValue(uri, out var known)) return known;
+
+        var parts = uri.Split(':');
+        string? path = parts.Length == 3 && parts[0] == "spotify" ? parts[1] switch
+        {
+            "playlist" => $"playlists/{parts[2]}?fields=name",
+            "album" => $"albums/{parts[2]}",
+            "artist" => $"artists/{parts[2]}",
+            "show" => $"shows/{parts[2]}",
+            _ => null,
+        } : null;
+        if (path == null) return _contextNames[uri] = null;
+        try
+        {
+            var found = await Api.GetAsync(path); // an empty answer when Spotify refuses (404 on an editorial playlist): remembered too
+            return _contextNames[uri] = found.ValueKind == JsonValueKind.Object ? Str(found, "name") : null;
+        }
+        catch { return null; } // best effort, and not remembered: the network may be back next time
+    }
+
     public List<SpotifyPlaylist> Playlists { get; private set; } = [];
     public List<Album> SavedAlbums { get; private set; } = [];
     public List<Artist> Artists { get; private set; } = [];
