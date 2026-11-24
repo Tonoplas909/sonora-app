@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Sonora.ViewModels;
+using Sonora.Appearance.Localization;
 
 namespace Sonora.Views.Panels;
 
@@ -28,6 +29,16 @@ public partial class LyricsPanel : PanelView
     {
         if (e.OldValue is MainViewModel old) old.Lyrics.PropertyChanged -= OnLyricsChanged;
         if (e.NewValue is MainViewModel vm) vm.Lyrics.PropertyChanged += OnLyricsChanged;
+    }
+
+    /// <summary>Right-click: wrong or missing lyrics on a local file can be picked by hand on LRCLIB.</summary>
+    void Panel_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (Vm is not { } vm || vm.Player.Current is not { IsSpotify: false } track || Window.GetWindow(this) is not { } owner) return;
+        var menu = new ContextMenu { PlacementTarget = (UIElement)sender };
+        TrackInteractions.Add(menu, Loc.T("menu.choose_lyrics"), "", () => LyricsPicker.Show(owner, vm, track));
+        menu.IsOpen = true;
+        e.Handled = true;
     }
 
     void OnLyricsChanged(object? sender, PropertyChangedEventArgs e)

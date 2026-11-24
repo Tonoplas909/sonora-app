@@ -176,12 +176,18 @@ public sealed class PlayerService : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>Shows the current track's cover again in the Windows overlay, after the user changed it.</summary>
+    public void RefreshArtwork()
+    {
+        if (_current is { } t) _ = ApplyThumbnailAsync(t, ++_artToken);
+    }
+
     /// <summary>Covers arrive late (a Spotify URL, a cached file): a token drops the ones that lost the race.</summary>
     async Task ApplyThumbnailAsync(Track t, int token)
     {
         try
         {
-            if (t.AlbumRef?.ArtPath is not { Length: > 0 } art) return;
+            if (t.ArtPath is not { Length: > 0 } art) return;
             RandomAccessStreamReference? thumbnail;
             if (art.StartsWith("http", StringComparison.OrdinalIgnoreCase))
                 thumbnail = RandomAccessStreamReference.CreateFromUri(new Uri(art));

@@ -75,6 +75,12 @@ public sealed class LyricsViewModel : ObservableObject
     public bool ShowPlainOnly => !HasSynced && !string.IsNullOrWhiteSpace(Plain);
     public bool NotFound => !IsLoading && !Instrumental && !HasSynced && string.IsNullOrWhiteSpace(Plain);
 
+    /// <summary>Looks the current track's lyrics up again (the user linked other ones).</summary>
+    public void Reload()
+    {
+        if (_player.Current is { } current) _ = LoadAsync(current);
+    }
+
     async Task LoadAsync(Track track)
     {
         int token = ++_loadToken;

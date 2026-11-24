@@ -104,12 +104,25 @@ public static class TrackInteractions
             if (spotify)
                 Add(menu, Loc.T("menu.copy_track_link"), "", () => Clipboard.SetText($"https://open.spotify.com/track/{t.SpotifyId}"));
             else
+            {
                 Add(menu, Loc.T("menu.show_in_explorer"), "", () =>
                     Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{t.Path}\"") { UseShellExecute = true }));
+                AddLocalFileActions(menu, t, Window.GetWindow(item) ?? Application.Current.MainWindow);
+            }
         }
 
         menu.PlacementTarget = item;
         return menu;
+    }
+
+    /// <summary>What only a local file can have: its own cover, and lyrics picked by hand on LRCLIB.</summary>
+    public static void AddLocalFileActions(ItemsControl menu, Models.Track t, Window owner)
+    {
+        var vm = Vm;
+        menu.Items.Add(new Separator());
+        Add(menu, Loc.T("menu.change_cover"), "", () => vm.ChooseTrackCover(t));
+        if (t.CustomArt != null) Add(menu, Loc.T("menu.remove_track_cover"), "", () => vm.ClearTrackCover(t));
+        if (vm.State.Features.Lyrics) Add(menu, Loc.T("menu.choose_lyrics"), "", () => LyricsPicker.Show(owner, vm, t));
     }
 
     public static void OpenLibraryEntry(LibraryEntry e) => Vm.OpenEntry(e);

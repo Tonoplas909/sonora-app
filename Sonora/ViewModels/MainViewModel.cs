@@ -131,7 +131,8 @@ public sealed class MainViewModel : ObservableObject
                 UpdatePlayingContext();
         };
         Player.TrackFinished += OnTrackFinished;
-        Player.TrackStarted += t => _ = App.Themes?.OnTrackArtworkAsync(t.AlbumRef?.ArtPath);
+        Player.TrackStarted += t => _ = App.Themes?.OnTrackArtworkAsync(t.ArtPath);
+        _lyricsService.LinkedId = t => !t.IsSpotify && State.LyricsLinks.TryGetValue(t.Path, out var id) ? id : null;
         if (App.Themes != null)
             App.Themes.Applied += warnings => { foreach (var w in warnings) ReportError(w); }; // e.g. missing font
         Player.Error += ReportError;
@@ -563,7 +564,11 @@ public sealed class MainViewModel : ObservableObject
     void ApplyLibrary(List<Track> tracks)
     {
         Library.Build(tracks);
-        foreach (var t in Library.Tracks) t.IsLiked = _liked.Contains(t.Path);
+        foreach (var t in Library.Tracks)
+        {
+            t.IsLiked = _liked.Contains(t.Path);
+            t.CustomArt = State.TrackCovers.GetValueOrDefault(t.Path);
+        }
         RefreshPlaylistArt();
         RefreshLibraryEntries();
         OnPropertyChanged(nameof(Stats));
@@ -897,7 +902,12 @@ public sealed class MainViewModel : ObservableObject
         {
             if (Library.Get(path) is { } known) return known;
             if (_linkedFiles.TryGetValue(path, out var cached)) return cached;
-            try { return _linkedFiles[path] = await Library.ReadFileAsync(path); }
+            try
+            {
+                var file = _linkedFiles[path] = await Library.ReadFileAsync(path);
+                file.CustomArt = State.TrackCovers.GetValueOrDefault(path);
+                return file;
+            }
             catch { /* unreadable: fall through to the library */ }
         }
         return matcher.Find(new TrackKey(entry.Title, entry.Artist, entry.DurationSec));
@@ -917,6 +927,77 @@ public sealed class MainViewModel : ObservableObject
         ScheduleSave();
         if (CurrentPage is TracksPage page) _ = page.Reload();
         ReportError(Loc.T("playlist.file_located", entry.Title));
+    }
+
+    // ---------------- a local file's own cover and lyrics ----------------
+
+    static string ImageFilter => Loc.T("dialog.images") + " (*.jpg;*.jpeg;*.png;*.bmp;*.webp)|*.jpg;*.jpeg;*.png;*.bmp;*.webp|" + Loc.T("dialog.all_files") + "|*.*";
+
+    /// <summary>Picks an image as this local file's own cover, shown wherever the track appears instead of its album's.</summary>
+    public void ChooseTrackCover(Track t)
+    {
+        if (t.IsSpotify) return;
+        var dialog = new OpenFileDialog { Title = Loc.T("dialog.choose_cover"), Filter = ImageFilter };
+        if (dialog.ShowDialog() != true) return;
+
+        var jpeg = CoverImage.ToSquareJpeg(dialog.FileName);
+        if (jpeg == null)
+        {
+            ReportError(Loc.T("track.cover_unreadable"));
+            return;
+        }
+        try
+        {
+            // A copy in Sonora's folder, so the cover stays if the picture is moved. A new name each time: covers are
+            // cached by path, and rewriting the same file would keep showing the old picture.
+            var dir = Path.Combine(StateStore.Dir, "covers");
+            Directory.CreateDirectory(dir);
+            var file = Path.Combine(dir, Guid.NewGuid().ToString("N") + ".jpg");
+            File.WriteAllBytes(file, jpeg);
+            SetTrackCover(t, file);
+        }
+        catch (Exception ex) { ReportError(ex.Message); }
+    }
+
+    /// <summary>Back to the album's cover.</summary>
+    public void ClearTrackCover(Track t) => SetTrackCover(t, null);
+
+    void SetTrackCover(Track t, string? file)
+    {
+        if (State.TrackCovers.TryGetValue(t.Path, out var old))
+            try { File.Delete(old); } catch { /* in use or gone: an orphan file is harmless */ }
+        if (file == null) State.TrackCovers.Remove(t.Path);
+        else State.TrackCovers[t.Path] = file;
+
+        // The same file can stand behind more than one Track (the library's, a located playlist entry): all of them change.
+        t.CustomArt = file;
+        if (Library.Get(t.Path) is { } known) known.CustomArt = file;
+        if (_linkedFiles.TryGetValue(t.Path, out var linked)) linked.CustomArt = file;
+        if (Player.Current is { IsSpotify: false } current && string.Equals(current.Path, t.Path, StringComparison.OrdinalIgnoreCase))
+        {
+            current.CustomArt = file;
+            Player.RefreshArtwork();
+            _ = App.Themes?.OnTrackArtworkAsync(current.ArtPath);
+        }
+        RefreshPlaylistArt();
+        ScheduleSave();
+    }
+
+    /// <summary>The LRCLIB search the lyrics picker runs.</summary>
+    public Task<List<LyricsCandidate>> SearchLyricsAsync(string query) => _lyricsService.SearchAsync(query);
+
+    public long? LinkedLyrics(Track t) => State.LyricsLinks.TryGetValue(t.Path, out var id) ? id : null;
+
+    /// <summary>Uses this LRCLIB entry for a local file from now on (null: back to finding lyrics on its own).</summary>
+    public void LinkLyrics(Track t, long? id)
+    {
+        if (t.IsSpotify) return;
+        if (id is { } entry) State.LyricsLinks[t.Path] = entry;
+        else State.LyricsLinks.Remove(t.Path);
+        ScheduleSave();
+        if (Player.Current is { IsSpotify: false } current && string.Equals(current.Path, t.Path, StringComparison.OrdinalIgnoreCase))
+            _lyrics?.Reload();
+        ReportError(Loc.T(id != null ? "lyrics.linked" : "lyrics.unlinked"));
     }
 
     // ---------------- discover ----------------
@@ -1483,7 +1564,7 @@ public sealed class MainViewModel : ObservableObject
         var dialog = new OpenFileDialog
         {
             Title = Loc.T("dialog.choose_cover"),
-            Filter = Loc.T("dialog.images") + " (*.jpg;*.jpeg;*.png;*.bmp;*.webp)|*.jpg;*.jpeg;*.png;*.bmp;*.webp|" + Loc.T("dialog.all_files") + "|*.*",
+            Filter = ImageFilter,
         };
         if (dialog.ShowDialog() != true) return;
 
@@ -1696,7 +1777,7 @@ public sealed class MainViewModel : ObservableObject
     void RefreshPlaylistArt()
     {
         foreach (var p in Playlists)
-            p.ArtPath = p.Paths.Select(Library.Get).Select(t => t?.AlbumRef?.ArtPath).FirstOrDefault(a => a != null);
+            p.ArtPath = p.Paths.Select(Library.Get).Select(t => t?.ArtPath).FirstOrDefault(a => a != null);
     }
 
     void RefreshLibraryEntries()

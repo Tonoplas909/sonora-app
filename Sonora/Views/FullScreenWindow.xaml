@@ -10,7 +10,7 @@
     <Grid MouseLeftButtonDown="Background_MouseDown" MouseLeftButtonUp="Background_MouseUp" MouseMove="Background_MouseMove">
         <!-- The cover again, blurred and dimmed, as the backdrop. -->
         <Grid.Background>
-            <ImageBrush ImageSource="{Binding Player.Current.AlbumRef.ArtPath, Converter={StaticResource Art}, ConverterParameter=600}"
+            <ImageBrush ImageSource="{Binding Player.Current.ArtPath, Converter={StaticResource Art}, ConverterParameter=600}"
                         Stretch="UniformToFill" Opacity="0.22">
                 <ImageBrush.RelativeTransform>
                     <ScaleTransform CenterX="0.5" CenterY="0.5" ScaleX="1.2" ScaleY="1.2" />
@@ -50,7 +50,7 @@
                     </Border>
                     <Border CornerRadius="{DynamicResource Radius.Panel}">
                         <Border.Background>
-                            <ImageBrush ImageSource="{Binding Player.Current.AlbumRef.ArtPath, Converter={StaticResource Art}, ConverterParameter=900}"
+                            <ImageBrush ImageSource="{Binding Player.Current.ArtPath, Converter={StaticResource Art}, ConverterParameter=900}"
                                         Stretch="UniformToFill" />
                         </Border.Background>
                     </Border>

@@ -32,7 +32,33 @@ public sealed class Track : ObservableObject
     [JsonIgnore] public bool IsMissing { get; set; }
     [JsonIgnore] public string? SpotifyId => Uri?[(Uri.LastIndexOf(':') + 1)..];
 
-    [JsonIgnore] public Album? AlbumRef { get; set; }
+    Album? _albumRef;
+    [JsonIgnore]
+    public Album? AlbumRef
+    {
+        get => _albumRef;
+        set
+        {
+            if (ReferenceEquals(_albumRef, value)) return;
+            if (_albumRef != null) _albumRef.PropertyChanged -= OnAlbumChanged;
+            _albumRef = value;
+            if (value != null) value.PropertyChanged += OnAlbumChanged;
+            OnPropertyChanged(nameof(ArtPath));
+        }
+    }
+
+    string? _customArt;
+    /// <summary>A cover the user chose for this one local file (see <see cref="AppState.TrackCovers"/>); null for the album's.</summary>
+    [JsonIgnore] public string? CustomArt { get => _customArt; set { if (Set(ref _customArt, value)) OnPropertyChanged(nameof(ArtPath)); } }
+
+    /// <summary>The cover shown wherever this track appears: its own if the user chose one, otherwise its album's.</summary>
+    [JsonIgnore] public string? ArtPath => _customArt ?? _albumRef?.ArtPath;
+
+    void OnAlbumChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(Models.Album.ArtPath) && _customArt == null) OnPropertyChanged(nameof(ArtPath));
+    }
+
     [JsonIgnore] public string PrimaryArtist => string.IsNullOrWhiteSpace(AlbumArtist) ? Artist : AlbumArtist;
     [JsonIgnore] public string AlbumKey => (PrimaryArtist + "\u001f" + Album).ToLowerInvariant();
     [JsonIgnore] public string DurationText => Fmt.Time(DurationSec);
@@ -169,6 +195,10 @@ public sealed class AppState
     public List<string> RecentAlbums { get; set; } = [];
     /// <summary>Files the user pointed to for local-file entries of Spotify playlists: spotify:local:… → path.</summary>
     public Dictionary<string, string> LocalLinks { get; set; } = [];
+    /// <summary>Covers the user chose for single local files: file path → image in Sonora's covers folder.</summary>
+    public Dictionary<string, string> TrackCovers { get; set; } = [];
+    /// <summary>Lyrics the user picked by hand on LRCLIB for local files: file path → LRCLIB entry id.</summary>
+    public Dictionary<string, long> LyricsLinks { get; set; } = [];
     public double Volume { get; set; } = 70;
     public bool Shuffle { get; set; }
     public RepeatMode Repeat { get; set; }
