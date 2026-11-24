@@ -50,7 +50,7 @@
 
   <ItemGroup>
     <!-- Hosts Spotify's official Web Playback SDK (Spotify Connect device) -->
-    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4370.26" />
     <!-- Installer, uninstaller and in-app updates (GitHub releases) -->
     <PackageReference Include="Velopack" Version="1.2.161" />
   </ItemGroup>
