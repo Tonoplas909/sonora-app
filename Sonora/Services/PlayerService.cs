@@ -176,12 +176,18 @@ public sealed class PlayerService : ObservableObject, IDisposable
         }
     }
 
+    /// <summary>Shows the current track's cover again in the Windows overlay, after the user changed it.</summary>
+    public void RefreshArtwork()
+    {
+        if (_current is { } t) _ = ApplyThumbnailAsync(t, ++_artToken);
+    }
+
     /// <summary>Covers arrive late (a Spotify URL, a cached file): a token drops the ones that lost the race.</summary>
     async Task ApplyThumbnailAsync(Track t, int token)
     {
         try
         {
-            if (t.AlbumRef?.ArtPath is not { Length: > 0 } art) return;
+            if (t.ArtPath is not { Length: > 0 } art) return;
             RandomAccessStreamReference? thumbnail;
             if (art.StartsWith("http", StringComparison.OrdinalIgnoreCase))
                 thumbnail = RandomAccessStreamReference.CreateFromUri(new Uri(art));
@@ -731,8 +737,41 @@ public sealed class PlayerService : ObservableObject, IDisposable
             OnPropertyChanged(nameof(RepeatActive));
         }
 
+        if (changed && s.Track != null && PlaysFromElsewhere(s)) FollowRemoteContext(s.Track, s.ContextUri);
         if (changed && s.Track != null) TrackStarted?.Invoke(s.Track);
         if ((changed && s.Track != null) || shuffleChanged) _ = Run(RefreshSpotifyQueueAsync());
+    }
+
+    /// <summary>
+    /// Whether Spotify plays from somewhere else than Sonora's list. When Spotify names its source, a different one
+    /// settles it, even if the track also belongs to Sonora's list (a liked song played from a playlist on the phone,
+    /// after Sonora played the liked songs). Without a source (a bare list of tracks), only a track outside the list tells.
+    /// </summary>
+    bool PlaysFromElsewhere(SpotifyState s) => s.ContextUri != null
+        ? s.ContextUri != _spotifyContextUri
+        : !_context.Any(t => t.Uri == s.Track!.Uri);
+
+    /// <summary>Gives the name of a Spotify context (playlist, album, artist, liked songs) from its URI, or null when unknown.</summary>
+    public Func<string, Task<string?>>? ContextNameResolver { get; set; }
+
+    /// <summary>
+    /// A track Sonora did not start is playing (picked on a phone or in the official app, or Spotify carried on past
+    /// the list): what it plays from is no longer Sonora's list, so take Spotify's word for it instead of showing the
+    /// last list Sonora played, local files included (issue #14). Tracks Sonora started keep the name Sonora gave.
+    /// </summary>
+    void FollowRemoteContext(Track track, string? contextUri)
+    {
+        _context = [track]; // as for a restored track: the old list is not what plays any more
+        if (contextUri != null && contextUri == _spotifyContextUri && ContextName.Length > 0) return; // same source, already named
+        SetContextUri(contextUri);
+        ContextName = "";
+        if (contextUri != null && ContextNameResolver is { } resolve) _ = Run(NameContextAsync(resolve, contextUri));
+    }
+
+    async Task NameContextAsync(Func<string, Task<string?>> resolve, string contextUri)
+    {
+        var name = await resolve(contextUri);
+        if (name != null && _spotifyContextUri == contextUri) ContextName = name; // unless playback moved on meanwhile
     }
 
     /// <summary>Spotify applies a shuffle or repeat change a moment after the request returns: ask for the queue after that.</summary>

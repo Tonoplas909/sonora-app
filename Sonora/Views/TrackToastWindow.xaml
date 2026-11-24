@@ -21,7 +21,7 @@
                 </Border>
                 <Border CornerRadius="{DynamicResource Radius.Art}">
                     <Border.Background>
-                        <ImageBrush ImageSource="{Binding Player.Current.AlbumRef.ArtPath, Converter={StaticResource Art}, ConverterParameter=112}"
+                        <ImageBrush ImageSource="{Binding Player.Current.ArtPath, Converter={StaticResource Art}, ConverterParameter=112}"
                                     Stretch="UniformToFill" />
                     </Border.Background>
                 </Border>

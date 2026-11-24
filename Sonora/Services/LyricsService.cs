@@ -9,10 +9,14 @@ namespace Sonora.Services;
 /// <summary>A track's lyrics as returned by LRCLIB: synced lines when available, otherwise plain text.</summary>
 public sealed record LyricsResult(List<LyricLine> Synced, string? Plain, bool Instrumental);
 
+/// <summary>One LRCLIB entry offered when the user picks lyrics by hand.</summary>
+public sealed record LyricsCandidate(long Id, string Title, string Artist, string Album, double DurationSec, LyricsResult Lyrics);
+
 /// <summary>
 /// Looks up lyrics on LRCLIB (lrclib.net), a free, community-run, open lyrics database (no API key, no account).
 /// Tries an exact match first (title, artist, album, duration), then falls back to a search, keeping only an entry for
-/// the same recording (see <see cref="LocalMatcher{T}"/>). Results are cached in memory only, for the lifetime of the app — nothing touches disk.
+/// the same recording (see <see cref="LocalMatcher{T}"/>). A local file the user linked to an entry by hand
+/// (<see cref="LinkedId"/>) gets that entry instead. Results are cached in memory only, for the lifetime of the app — nothing touches disk.
 /// </summary>
 public sealed class LyricsService
 {
@@ -20,9 +24,14 @@ public sealed class LyricsService
     const string Base = "https://lrclib.net/api/";
 
     readonly Dictionary<string, LyricsResult?> _cache = new(StringComparer.OrdinalIgnoreCase);
+    readonly Dictionary<long, LyricsResult> _byId = [];
+
+    /// <summary>The LRCLIB entry the user linked to a track by hand, if any.</summary>
+    public Func<Track, long?>? LinkedId { get; set; }
 
     public async Task<LyricsResult?> GetAsync(Track track, CancellationToken ct = default)
     {
+        if (LinkedId?.Invoke(track) is { } id) return await GetByIdAsync(id, ct);
         var artist = PrimaryArtist(track);
         var key = $"{artist}{track.Title}{track.Album}{(int)Math.Round(track.DurationSec)}".ToLowerInvariant();
         if (_cache.TryGetValue(key, out var cached)) return cached;
@@ -52,6 +61,36 @@ public sealed class LyricsService
         }
         catch (OperationCanceledException) { throw; }
         catch { return null; } // best effort: a failed lookup just means "no lyrics", never a crash
+    }
+
+    async Task<LyricsResult?> GetByIdAsync(long id, CancellationToken ct)
+    {
+        if (_byId.TryGetValue(id, out var known)) return known;
+        try
+        {
+            var found = await GetJsonAsync("get/" + id.ToString(CultureInfo.InvariantCulture), ct);
+            if (found is not { ValueKind: JsonValueKind.Object } e) return null;
+            return _byId[id] = Map(e);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch { return null; } // offline: no lyrics this time, the link stays and is tried again next time
+    }
+
+    /// <summary>Free-text search on LRCLIB, for the user to pick the right lyrics themselves. Throws when LRCLIB cannot be reached.</summary>
+    public async Task<List<LyricsCandidate>> SearchAsync(string query, CancellationToken ct = default)
+    {
+        var found = await GetJsonAsync("search?q=" + Uri.EscapeDataString(query.Trim()), ct)
+                    ?? throw new HttpRequestException("LRCLIB did not answer.");
+        if (found.ValueKind != JsonValueKind.Array) return [];
+        var list = new List<LyricsCandidate>();
+        foreach (var e in found.EnumerateArray())
+        {
+            if (!e.TryGetProperty("id", out var idElement) || !idElement.TryGetInt64(out var id)) continue;
+            var lyrics = _byId[id] = Map(e); // picking one then needs no second request
+            list.Add(new LyricsCandidate(id, Str(e, "trackName") ?? "", Str(e, "artistName") ?? "", Str(e, "albumName") ?? "",
+                Num(e, "duration"), lyrics));
+        }
+        return list;
     }
 
     async Task<JsonElement?> GetJsonAsync(string query, CancellationToken ct)

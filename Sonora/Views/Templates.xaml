@@ -96,7 +96,7 @@
                 </Border>
                 <Border CornerRadius="{DynamicResource Radius.Art}">
                     <Border.Background>
-                        <ImageBrush ImageSource="{Binding Track.AlbumRef.ArtPath, Converter={StaticResource Art}, ConverterParameter=80}" Stretch="UniformToFill" />
+                        <ImageBrush ImageSource="{Binding Track.ArtPath, Converter={StaticResource Art}, ConverterParameter=80}" Stretch="UniformToFill" />
                     </Border.Background>
                 </Border>
                 <Button Style="{StaticResource CoverPlay}" Click="CoverPlay_Click" />
