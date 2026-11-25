@@ -21,6 +21,19 @@ public sealed class HomePage : PageViewModel
 {
     public HomePage(MainViewModel main) : base(main)
     {
+        var h = DateTime.Now.Hour;
+        Greeting = Loc.T(h is >= 5 and < 12 ? "greeting.morning" : h is >= 12 and < 18 ? "greeting.afternoon" : "greeting.evening");
+        Sections = [];
+        Reload();
+    }
+
+    /// <summary>The kinds of shelf the "add" buttons of the edit mode offer.</summary>
+    public List<SectionKindChoice> AddKinds { get; } = AppearanceViewModel.KindChoices();
+
+    /// <summary>Builds the shelves again from the settings, in place: the page itself stays, so it keeps its scroll position.</summary>
+    public void Reload()
+    {
+        var main = Main;
         var lib = main.Library;
         var sp = main.Spotify;
         const int Max = HomeSection.MaxCount; // a shelf can ask for up to this many; each one trims to its own limit below
@@ -33,12 +46,13 @@ public sealed class HomePage : PageViewModel
         NewReleases = f.NewReleases ? sp.NewReleases.Take(Max).ToList() : [];
         TopArtists = f.Tops ? sp.TopArtists.Take(Max).ToList() : [];
         Shows = f.Podcasts ? sp.Shows.Take(Max).ToList() : [];
-        var h = DateTime.Now.Hour;
-        Greeting = Loc.T(h is >= 5 and < 12 ? "greeting.morning" : h is >= 12 and < 18 ? "greeting.afternoon" : "greeting.evening");
 
-        // Shelves in the user's order; hidden or empty ones are left out.
-        Sections = [];
-        foreach (var s in main.State.Content.HomeSections.Where(s => s.Visible))
+        // Shelves in the user's order. Hidden or empty ones are left out, except while editing: then every shelf shows,
+        // with its controls, so a hidden or still empty one can be found again.
+        var editing = main.IsHomeEditing;
+        var playlistSources = editing ? HomeSectionItem.PlaylistSources(main) : [];
+        var sections = new List<HomeSectionView>();
+        foreach (var s in main.State.Content.HomeSections.Where(s => s.Visible || editing))
         {
             var limit = s.Limit;
             string Title(string key) => s.Title.Length > 0 ? s.Title : Loc.T(key);
@@ -67,9 +81,20 @@ public sealed class HomePage : PageViewModel
                     main.Playlists.Take(limit).ToList(), "mixed", main.OpenPlaylistsCommand),
                 _ => null,
             };
-            if (v != null && v.Items.Cast<object>().Any()) Sections.Add(v);
+            if (v == null) continue;
+            var hasItems = v.Items.Cast<object>().Any();
+            if (!editing) { if (hasItems) sections.Add(v); continue; }
+            var editor = new HomeSectionItem(s, HomeSectionItem.DefaultTitleOf(s), playlistSources, main.NotifyContentChanged,
+                delta => main.MoveHomeSection(s.Id, delta), () => main.RemoveHomeSection(s.Id));
+            sections.Add(v with { Editor = editor, IsHidden = !s.Visible, IsEmpty = !hasItems });
         }
+        Sections = sections;
+        OnPropertyChanged(nameof(Sections));
+        OnPropertyChanged(nameof(IsEmpty));
+        OnPropertyChanged(nameof(IsEditing));
     }
+
+    public bool IsEditing => Main.IsHomeEditing;
 
     /// <summary>
     /// The playlists a hand-made shelf points at, in the shelf's order. A playlist that no longer exists (deleted,
@@ -95,15 +120,15 @@ public sealed class HomePage : PageViewModel
 
     public override string Title => "Accueil";
     public string Greeting { get; }
-    public List<HomeSectionView> Sections { get; }
-    public List<Album> Recent { get; }
-    public List<SpotifyPlaylist> Playlists { get; }
-    public List<Album> SavedAlbums { get; }
-    public List<Album> Rediscover { get; }
-    public List<Artist> Artists { get; }
-    public List<Album> NewReleases { get; }
-    public List<Artist> TopArtists { get; }
-    public List<Album> Shows { get; }
+    public List<HomeSectionView> Sections { get; private set; }
+    public List<Album> Recent { get; private set; } = [];
+    public List<SpotifyPlaylist> Playlists { get; private set; } = [];
+    public List<Album> SavedAlbums { get; private set; } = [];
+    public List<Album> Rediscover { get; private set; } = [];
+    public List<Artist> Artists { get; private set; } = [];
+    public List<Album> NewReleases { get; private set; } = [];
+    public List<Artist> TopArtists { get; private set; } = [];
+    public List<Album> Shows { get; private set; } = [];
     public bool HasRecent => Recent.Count > 0;
     public bool HasPlaylists => Playlists.Count > 0;
     public bool HasSavedAlbums => SavedAlbums.Count > 0;

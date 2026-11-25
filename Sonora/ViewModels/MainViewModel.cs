@@ -490,8 +490,43 @@ public sealed class MainViewModel : ObservableObject
         Sonora.Views.ColumnLayout.Current.Update(State.Content);
         App.Themes?.SetCardSize(State.Content.CardPixels);
         OnPropertyChanged(nameof(Content));
-        if (CurrentPage is HomePage) CurrentPage = new HomePage(this);
+        if (CurrentPage is HomePage home) home.Reload(); // in place, so the page keeps its scroll position
         ScheduleSave();
+    }
+
+    // ---------------- editing the home page from the home page ----------------
+
+    bool _isHomeEditing;
+    /// <summary>The home page shows its shelves with their controls (move, hide, rename, remove, add).</summary>
+    public bool IsHomeEditing
+    {
+        get => _isHomeEditing;
+        set { if (Set(ref _isHomeEditing, value) && CurrentPage is HomePage home) home.Reload(); }
+    }
+
+    public ICommand ToggleHomeEditCommand => _toggleHomeEdit ??= new RelayCommand(() => IsHomeEditing = !IsHomeEditing);
+    ICommand? _toggleHomeEdit;
+
+    public ICommand AddHomeSectionCommand => _addHomeSection ??= new RelayCommand(p =>
+    {
+        if (p is not SectionKindChoice kind || !Sonora.Appearance.Content.HomeSectionKinds.Addable.Contains(kind.Kind)) return;
+        var section = State.Content.AddSection(kind.Kind);
+        NotifyContentChanged();
+        // A new hand-made shelf is empty, so open its settings straight away.
+        if (kind.Kind == Sonora.Appearance.Content.HomeSectionKinds.Custom) HomeSectionItem.Unfold(section.Id);
+        if (CurrentPage is HomePage home) home.Reload();
+    });
+    ICommand? _addHomeSection;
+
+    public void MoveHomeSection(string id, int delta)
+    {
+        State.Content.MoveSection(id, delta);
+        NotifyContentChanged();
+    }
+
+    public void RemoveHomeSection(string id)
+    {
+        if (State.Content.RemoveSection(id)) NotifyContentChanged();
     }
 
     public string Stats =>
@@ -853,6 +888,7 @@ public sealed class MainViewModel : ObservableObject
 
     public void Navigate(PageViewModel page)
     {
+        if (_isHomeEditing) { _isHomeEditing = false; OnPropertyChanged(nameof(IsHomeEditing)); } // editing ends when the home page is left
         _back.Add(CurrentPage);
         if (_back.Count > 50) _back.RemoveAt(0);
         _forward.Clear();

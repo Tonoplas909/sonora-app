@@ -68,11 +68,18 @@ public sealed class HomeSectionItem : ObservableObject
     readonly string _defaultTitle;
     readonly Action _changed;
 
-    public HomeSectionItem(HomeSection section, string defaultTitle, IEnumerable<(string Ref, string Name, bool IsSpotify)> playlists, Action changed)
+    /// <summary>Shelves whose settings are unfolded. Kept apart from the items so it survives the page being refreshed after each change.</summary>
+    static readonly HashSet<string> Unfolded = [];
+
+    public HomeSectionItem(HomeSection section, string defaultTitle, IEnumerable<(string Ref, string Name, bool IsSpotify)> playlists, Action changed,
+        Action<int>? move = null, Action? remove = null)
     {
         _section = section;
         _defaultTitle = defaultTitle;
         _changed = changed;
+        MoveUpCommand = new RelayCommand(() => move?.Invoke(-1));
+        MoveDownCommand = new RelayCommand(() => move?.Invoke(+1));
+        RemoveCommand = new RelayCommand(() => remove?.Invoke());
         if (IsCustom)
             Choices = playlists.Select(p => new PlaylistChoice(p.Ref, p.Name, p.IsSpotify, section.Items.Contains(p.Ref), OnPicked)).ToList();
     }
@@ -101,9 +108,31 @@ public sealed class HomeSectionItem : ObservableObject
 
     public string DefaultTitle => _defaultTitle;
 
-    bool _isEditing;
     /// <summary>Whether the settings of this shelf (title, size, playlists) are unfolded under it.</summary>
-    public bool IsEditing { get => _isEditing; set => Set(ref _isEditing, value); }
+    public bool IsEditing
+    {
+        get => Unfolded.Contains(_section.Id);
+        set
+        {
+            if (value == IsEditing) return;
+            if (value) Unfolded.Add(_section.Id); else Unfolded.Remove(_section.Id);
+            OnPropertyChanged();
+        }
+    }
+
+    public ICommand MoveUpCommand { get; }
+    public ICommand MoveDownCommand { get; }
+    public ICommand RemoveCommand { get; }
+
+    public static void Unfold(string id) => Unfolded.Add(id);
+
+    /// <summary>The Spotify and local playlists a hand-made shelf can hold, as (reference, name, is Spotify).</summary>
+    public static List<(string Ref, string Name, bool IsSpotify)> PlaylistSources(MainViewModel main) =>
+        main.Spotify.Playlists.Select(p => ("s:" + p.Id, p.Name, true))
+            .Concat(main.Playlists.Select(p => ("l:" + p.Id, p.Name, false))).ToList();
+
+    /// <summary>The default title of a shelf, in the current language.</summary>
+    public static string DefaultTitleOf(HomeSection s) => Loc.T(AppearanceViewModel.SectionTitleKeys.GetValueOrDefault(s.EffectiveKind, s.Id));
 
     public bool Visible
     {
@@ -174,7 +203,7 @@ public sealed class AppearanceViewModel : ObservableObject
         ("textMuted", "appearance.color_textMuted"), ("accent", "appearance.color_accent"), ("onAccent", "appearance.color_onAccent"), ("rail", "appearance.color_rail"),
     ];
 
-    static readonly Dictionary<string, string> SectionTitles = new()
+    public static readonly Dictionary<string, string> SectionTitleKeys = new()
     {
         [HomeSectionIds.Recent] = "home.recently_played",
         [HomeSectionIds.Playlists] = "home.your_playlists",
@@ -192,7 +221,9 @@ public sealed class AppearanceViewModel : ObservableObject
     };
 
     /// <summary>The kinds the "add a shelf" menu offers, with their names.</summary>
-    public List<SectionKindChoice> AddableKinds { get; } =
+    public List<SectionKindChoice> AddableKinds { get; } = KindChoices();
+
+    public static List<SectionKindChoice> KindChoices() =>
         HomeSectionKinds.Addable.Select(k => new SectionKindChoice(k, Loc.T("appearance.add_" + k))).ToList();
 
     readonly MainViewModel _main;
@@ -584,10 +615,9 @@ public sealed class AppearanceViewModel : ObservableObject
     void LoadContent()
     {
         HomeSections.Clear();
-        var playlists = _main.Spotify.Playlists.Select(p => ("s:" + p.Id, p.Name, true))
-            .Concat(_main.Playlists.Select(p => ("l:" + p.Id, p.Name, false))).ToList();
+        var playlists = HomeSectionItem.PlaylistSources(_main);
         foreach (var s in Content.HomeSections)
-            HomeSections.Add(new HomeSectionItem(s, Loc.T(SectionTitles.GetValueOrDefault(s.EffectiveKind, s.Id)), playlists, ContentChanged));
+            HomeSections.Add(new HomeSectionItem(s, HomeSectionItem.DefaultTitleOf(s), playlists, ContentChanged));
     }
 
     /// <summary>Adds a shelf of the given kind at the end of the home page.</summary>

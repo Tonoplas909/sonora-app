@@ -89,6 +89,16 @@ public static class WheelStep
 public sealed record HomeSectionView(string Id, string Title, IEnumerable Items, string Kind, ICommand? ShowAll)
 {
     public bool HasShowAll => ShowAll != null;
+
+    /// <summary>The shelf's own controls, present only while the home page is being edited.</summary>
+    public Sonora.ViewModels.HomeSectionItem? Editor { get; init; }
+    public bool HasEditor => Editor != null;
+    public bool IsHidden { get; init; }
+    public bool IsEmpty { get; init; }
+
+    /// <summary>A hidden shelf is still listed while editing, dimmed.</summary>
+    public double ShelfOpacity => IsHidden ? 0.45 : 1;
+    public bool ShowEmptyHint => HasEditor && IsEmpty;
 }
 
 public sealed class HomeSectionTemplateSelector : DataTemplateSelector

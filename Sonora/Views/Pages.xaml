@@ -9,18 +9,37 @@
     <!-- ============ Home ============ -->
 
     <DataTemplate x:Key="ShelfHeader" DataType="{x:Type v:HomeSectionView}">
-        <DockPanel>
-            <Button DockPanel.Dock="Right" Style="{StaticResource LinkText}" Content="{loc:T pages.show_all}" Foreground="{DynamicResource Brush.TextSecondary}"
-                    FontWeight="SemiBold" VerticalAlignment="Bottom" Margin="0,0,0,12" Command="{Binding ShowAll}"
-                    Visibility="{Binding HasShowAll, Converter={StaticResource BoolToVis}}" />
-            <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{Binding Title}" />
-        </DockPanel>
+        <StackPanel>
+            <DockPanel>
+                <Button DockPanel.Dock="Right" Style="{StaticResource LinkText}" Content="{loc:T pages.show_all}" Foreground="{DynamicResource Brush.TextSecondary}"
+                        FontWeight="SemiBold" VerticalAlignment="Bottom" Margin="0,0,0,12" Command="{Binding ShowAll}"
+                        Visibility="{Binding HasShowAll, Converter={StaticResource BoolToVis}}" />
+                <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{Binding Title}" />
+            </DockPanel>
+
+            <!-- Edit mode of the home page: the shelf's own controls, right where the shelf is. -->
+            <StackPanel Visibility="{Binding HasEditor, Converter={StaticResource BoolToVis}}" Margin="0,-6,0,12">
+                <DockPanel DataContext="{Binding Editor}">
+                    <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE74D;" ToolTip="{loc:T appearance.remove_shelf}"
+                            Visibility="{Binding IsRemovable, Converter={StaticResource BoolToVis}}" Command="{Binding RemoveCommand}" />
+                    <ToggleButton DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE70F;" ToolTip="{loc:T appearance.edit_shelf}"
+                                  IsChecked="{Binding IsEditing}" />
+                    <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE70D;" ToolTip="{loc:T appearance.move_down}" Command="{Binding MoveDownCommand}" />
+                    <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE70E;" ToolTip="{loc:T appearance.move_up}" Command="{Binding MoveUpCommand}" />
+                    <CheckBox Style="{DynamicResource Toggle}" IsChecked="{Binding Visible}" Content="{loc:T home.shelf_shown}" />
+                </DockPanel>
+                <ContentPresenter Content="{Binding Editor}" ContentTemplate="{DynamicResource ShelfEditor}" Margin="0,8,0,0"
+                                  Visibility="{Binding Editor.IsEditing, Converter={StaticResource BoolToVis}}" />
+                <TextBlock Text="{loc:T home.empty_shelf_hint}" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,8,0,0"
+                           Visibility="{Binding ShowEmptyHint, Converter={StaticResource BoolToVis}}" />
+            </StackPanel>
+        </StackPanel>
     </DataTemplate>
 
     <!-- Shelves clip their overflowing cards on the right; the clip starts 6 px higher than the cards (padding offset by
          a negative margin, so nothing moves) so a card lifted by the pointer is not cut at the top. -->
     <DataTemplate x:Key="AlbumShelf" DataType="{x:Type v:HomeSectionView}">
-        <StackPanel>
+        <StackPanel Opacity="{Binding ShelfOpacity}">
             <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource ShelfHeader}" />
             <Border ClipToBounds="True" Margin="-12,-6,0,0" Padding="0,6,0,0" v:LazyShelf.Enabled="True">
                 <ItemsControl ItemTemplate="{DynamicResource AlbumCard}" ItemsPanel="{DynamicResource ShelfPanelTemplate}" />
@@ -28,7 +47,7 @@
         </StackPanel>
     </DataTemplate>
     <DataTemplate x:Key="ArtistShelf" DataType="{x:Type v:HomeSectionView}">
-        <StackPanel>
+        <StackPanel Opacity="{Binding ShelfOpacity}">
             <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource ShelfHeader}" />
             <Border ClipToBounds="True" Margin="-12,-6,0,0" Padding="0,6,0,0" v:LazyShelf.Enabled="True">
                 <ItemsControl ItemTemplate="{DynamicResource ArtistCard}" ItemsPanel="{DynamicResource ShelfPanelTemplate}" />
@@ -36,7 +55,7 @@
         </StackPanel>
     </DataTemplate>
     <DataTemplate x:Key="PlaylistShelf" DataType="{x:Type v:HomeSectionView}">
-        <StackPanel>
+        <StackPanel Opacity="{Binding ShelfOpacity}">
             <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource ShelfHeader}" />
             <Border ClipToBounds="True" Margin="-12,-6,0,0" Padding="0,6,0,0" v:LazyShelf.Enabled="True">
                 <ItemsControl ItemTemplate="{DynamicResource PlaylistCard}" ItemsPanel="{DynamicResource ShelfPanelTemplate}" />
@@ -45,7 +64,7 @@
     </DataTemplate>
     <v:PlaylistCardSelector x:Key="PlaylistCardSelector" Spotify="{DynamicResource PlaylistCard}" Local="{DynamicResource LocalPlaylistCard}" />
     <DataTemplate x:Key="MixedShelf" DataType="{x:Type v:HomeSectionView}">
-        <StackPanel>
+        <StackPanel Opacity="{Binding ShelfOpacity}">
             <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource ShelfHeader}" />
             <Border ClipToBounds="True" Margin="-12,-6,0,0" Padding="0,6,0,0" v:LazyShelf.Enabled="True">
                 <ItemsControl ItemTemplateSelector="{StaticResource PlaylistCardSelector}" ItemsPanel="{DynamicResource ShelfPanelTemplate}" />
@@ -58,7 +77,29 @@
     <DataTemplate DataType="{x:Type vm:HomePage}">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="24,8,24,32">
-                <ContentControl Content="{Binding Greeting}" Style="{DynamicResource PageTitleBox}" />
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Style="{DynamicResource PillOutline}" Command="{Binding Main.ToggleHomeEditCommand}"
+                            VerticalAlignment="Center" Margin="12,0,0,0">
+                        <Grid>
+                            <TextBlock Text="{loc:T home.customize}" Visibility="{Binding IsEditing, Converter={StaticResource InvBoolToVis}}" />
+                            <TextBlock Text="{loc:T home.done}" Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}" />
+                        </Grid>
+                    </Button>
+                    <ContentControl Content="{Binding Greeting}" Style="{DynamicResource PageTitleBox}" />
+                </DockPanel>
+
+                <!-- Edit mode: add a shelf of any kind. -->
+                <StackPanel Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}" Margin="0,0,0,8">
+                    <TextBlock Text="{loc:T appearance.add_a_shelf}" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="{DynamicResource Size.Text.Small}" Margin="0,0,0,6" />
+                    <ItemsControl ItemsSource="{Binding AddKinds}" ItemsPanel="{StaticResource WrapPanelTemplate}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:SectionKindChoice}">
+                                <Button Style="{DynamicResource PillOutline}" Content="{Binding Label}" Margin="0,0,8,8"
+                                        Command="{Binding DataContext.Main.AddHomeSectionCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
 
                 <StackPanel Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}" Margin="0,32,0,0">
                     <TextBlock Text="&#xE8D6;" FontFamily="{StaticResource Icons}" FontSize="56" Foreground="{DynamicResource Brush.TextMuted}" HorizontalAlignment="Left" />
