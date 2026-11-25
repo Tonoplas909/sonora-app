@@ -28,6 +28,14 @@
                     <TextBlock Text="{loc:T common.discover}" FontWeight="Bold" FontSize="{DynamicResource Size.Text.Large}" Margin="16,0,0,0" VerticalAlignment="Center" />
                 </StackPanel>
             </Button>
+            <!-- Only for a ListenBrainz token that ListenBrainz itself has confirmed. -->
+            <Button Style="{DynamicResource NavItem}" Command="{Binding OpenListenBrainzStatsCommand}" Padding="12,5"
+                    Visibility="{Binding HasListenBrainzStats, Converter={StaticResource BoolToVis}}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE9D2;" FontFamily="{StaticResource Icons}" FontSize="20" VerticalAlignment="Center" />
+                    <TextBlock Text="{loc:T nav.listenbrainz_stats}" FontWeight="Bold" FontSize="{DynamicResource Size.Text.Large}" Margin="16,0,0,0" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
             <Button Style="{DynamicResource NavItem}" Command="{Binding OpenAppearanceCommand}" Padding="12,5">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="&#xE790;" FontFamily="{StaticResource Icons}" FontSize="20" VerticalAlignment="Center" />

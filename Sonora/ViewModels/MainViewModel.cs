@@ -71,6 +71,7 @@ public sealed class MainViewModel : ObservableObject
     readonly LyricsService _lyricsService = new();
     readonly ListeningLogService _listening = new();
     readonly ScrobbleService _scrobble = new();
+    readonly ListenBrainzStatsService _listenBrainz = new();
     readonly DiscoveryService _discovery = new();
     readonly HashSet<string> _liked = new(StringComparer.OrdinalIgnoreCase);
     readonly List<PageViewModel> _back = [];
@@ -410,6 +411,59 @@ public sealed class MainViewModel : ObservableObject
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsScrobbling));
             ScheduleSave();
+            _ = CheckListenBrainzTokenAsync(TimeSpan.FromMilliseconds(800));
+        }
+    }
+
+    CancellationTokenSource? _listenBrainzCheck;
+    string _listenBrainzUser = "";
+
+    /// <summary>The ListenBrainz user the token belongs to, once ListenBrainz has confirmed it; empty until then.</summary>
+    public string ListenBrainzUser
+    {
+        get => _listenBrainzUser;
+        private set
+        {
+            if (!Set(ref _listenBrainzUser, value)) return;
+            OnPropertyChanged(nameof(HasListenBrainzStats));
+        }
+    }
+
+    /// <summary>True only for a token ListenBrainz has accepted; it is what shows the statistics entry in the navigation.</summary>
+    public bool HasListenBrainzStats => _listenBrainzUser.Length > 0;
+
+    public ICommand OpenListenBrainzStatsCommand => _openListenBrainzStats ??= new RelayCommand(OpenListenBrainzStats);
+    ICommand? _openListenBrainzStats;
+
+    public void OpenListenBrainzStats()
+    {
+        if (HasListenBrainzStats) Navigate(new ListenBrainzStatsPage(this, _listenBrainz, State.ListenBrainzToken, _listenBrainzUser));
+    }
+
+    /// <summary>
+    /// Asks ListenBrainz whether the current token is good. The entry disappears at once when the token changes
+    /// and only comes back once the new one is confirmed; the delay keeps typing from asking once per key. When
+    /// ListenBrainz cannot be reached the question stays unanswered rather than turning into "invalid".
+    /// </summary>
+    async Task CheckListenBrainzTokenAsync(TimeSpan delay)
+    {
+        _listenBrainzCheck?.Cancel();
+        _listenBrainzCheck?.Dispose();
+        var cts = _listenBrainzCheck = new CancellationTokenSource();
+        var token = State.ListenBrainzToken;
+        ListenBrainzUser = "";
+        if (CurrentPage is ListenBrainzStatsPage) GoHomeCommand.Execute(null);
+        if (!ScrobbleService.HasToken(token) || SnapshotMode) return;
+        try
+        {
+            if (delay > TimeSpan.Zero) await Task.Delay(delay, cts.Token);
+            var check = await _listenBrainz.ValidateAsync(token, cts.Token);
+            if (cts.IsCancellationRequested || check is not { Valid: true }) return;
+            ListenBrainzUser = check.UserName;
+        }
+        catch (OperationCanceledException)
+        {
+            // A newer token replaced this one.
         }
     }
 
@@ -475,6 +529,7 @@ public sealed class MainViewModel : ObservableObject
         NotifyFeatures(); // the switches and chips read straight off the loaded settings
         OnPropertyChanged(nameof(ListenBrainzToken));
         OnPropertyChanged(nameof(IsScrobbling));
+        _ = CheckListenBrainzTokenAsync(TimeSpan.Zero);
         NotifyContentChanged();
         if (App.Catalog != null)
         {

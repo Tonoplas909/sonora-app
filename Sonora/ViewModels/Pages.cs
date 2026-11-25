@@ -7,6 +7,7 @@ using Sonora.Core;
 using Sonora.Models;
 using Sonora.Views;
 using Sonora.Appearance.Localization;
+using Sonora.Services;
 
 namespace Sonora.ViewModels;
 
@@ -755,6 +756,108 @@ public sealed class StatsPage : PageViewModel
     {
         await Main.Listening.ClearAsync();
         Apply();
+    }
+}
+
+public sealed record ActivityBar(string Label, int Listens, double Share);
+
+/// <summary>
+/// The listening statistics ListenBrainz keeps for the user whose token is set in the settings. Unlike
+/// <see cref="StatsPage"/>, which only knows what Sonora itself played, this covers every player the user
+/// scrobbles from. Reached only through a token ListenBrainz has confirmed.
+/// </summary>
+public sealed class ListenBrainzStatsPage : PageViewModel
+{
+    readonly ListenBrainzStatsService _service;
+    readonly string _token;
+    readonly string _user;
+    CancellationTokenSource? _cts;
+
+    public ListenBrainzStatsPage(MainViewModel main, ListenBrainzStatsService service, string token, string user) : base(main)
+    {
+        _service = service;
+        _token = token;
+        _user = user;
+        ReloadCommand = new RelayCommand(() => _ = LoadAsync());
+        _ = LoadAsync();
+    }
+
+    public override string Title => Loc.T("lb.title");
+    public string Subtitle => Loc.T("lb.subtitle", _user);
+    public ICommand ReloadCommand { get; }
+
+    string _range = "this_month";
+    /// <summary>One of <see cref="ListenBrainzApi.Ranges"/>.</summary>
+    public string Range
+    {
+        get => _range;
+        set { if (ListenBrainzApi.IsKnownRange(value) && Set(ref _range, value)) _ = LoadAsync(); }
+    }
+
+    bool _isLoading = true;
+    public bool IsLoading { get => _isLoading; private set { if (Set(ref _isLoading, value)) NotifyState(); } }
+
+    bool _failed;
+    public bool Failed { get => _failed; private set { if (Set(ref _failed, value)) NotifyState(); } }
+
+    public string Totals { get; private set; } = "";
+    public List<StatRow> TopTracks { get; private set; } = [];
+    public List<StatRow> TopArtists { get; private set; } = [];
+    public List<ActivityBar> Activity { get; private set; } = [];
+
+    public bool IsEmpty => !_isLoading && !_failed && TopTracks.Count == 0 && TopArtists.Count == 0;
+    public bool HasContent => !_failed && !IsEmpty;
+    public string ProblemText => _failed ? Loc.T("lb.unreachable") : Loc.T("lb.empty");
+
+    void NotifyState()
+    {
+        OnPropertyChanged(nameof(IsEmpty));
+        OnPropertyChanged(nameof(HasContent));
+        OnPropertyChanged(nameof(ProblemText));
+    }
+
+    async Task LoadAsync()
+    {
+        _cts?.Cancel();
+        _cts?.Dispose();
+        var cts = _cts = new CancellationTokenSource();
+        var range = _range;
+        IsLoading = true;
+        Failed = false;
+        try
+        {
+            var stats = await _service.LoadAsync(_token, _user, range, cts.Token);
+            if (cts.IsCancellationRequested) return;
+            Apply(stats, range);
+        }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+        {
+            return; // another period was picked; its own load takes over
+        }
+        catch (Exception)
+        {
+            if (cts.IsCancellationRequested) return;
+            Failed = true;
+        }
+        IsLoading = false;
+    }
+
+    void Apply(ListenBrainzStats stats, string range)
+    {
+        Totals = stats.TotalListens >= 0 ? Loc.Count("lb.total", stats.TotalListens) : "";
+        string Plays(int n) => Loc.Count("count.plays", n);
+        TopTracks = stats.Tracks.Select(t => new StatRow(t.Name, t.Artist, Plays(t.Listens), "")).ToList();
+        TopArtists = stats.Artists.Select(a => new StatRow(a.Name, "", Plays(a.Listens), "")).ToList();
+
+        var peak = stats.Activity.Count > 0 ? stats.Activity.Max(a => a.Listens) : 0;
+        var format = range switch { "this_week" => "ddd", "this_month" => "d", "this_year" => "MMM", _ => "yyyy" };
+        Activity = stats.Activity
+            .Select(a => new ActivityBar(a.FromUtc.ToString(format, Loc.Culture), a.Listens, peak > 0 ? (double)a.Listens / peak : 0))
+            .ToList();
+
+        foreach (var p in new[] { nameof(Totals), nameof(TopTracks), nameof(TopArtists), nameof(Activity) })
+            OnPropertyChanged(p);
+        NotifyState();
     }
 }
 

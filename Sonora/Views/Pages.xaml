@@ -530,6 +530,95 @@
         </ScrollViewer>
     </DataTemplate>
 
+    <DataTemplate DataType="{x:Type vm:ListenBrainzStatsPage}">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="24,8,24,32">
+                <ContentControl Content="{loc:T lb.title}" Style="{DynamicResource PageTitleBox}" />
+                <TextBlock Text="{Binding Subtitle}" TextWrapping="Wrap" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,12" />
+                <WrapPanel Margin="0,0,0,8">
+                    <RadioButton Style="{DynamicResource Chip}" GroupName="ListenBrainzRange" Content="{loc:T lb.this_week}" Margin="0,0,8,4"
+                                 IsChecked="{Binding Range, Converter={StaticResource Eq}, ConverterParameter=this_week}" />
+                    <RadioButton Style="{DynamicResource Chip}" GroupName="ListenBrainzRange" Content="{loc:T lb.this_month}" Margin="0,0,8,4"
+                                 IsChecked="{Binding Range, Converter={StaticResource Eq}, ConverterParameter=this_month}" />
+                    <RadioButton Style="{DynamicResource Chip}" GroupName="ListenBrainzRange" Content="{loc:T lb.this_year}" Margin="0,0,8,4"
+                                 IsChecked="{Binding Range, Converter={StaticResource Eq}, ConverterParameter=this_year}" />
+                    <RadioButton Style="{DynamicResource Chip}" GroupName="ListenBrainzRange" Content="{loc:T pages.all_time}" Margin="0,0,8,4"
+                                 IsChecked="{Binding Range, Converter={StaticResource Eq}, ConverterParameter=all_time}" />
+                </WrapPanel>
+                <TextBlock Text="{Binding Totals}" FontWeight="SemiBold" FontSize="{DynamicResource Size.Text.Large}"
+                           Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,4,0,0" />
+
+                <TextBlock Text="{loc:T lb.loading}" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,16,0,0"
+                           Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}" />
+                <StackPanel Margin="0,16,0,0" Visibility="{Binding IsLoading, Converter={StaticResource InvBoolToVis}}">
+                    <StackPanel Visibility="{Binding HasContent, Converter={StaticResource InvBoolToVis}}">
+                        <TextBlock Text="{Binding ProblemText}" Foreground="{DynamicResource Brush.TextSecondary}" TextWrapping="Wrap" />
+                        <Button Style="{DynamicResource PillOutline}" Content="{loc:T lb.retry}" Command="{Binding ReloadCommand}"
+                                HorizontalAlignment="Left" Margin="0,12,0,0" Visibility="{Binding Failed, Converter={StaticResource BoolToVis}}" />
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Visibility="{Binding HasContent, Converter={StaticResource BoolToVis}}">
+                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T lb.activity}" />
+                    <!-- One bar per slice of the period, each as tall as its share of the busiest one. -->
+                    <ItemsControl ItemsSource="{Binding Activity}" Height="120">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Rows="1" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="1,0" ToolTip="{Binding Listens}">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Border VerticalAlignment="Bottom" CornerRadius="2" Background="{DynamicResource Brush.Accent}"
+                                            Height="{Binding Share, Converter={StaticResource BarHeight}, ConverterParameter=96}" />
+                                    <TextBlock Grid.Row="1" Text="{Binding Label}" FontSize="9" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                               Foreground="{DynamicResource Brush.TextMuted}" Margin="0,4,0,0" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T lb.top_tracks}" />
+                    <ItemsControl ItemsSource="{Binding TopTracks}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <DockPanel Margin="0,0,0,6">
+                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Plays}" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource Brush.TextSecondary}" FontFamily="{DynamicResource Font.Numbers}"
+                                               FontSize="{DynamicResource Size.Text.Small}" Margin="12,0,0,0" />
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                        <TextBlock Text="{Binding Subtitle}" FontSize="{DynamicResource Size.Text.Small}" TextTrimming="CharacterEllipsis"
+                                                   Foreground="{DynamicResource Brush.TextSecondary}" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <ContentControl Style="{DynamicResource SectionTitleBox}" Content="{loc:T lb.top_artists}" />
+                    <ItemsControl ItemsSource="{Binding TopArtists}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <DockPanel Margin="0,0,0,6">
+                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Plays}" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource Brush.TextSecondary}" FontFamily="{DynamicResource Font.Numbers}"
+                                               FontSize="{DynamicResource Size.Text.Small}" Margin="12,0,0,0" />
+                                    <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                </DockPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </DataTemplate>
+
     <DataTemplate DataType="{x:Type vm:ArtistGridPage}">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="24,8,24,32">
