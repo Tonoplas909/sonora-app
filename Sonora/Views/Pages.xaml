@@ -62,7 +62,7 @@
             </Border>
         </StackPanel>
     </DataTemplate>
-    <v:PlaylistCardSelector x:Key="PlaylistCardSelector" Spotify="{DynamicResource PlaylistCard}" Local="{DynamicResource LocalPlaylistCard}" />
+    <v:PlaylistCardSelector x:Key="PlaylistCardSelector" Spotify="{StaticResource PlaylistCard}" Local="{StaticResource LocalPlaylistCard}" />
     <DataTemplate x:Key="MixedShelf" DataType="{x:Type v:HomeSectionView}">
         <StackPanel Opacity="{Binding ShelfOpacity}">
             <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource ShelfHeader}" />
