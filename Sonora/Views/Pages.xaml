@@ -22,8 +22,8 @@
                 <DockPanel DataContext="{Binding Editor}">
                     <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE74D;" ToolTip="{loc:T appearance.remove_shelf}"
                             Visibility="{Binding IsRemovable, Converter={StaticResource BoolToVis}}" Command="{Binding RemoveCommand}" />
-                    <ToggleButton DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE70F;" ToolTip="{loc:T appearance.edit_shelf}"
-                                  IsChecked="{Binding IsEditing}" />
+                    <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE70F;" ToolTip="{loc:T appearance.edit_shelf}"
+                            Command="{Binding ToggleEditCommand}" />
                     <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE70D;" ToolTip="{loc:T appearance.move_down}" Command="{Binding MoveDownCommand}" />
                     <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE70E;" ToolTip="{loc:T appearance.move_up}" Command="{Binding MoveUpCommand}" />
                     <CheckBox Style="{DynamicResource Toggle}" IsChecked="{Binding Visible}" Content="{loc:T home.shelf_shown}" />

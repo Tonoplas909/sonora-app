@@ -80,6 +80,7 @@ public sealed class HomeSectionItem : ObservableObject
         MoveUpCommand = new RelayCommand(() => move?.Invoke(-1));
         MoveDownCommand = new RelayCommand(() => move?.Invoke(+1));
         RemoveCommand = new RelayCommand(() => remove?.Invoke());
+        ToggleEditCommand = new RelayCommand(() => IsEditing = !IsEditing);
         if (IsCustom)
             Choices = playlists.Select(p => new PlaylistChoice(p.Ref, p.Name, p.IsSpotify, section.Items.Contains(p.Ref), OnPicked)).ToList();
     }
@@ -123,6 +124,7 @@ public sealed class HomeSectionItem : ObservableObject
     public ICommand MoveUpCommand { get; }
     public ICommand MoveDownCommand { get; }
     public ICommand RemoveCommand { get; }
+    public ICommand ToggleEditCommand { get; }
 
     public static void Unfold(string id) => Unfolded.Add(id);
 

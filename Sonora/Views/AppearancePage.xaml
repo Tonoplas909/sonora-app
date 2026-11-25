@@ -453,8 +453,8 @@
                                             <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE74D;" ToolTip="{loc:T appearance.remove_shelf}"
                                                     Visibility="{Binding IsRemovable, Converter={StaticResource BoolToVis}}"
                                                     Command="{Binding DataContext.Settings.RemoveSectionCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}" />
-                                            <ToggleButton DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE70F;" ToolTip="{loc:T appearance.edit_shelf}"
-                                                          IsChecked="{Binding IsEditing}" />
+                                            <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE70F;" ToolTip="{loc:T appearance.edit_shelf}"
+                            Command="{Binding ToggleEditCommand}" />
                                             <TextBlock DockPanel.Dock="Left" Text="&#xE76F;" FontFamily="{StaticResource Icons}" Foreground="{DynamicResource Brush.TextMuted}"
                                                        VerticalAlignment="Center" Margin="0,0,10,0" Cursor="SizeAll" />
                                             <CheckBox Style="{StaticResource Toggle}" IsChecked="{Binding Visible}" Content="{Binding Title}" />
