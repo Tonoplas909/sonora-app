@@ -168,6 +168,11 @@ public sealed class MainViewModel : ObservableObject
         OpenArtistCommand = new RelayCommand(p => { if (p is Artist a) OpenArtist(a); });
         OpenGenreCommand = new RelayCommand(p => { if (p is Genre g) OpenGenre(g); });
         OpenSpotifyPlaylistCommand = new RelayCommand(p => { if (p is SpotifyPlaylist sp) OpenSpotifyPlaylist(sp); });
+        OpenLocalPlaylistCommand = new RelayCommand(p => { if (p is Playlist pl) OpenPlaylist(pl); });
+        PlayLocalPlaylistCommand = new RelayCommand(p =>
+        {
+            if (p is Playlist pl && pl.Paths.Select(Library.Get).OfType<Track>().ToList() is { Count: > 0 } tracks) PlayTracks(tracks, 0, pl.Name);
+        });
         PlayAlbumCommand = new RelayCommand(p => { if (p is Album a) PlayAlbum(a); });
         PlayArtistCommand = new RelayCommand(p => { if (p is Artist a) PlayArtist(a); });
         PlaySpotifyPlaylistCommand = new RelayCommand(p => { if (p is SpotifyPlaylist sp) Player.PlaySpotifyContext(sp.Uri, sp.Name); });
@@ -221,6 +226,8 @@ public sealed class MainViewModel : ObservableObject
     public ICommand PlayAlbumCommand { get; }
     public ICommand PlayArtistCommand { get; }
     public ICommand PlaySpotifyPlaylistCommand { get; }
+    public ICommand OpenLocalPlaylistCommand { get; }
+    public ICommand PlayLocalPlaylistCommand { get; }
     public ICommand OpenCurrentAlbumCommand { get; }
     public ICommand OpenCurrentArtistCommand { get; }
     public ICommand TogglePlayCommand { get; }

@@ -16,6 +16,8 @@ public partial class AppearancePageView : ResourceDictionary
 
     void Sections_MouseDown(object sender, MouseButtonEventArgs e)
     {
+        // Clicking or selecting text inside a field must not start dragging the shelf.
+        if (IsInput(e.OriginalSource as DependencyObject)) { _start = null; _dragged = null; return; }
         _start = e.GetPosition((IInputElement)sender);
         _dragged = ItemAt((ListBox)sender, e.OriginalSource as DependencyObject);
     }
@@ -37,6 +39,16 @@ public partial class AppearancePageView : ResourceDictionary
         var target = ItemAt(list, e.OriginalSource as DependencyObject);
         if (target == null || target == dragged || list.DataContext is not AppearancePage page) return;
         page.Settings.MoveSectionTo(dragged.Id, page.Settings.HomeSections.IndexOf(target));
+    }
+
+    static bool IsInput(DependencyObject? source)
+    {
+        for (; source != null && source is not ListBoxItem; source = source is Visual or System.Windows.Media.Media3D.Visual3D
+                 ? VisualTreeHelper.GetParent(source) : LogicalTreeHelper.GetParent(source))
+            if (source is System.Windows.Controls.Primitives.TextBoxBase or System.Windows.Controls.Primitives.ButtonBase
+                or System.Windows.Controls.Primitives.Selector or System.Windows.Controls.Primitives.ScrollBar or TextBox)
+                return true;
+        return false;
     }
 
     static HomeSectionItem? ItemAt(ListBox list, DependencyObject? source)

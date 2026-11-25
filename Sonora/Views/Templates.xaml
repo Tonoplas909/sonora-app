@@ -537,6 +537,40 @@
         </Button>
     </DataTemplate>
 
+    <!-- A playlist of the local library, on the home page next to the Spotify ones. -->
+    <DataTemplate x:Key="LocalPlaylistCard" DataType="{x:Type m:Playlist}">
+        <Button Style="{DynamicResource CardButton}"
+                Command="{Binding DataContext.OpenLocalPlaylistCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}">
+            <Button.Tag>
+                <MultiBinding Converter="{StaticResource PlayingContext}">
+                    <Binding />
+                    <Binding Path="DataContext.Player.ContextUri" RelativeSource="{RelativeSource AncestorType=Window}" />
+                    <Binding Path="DataContext.Player.ContextName" RelativeSource="{RelativeSource AncestorType=Window}" />
+                    <Binding Path="DataContext.Player.IsPlaying" RelativeSource="{RelativeSource AncestorType=Window}" />
+                    <Binding Path="DataContext.Player.HasTrack" RelativeSource="{RelativeSource AncestorType=Window}" />
+                    <Binding Path="DataContext.Player.Current" RelativeSource="{RelativeSource AncestorType=Window}" />
+                </MultiBinding>
+            </Button.Tag>
+            <StackPanel Width="{DynamicResource Size.Card}">
+                <Grid Width="{DynamicResource Size.Card}" Height="{DynamicResource Size.Card}">
+                    <Border CornerRadius="{DynamicResource Radius.Art}" Background="{DynamicResource Brush.Hover}">
+                        <TextBlock Style="{StaticResource GlyphText}" Text="&#xE8FD;" FontSize="44" Foreground="{DynamicResource Brush.TextMuted}" />
+                    </Border>
+                    <Border CornerRadius="{DynamicResource Radius.Art}">
+                        <Border.Background>
+                            <ImageBrush ImageSource="{Binding ArtPath, Converter={StaticResource Art}, ConverterParameter=card}" Stretch="UniformToFill" />
+                        </Border.Background>
+                    </Border>
+                    <ContentControl ContentTemplate="{StaticResource PlayingBadge}" Content="{Binding}" />
+                    <Button Style="{DynamicResource PlayBubble}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="8"
+                            Command="{Binding DataContext.PlayLocalPlaylistCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" />
+                </Grid>
+                <TextBlock Text="{Binding Name}" Style="{DynamicResource CardTitle}" />
+                <TextBlock Text="{Binding Subtitle}" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="{DynamicResource Size.Text.Small}" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+        </Button>
+    </DataTemplate>
+
     <ItemsPanelTemplate x:Key="WrapPanelTemplate">
         <WrapPanel />
     </ItemsPanelTemplate>

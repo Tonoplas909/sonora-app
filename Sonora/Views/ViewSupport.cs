@@ -96,12 +96,24 @@ public sealed class HomeSectionTemplateSelector : DataTemplateSelector
     public DataTemplate? Albums { get; set; }
     public DataTemplate? Artists { get; set; }
     public DataTemplate? Playlists { get; set; }
+    public DataTemplate? Mixed { get; set; }
 
     public override DataTemplate? SelectTemplate(object item, DependencyObject container) =>
         (item as HomeSectionView)?.Kind switch
         {
             "artists" => Artists,
             "playlists" => Playlists,
+            "mixed" => Mixed,
             _ => Albums,
         };
+}
+
+/// <summary>A card per playlist, whether it lives on Spotify or in the local library (a hand-made shelf holds both).</summary>
+public sealed class PlaylistCardSelector : DataTemplateSelector
+{
+    public DataTemplate? Spotify { get; set; }
+    public DataTemplate? Local { get; set; }
+
+    public override DataTemplate? SelectTemplate(object item, DependencyObject container) =>
+        item is Sonora.Models.Playlist ? Local : Spotify;
 }

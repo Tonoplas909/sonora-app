@@ -43,8 +43,17 @@
             </Border>
         </StackPanel>
     </DataTemplate>
+    <v:PlaylistCardSelector x:Key="PlaylistCardSelector" Spotify="{DynamicResource PlaylistCard}" Local="{DynamicResource LocalPlaylistCard}" />
+    <DataTemplate x:Key="MixedShelf" DataType="{x:Type v:HomeSectionView}">
+        <StackPanel>
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource ShelfHeader}" />
+            <Border ClipToBounds="True" Margin="-12,-6,0,0" Padding="0,6,0,0" v:LazyShelf.Enabled="True">
+                <ItemsControl ItemTemplateSelector="{StaticResource PlaylistCardSelector}" ItemsPanel="{DynamicResource ShelfPanelTemplate}" />
+            </Border>
+        </StackPanel>
+    </DataTemplate>
     <v:HomeSectionTemplateSelector x:Key="ShelfSelector" Albums="{StaticResource AlbumShelf}"
-                                   Artists="{StaticResource ArtistShelf}" Playlists="{StaticResource PlaylistShelf}" />
+                                   Artists="{StaticResource ArtistShelf}" Playlists="{StaticResource PlaylistShelf}" Mixed="{StaticResource MixedShelf}" />
 
     <DataTemplate DataType="{x:Type vm:HomePage}">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
