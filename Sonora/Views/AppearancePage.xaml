@@ -178,6 +178,36 @@
         </Button>
     </DataTemplate>
 
+    <!-- The settings of one home shelf (title, size, playlists). Used by this page and by the home page itself. -->
+    <DataTemplate x:Key="ShelfEditor" DataType="{x:Type vm:HomeSectionItem}">
+        <StackPanel>
+            <TextBlock Text="{loc:T appearance.shelf_title}" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="{DynamicResource Size.Text.Small}" Margin="0,0,0,4" />
+            <TextBox Text="{Binding CustomTitle, UpdateSourceTrigger=LostFocus}" ToolTip="{Binding DefaultTitle}" MaxLength="80" />
+            <DockPanel Margin="0,10,0,0">
+                <TextBlock Text="{loc:T appearance.shelf_size}" Style="{StaticResource SettingLabel}" />
+                <ComboBox Style="{StaticResource Choice}" ItemsSource="{x:Static vm:HomeSectionItem.CountChoices}" SelectedItem="{Binding Count}"
+                          HorizontalAlignment="Left" />
+            </DockPanel>
+            <StackPanel Visibility="{Binding IsCustom, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="{loc:T appearance.shelf_pick_playlists}" Foreground="{DynamicResource Brush.TextSecondary}"
+                           FontSize="{DynamicResource Size.Text.Small}" Margin="0,10,0,4" />
+                <TextBlock Text="{loc:T appearance.shelf_no_playlists}" Foreground="{DynamicResource Brush.TextMuted}" TextWrapping="Wrap"
+                           Visibility="{Binding HasChoices, Converter={StaticResource InvBoolToVis}}" />
+                <ItemsControl ItemsSource="{Binding Choices}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:PlaylistChoice}">
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Right" Text="{Binding Source}" Foreground="{DynamicResource Brush.TextMuted}"
+                                           FontSize="{DynamicResource Size.Text.Small}" VerticalAlignment="Center" Margin="12,0,0,0" />
+                                <CheckBox Style="{StaticResource Toggle}" IsChecked="{Binding IsPicked}" Content="{Binding Name}" />
+                            </DockPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </StackPanel>
+    </DataTemplate>
+
     <DataTemplate DataType="{x:Type vm:AppearancePage}">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="32,8,32,40" MaxWidth="900" HorizontalAlignment="Left" DataContext="{Binding}"
@@ -414,18 +444,39 @@
                             </ListBox.ItemContainerStyle>
                             <ListBox.ItemTemplate>
                                 <DataTemplate DataType="{x:Type vm:HomeSectionItem}">
-                                    <DockPanel>
-                                        <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE70D;" ToolTip="{loc:T appearance.move_down}"
-                                                Command="{Binding DataContext.Settings.MoveDownCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}" />
-                                        <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE70E;" ToolTip="{loc:T appearance.move_up}"
-                                                Command="{Binding DataContext.Settings.MoveUpCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}" />
-                                        <TextBlock DockPanel.Dock="Left" Text="&#xE76F;" FontFamily="{StaticResource Icons}" Foreground="{DynamicResource Brush.TextMuted}"
-                                                   VerticalAlignment="Center" Margin="0,0,10,0" Cursor="SizeAll" />
-                                        <CheckBox Style="{StaticResource Toggle}" IsChecked="{Binding Visible}" Content="{Binding Title}" />
-                                    </DockPanel>
+                                    <StackPanel>
+                                        <DockPanel>
+                                            <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE70D;" ToolTip="{loc:T appearance.move_down}"
+                                                    Command="{Binding DataContext.Settings.MoveDownCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}" />
+                                            <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE70E;" ToolTip="{loc:T appearance.move_up}"
+                                                    Command="{Binding DataContext.Settings.MoveUpCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}" />
+                                            <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE74D;" ToolTip="{loc:T appearance.remove_shelf}"
+                                                    Visibility="{Binding IsRemovable, Converter={StaticResource BoolToVis}}"
+                                                    Command="{Binding DataContext.Settings.RemoveSectionCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}" />
+                                            <Button DockPanel.Dock="Right" Style="{DynamicResource IconButton}" Content="&#xE70F;" ToolTip="{loc:T appearance.edit_shelf}"
+                            Command="{Binding ToggleEditCommand}" />
+                                            <TextBlock DockPanel.Dock="Left" Text="&#xE76F;" FontFamily="{StaticResource Icons}" Foreground="{DynamicResource Brush.TextMuted}"
+                                                       VerticalAlignment="Center" Margin="0,0,10,0" Cursor="SizeAll" />
+                                            <CheckBox Style="{StaticResource Toggle}" IsChecked="{Binding Visible}" Content="{Binding Title}" />
+                                        </DockPanel>
+                                        <TextBlock Text="{Binding Summary}" Foreground="{DynamicResource Brush.TextMuted}" FontSize="{DynamicResource Size.Text.Small}"
+                                                   Margin="52,0,0,4" Visibility="{Binding IsCustom, Converter={StaticResource BoolToVis}}" />
+                                        <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource ShelfEditor}" Margin="52,4,0,10"
+                                                          Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}" />
+                                    </StackPanel>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
+
+                        <TextBlock Text="{loc:T appearance.add_a_shelf}" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="{DynamicResource Size.Text.Small}" Margin="0,10,0,6" />
+                        <ItemsControl ItemsSource="{Binding Settings.AddableKinds}" ItemsPanel="{StaticResource WrapPanelTemplate}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:SectionKindChoice}">
+                                    <Button Style="{DynamicResource PillOutline}" Content="{Binding Label}" Margin="0,0,8,8"
+                                            Command="{Binding DataContext.Settings.AddSectionCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
 
                         <TextBlock Text="{loc:T appearance.track_list_columns}" FontWeight="SemiBold" Margin="0,16,0,6" />
                         <WrapPanel>

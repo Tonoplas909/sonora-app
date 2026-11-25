@@ -21,53 +21,114 @@ public sealed class HomePage : PageViewModel
 {
     public HomePage(MainViewModel main) : base(main)
     {
-        var lib = main.Library;
-        var sp = main.Spotify;
-        Recent = sp.RecentAlbums.Concat(main.State.RecentAlbums.Select(lib.GetAlbum).OfType<Album>()).Take(10).ToList();
-        Playlists = sp.Playlists.Take(10).ToList();
-        SavedAlbums = sp.SavedAlbums.Take(10).ToList();
-        Rediscover = lib.Albums.OrderBy(_ => Random.Shared.Next()).Take(10).ToList();
-        Artists = sp.Artists.Concat(lib.Artists.OrderBy(_ => Random.Shared.Next())).Take(10).ToList();
-        var f = main.State.Features;
-        NewReleases = f.NewReleases ? sp.NewReleases.Take(10).ToList() : [];
-        TopArtists = f.Tops ? sp.TopArtists.Take(10).ToList() : [];
-        Shows = f.Podcasts ? sp.Shows.Take(10).ToList() : [];
         var h = DateTime.Now.Hour;
         Greeting = Loc.T(h is >= 5 and < 12 ? "greeting.morning" : h is >= 12 and < 18 ? "greeting.afternoon" : "greeting.evening");
-
-        // Shelves in the user's order; hidden or empty ones are left out.
         Sections = [];
-        foreach (var s in main.State.Content.HomeSections.Where(s => s.Visible))
+        Reload();
+    }
+
+    /// <summary>The kinds of shelf the "add" buttons of the edit mode offer.</summary>
+    public List<SectionKindChoice> AddKinds { get; } = AppearanceViewModel.KindChoices();
+
+    /// <summary>Builds the shelves again from the settings, in place: the page itself stays, so it keeps its scroll position.</summary>
+    public void Reload()
+    {
+        var main = Main;
+        var lib = main.Library;
+        var sp = main.Spotify;
+        const int Max = HomeSection.MaxCount; // a shelf can ask for up to this many; each one trims to its own limit below
+        Recent = sp.RecentAlbums.Concat(main.State.RecentAlbums.Select(lib.GetAlbum).OfType<Album>()).Take(Max).ToList();
+        Playlists = sp.Playlists.Take(Max).ToList();
+        SavedAlbums = sp.SavedAlbums.Take(Max).ToList();
+        Rediscover = lib.Albums.OrderBy(_ => Random.Shared.Next()).Take(Max).ToList();
+        Artists = sp.Artists.Concat(lib.Artists.OrderBy(_ => Random.Shared.Next())).Take(Max).ToList();
+        var f = main.State.Features;
+        NewReleases = f.NewReleases ? sp.NewReleases.Take(Max).ToList() : [];
+        TopArtists = f.Tops ? sp.TopArtists.Take(Max).ToList() : [];
+        Shows = f.Podcasts ? sp.Shows.Take(Max).ToList() : [];
+
+        // Shelves in the user's order. Hidden or empty ones are left out, except while editing: then every shelf shows,
+        // with its controls, so a hidden or still empty one can be found again.
+        var editing = main.IsHomeEditing;
+        var playlistSources = editing ? HomeSectionItem.PlaylistSources(main) : [];
+        var sections = new List<HomeSectionView>();
+        foreach (var s in main.State.Content.HomeSections.Where(s => s.Visible || editing))
         {
-            HomeSectionView? v = s.Id switch
+            var limit = s.Limit;
+            string Title(string key) => s.Title.Length > 0 ? s.Title : Loc.T(key);
+            HomeSectionView? v = s.EffectiveKind switch
             {
-                HomeSectionIds.Recent => new(s.Id, Loc.T("home.recently_played"), Recent, "albums", null),
-                HomeSectionIds.Playlists => new(s.Id, Loc.T("home.your_playlists"), Playlists, "playlists", main.OpenPlaylistsCommand),
-                HomeSectionIds.SavedAlbums => new(s.Id, Loc.T("home.your_albums"), SavedAlbums, "albums", main.OpenAlbumsCommand),
-                HomeSectionIds.Rediscover => new(s.Id, Loc.T("home.rediscover"), Rediscover, "albums", main.OpenAlbumsCommand),
-                HomeSectionIds.Artists => new(s.Id, Loc.T("pages.your_artists"), Artists, "artists", main.OpenArtistsCommand),
-                HomeSectionIds.NewReleases => new(s.Id, Loc.T("pages.new_releases_from_your_artists"), NewReleases, "albums",
+                HomeSectionIds.Recent => new(s.Id, Title("home.recently_played"), Recent.Take(limit).ToList(), "albums", null),
+                HomeSectionIds.Playlists => new(s.Id, Title("home.your_playlists"), Playlists.Take(limit).ToList(), "playlists", main.OpenPlaylistsCommand),
+                HomeSectionIds.SavedAlbums => new(s.Id, Title("home.your_albums"), SavedAlbums.Take(limit).ToList(), "albums", main.OpenAlbumsCommand),
+                HomeSectionIds.Rediscover => new(s.Id, Title("home.rediscover"), Rediscover.Take(limit).ToList(), "albums", main.OpenAlbumsCommand),
+                HomeSectionIds.Artists => new(s.Id, Title("pages.your_artists"), Artists.Take(limit).ToList(), "artists", main.OpenArtistsCommand),
+                HomeSectionIds.NewReleases => new(s.Id, Title("pages.new_releases_from_your_artists"), NewReleases.Take(limit).ToList(), "albums",
                     new RelayCommand(main.OpenNewReleases)),
-                HomeSectionIds.TopArtists => new(s.Id, Loc.T("pages.your_most_played_artists"), TopArtists, "artists",
+                HomeSectionIds.TopArtists => new(s.Id, Title("pages.your_most_played_artists"), TopArtists.Take(limit).ToList(), "artists",
                     new RelayCommand(main.OpenTops)),
-                HomeSectionIds.Shows => new(s.Id, Loc.T("home.your_podcasts"), Shows, "albums", new RelayCommand(main.OpenShows)),
+                HomeSectionIds.Shows => new(s.Id, Title("home.your_podcasts"), Shows.Take(limit).ToList(), "albums", new RelayCommand(main.OpenShows)),
+
+                // Shelves the user added. Only a custom one can hold Spotify playlists; the rest read the local library.
+                HomeSectionKinds.Custom => new(s.Id, Title("home.custom_shelf"), ResolvePlaylists(main, s.Items).Take(limit).ToList(), "mixed", null),
+                HomeSectionKinds.LocalRecent => new(s.Id, Title("home.local_recent"),
+                    main.State.RecentAlbums.Select(lib.GetAlbum).OfType<Album>().Take(limit).ToList(), "albums", null),
+                HomeSectionKinds.LocalAlbums => new(s.Id, Title("home.local_albums"),
+                    lib.Albums.OrderBy(_ => Random.Shared.Next()).Take(limit).ToList(), "albums", main.OpenAlbumsCommand),
+                HomeSectionKinds.LocalArtists => new(s.Id, Title("home.local_artists"),
+                    lib.Artists.OrderBy(_ => Random.Shared.Next()).Take(limit).ToList(), "artists", main.OpenArtistsCommand),
+                HomeSectionKinds.LocalPlaylists => new(s.Id, Title("home.local_playlists"),
+                    main.Playlists.Take(limit).ToList(), "mixed", main.OpenPlaylistsCommand),
                 _ => null,
             };
-            if (v != null && v.Items.Cast<object>().Any()) Sections.Add(v);
+            if (v == null) continue;
+            var hasItems = v.Items.Cast<object>().Any();
+            if (!editing) { if (hasItems) sections.Add(v); continue; }
+            var editor = new HomeSectionItem(s, HomeSectionItem.DefaultTitleOf(s), playlistSources, main.NotifyContentChanged,
+                delta => main.MoveHomeSection(s.Id, delta), () => main.RemoveHomeSection(s.Id));
+            sections.Add(v with { Editor = editor, IsHidden = !s.Visible, IsEmpty = !hasItems });
         }
+        Sections = sections;
+        OnPropertyChanged(nameof(Sections));
+        OnPropertyChanged(nameof(IsEmpty));
+        OnPropertyChanged(nameof(IsEditing));
+    }
+
+    public bool IsEditing => Main.IsHomeEditing;
+
+    /// <summary>
+    /// The playlists a hand-made shelf points at, in the shelf's order. A playlist that no longer exists (deleted,
+    /// or Spotify not connected right now) is skipped, but stays in the settings so it comes back with the account.
+    /// </summary>
+    static List<object> ResolvePlaylists(MainViewModel main, IEnumerable<string> refs)
+    {
+        var found = new List<object>();
+        foreach (var r in refs)
+        {
+            if (r.Length < 3) continue;
+            var id = r[2..];
+            object? playlist = r[0] switch
+            {
+                's' => main.Spotify.Playlists.FirstOrDefault(p => p.Id == id),
+                'l' => main.Playlists.FirstOrDefault(p => p.Id == id),
+                _ => null,
+            };
+            if (playlist != null) found.Add(playlist);
+        }
+        return found;
     }
 
     public override string Title => "Accueil";
     public string Greeting { get; }
-    public List<HomeSectionView> Sections { get; }
-    public List<Album> Recent { get; }
-    public List<SpotifyPlaylist> Playlists { get; }
-    public List<Album> SavedAlbums { get; }
-    public List<Album> Rediscover { get; }
-    public List<Artist> Artists { get; }
-    public List<Album> NewReleases { get; }
-    public List<Artist> TopArtists { get; }
-    public List<Album> Shows { get; }
+    public List<HomeSectionView> Sections { get; private set; }
+    public List<Album> Recent { get; private set; } = [];
+    public List<SpotifyPlaylist> Playlists { get; private set; } = [];
+    public List<Album> SavedAlbums { get; private set; } = [];
+    public List<Album> Rediscover { get; private set; } = [];
+    public List<Artist> Artists { get; private set; } = [];
+    public List<Album> NewReleases { get; private set; } = [];
+    public List<Artist> TopArtists { get; private set; } = [];
+    public List<Album> Shows { get; private set; } = [];
     public bool HasRecent => Recent.Count > 0;
     public bool HasPlaylists => Playlists.Count > 0;
     public bool HasSavedAlbums => SavedAlbums.Count > 0;
